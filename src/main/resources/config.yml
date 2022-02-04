@@ -1,0 +1,12 @@
+#Talexs - SettingTemplateYaml
+
+Settings:
+  prefix: "Talexs"
+  mysql:
+    ip: "localhost"
+    port: 3306
+    user: "root"
+    pass: "123456"
+    db: "soul_tech"
+
+#Talexs - SettingTemplateYaml

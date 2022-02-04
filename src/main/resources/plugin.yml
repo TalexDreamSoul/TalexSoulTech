@@ -1,0 +1,22 @@
+name: TalexSoulTech
+version: ${project.version}
+main: pubsher.talexsoultech.TalexSoulTech
+prefix: TST
+softdepend:
+  - AcidIsland
+depend:
+  - PlaceholderAPI
+  - TrHologram
+  - HolographicDisplays
+  - ProtocolLib
+authors: [ TalexDreamSoul ]
+description: Talex Addon
+website: pubsher.com
+commands:
+  talexsoultech:
+    aliases:
+      - "tst"
+      - "soultech"
+      - "sc"
+      - "tech"
+      - "soultechnology"

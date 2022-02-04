@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.pubsher</groupId>
+    <artifactId>TalexSoulTech</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>TalexSoulTech</name>
+
+    <description>TalexAddon</description>
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+<!--    <url>pubsher.com</url>-->
+<!--    <licenses>-->
+<!--        <license>-->
+<!--            <name>GNU AFFERO GENERAL PUBLIC LICENSE, Version 3 (LGPL-3.0)</name>-->
+<!--            <url>https://opensource.org/licenses/AGPL-3.0</url>-->
+<!--        </license>-->
+<!--    </licenses>-->
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+    </build>
+<!--    <profiles>-->
+<!--        &lt;!&ndash; 禁用注释检查 &ndash;&gt;-->
+<!--        <profile>-->
+<!--            <id>disable-javadoc-doclint</id>-->
+<!--            <activation>-->
+<!--                <jdk>[1.8,)</jdk>-->
+<!--            </activation>-->
+<!--            <properties>-->
+<!--                <javadoc.opts>-Xdoclint:none</javadoc.opts>-->
+<!--            </properties>-->
+<!--        </profile>-->
+<!--    </profiles>-->
+
+    <repositories>
+        <repository>
+            <id>papermc-repo</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.12.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.22</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>4.4.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}\lib\ProtocolLib.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>Hologram</groupId>
+            <artifactId>Hologram</artifactId>
+            <version>1.12.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}\lib\HolographicDisplays.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>me.arasple.mc.trhologram</groupId>
+            <artifactId>TrHologram</artifactId>
+            <version>2.2-all</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}\lib\TrHologram-2.2-all.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>me.placeholder</groupId>
+            <artifactId>PlaceHolderApi</artifactId>
+            <version>2.2-all</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}\lib\PlaceholderAPI.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>me.acidisland</groupId>
+            <artifactId>AcidIsland</artifactId>
+            <version>2.2-all</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}\lib\acidisland.jar</systemPath>
+        </dependency>
+    </dependencies>
+</project>
