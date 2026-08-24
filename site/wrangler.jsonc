@@ -1,0 +1,52 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "soultech",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-08-23",
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "soultech.tagzxia.com",
+      "custom_domain": true
+    }
+  ],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "soultech",
+      "database_id": "dc9d340a-266d-4be9-a95f-62065cc363f8",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "SYNC_COORDINATOR",
+        "class_name": "SyncCoordinator"
+      },
+      {
+        "name": "AUTH_RATE_LIMITER",
+        "class_name": "AuthRateLimiter"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "SyncCoordinator"
+      ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": [
+        "AuthRateLimiter"
+      ]
+    }
+  ]
+}

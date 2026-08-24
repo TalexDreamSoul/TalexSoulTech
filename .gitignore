@@ -114,6 +114,7 @@ run/
 
 # Cloudflare local state
 site/.wrangler/
+site/node_modules/
 
 # Local agent state
 .codex-temp/

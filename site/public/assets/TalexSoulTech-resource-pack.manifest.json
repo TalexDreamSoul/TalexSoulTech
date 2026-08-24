@@ -1,0 +1,242 @@
+{
+  "filename": "TalexSoulTech-26.1.2-resource-pack.zip",
+  "version": "26.1.2",
+  "target": "Minecraft Java 26.1.2 / Paper 26.1.2",
+  "resourcePackFormat": {
+    "major": 84,
+    "minor": 0
+  },
+  "archive": {
+    "path": "assets/TalexSoulTech-26.1.2-resource-pack.zip",
+    "size": 12379,
+    "sha256": "20f8d355ea8906864cc324f0c93a1be4a9286abefd2ab9e2b982360807691d86"
+  },
+  "models": [
+    {
+      "selector": "talexsoultech:guide_book",
+      "baseMaterial": "book",
+      "itemDefinition": "assets/minecraft/items/book.json",
+      "directItemDefinition": "assets/talexsoultech/items/guide_book.json",
+      "model": "assets/talexsoultech/models/item/guide_book.json",
+      "texture": "assets/talexsoultech/textures/item/guide_book.png"
+    },
+    {
+      "selector": "talexsoultech:guider_book",
+      "baseMaterial": "book",
+      "itemDefinition": "assets/minecraft/items/book.json",
+      "directItemDefinition": "assets/talexsoultech/items/guider_book.json",
+      "model": "assets/talexsoultech/models/item/guider_book.json",
+      "texture": "assets/talexsoultech/textures/item/guider_book.png"
+    },
+    {
+      "selector": "talexsoultech:copper_box",
+      "baseMaterial": "chest",
+      "itemDefinition": "assets/minecraft/items/chest.json",
+      "directItemDefinition": "assets/talexsoultech/items/copper_box.json",
+      "model": "assets/talexsoultech/models/item/copper_box.json",
+      "texture": "assets/talexsoultech/textures/item/copper_box.png"
+    },
+    {
+      "selector": "talexsoultech:iron_box",
+      "baseMaterial": "trapped_chest",
+      "itemDefinition": "assets/minecraft/items/trapped_chest.json",
+      "directItemDefinition": "assets/talexsoultech/items/iron_box.json",
+      "model": "assets/talexsoultech/models/item/iron_box.json",
+      "texture": "assets/talexsoultech/textures/item/iron_box.png"
+    },
+    {
+      "selector": "talexsoultech:void_box",
+      "baseMaterial": "barrel",
+      "itemDefinition": "assets/minecraft/items/barrel.json",
+      "directItemDefinition": "assets/talexsoultech/items/void_box.json",
+      "model": "assets/talexsoultech/models/item/void_box.json",
+      "texture": "assets/talexsoultech/textures/item/void_box.png"
+    },
+    {
+      "selector": "talexsoultech:fire_ingot",
+      "baseMaterial": "nether_brick",
+      "itemDefinition": "assets/minecraft/items/nether_brick.json",
+      "directItemDefinition": "assets/talexsoultech/items/fire_ingot.json",
+      "model": "assets/talexsoultech/models/item/fire_ingot.json",
+      "texture": "assets/talexsoultech/textures/item/fire_ingot.png"
+    },
+    {
+      "selector": "talexsoultech:space_dust",
+      "baseMaterial": "glowstone_dust",
+      "itemDefinition": "assets/minecraft/items/glowstone_dust.json",
+      "directItemDefinition": "assets/talexsoultech/items/space_dust.json",
+      "model": "assets/talexsoultech/models/item/space_dust.json",
+      "texture": "assets/talexsoultech/textures/item/space_dust.png"
+    },
+    {
+      "selector": "talexsoultech:resin",
+      "baseMaterial": "slime_ball",
+      "itemDefinition": "assets/minecraft/items/slime_ball.json",
+      "directItemDefinition": "assets/talexsoultech/items/resin.json",
+      "model": "assets/talexsoultech/models/item/resin.json",
+      "texture": "assets/talexsoultech/textures/item/resin.png"
+    }
+  ],
+  "files": [
+    {
+      "path": "assets/minecraft/items/barrel.json",
+      "size": 408,
+      "sha256": "9d157ecdb4dbfaa669897edbe9fb98fcac41d7ad611336410892b61269bb9e5a"
+    },
+    {
+      "path": "assets/minecraft/items/book.json",
+      "size": 589,
+      "sha256": "a6be1b9a91b0e820f2b9163201b51512a922fd3b9f90e02cc8ae2174fafc2e6a"
+    },
+    {
+      "path": "assets/minecraft/items/chest.json",
+      "size": 1016,
+      "sha256": "a95f59118613f60476929e6f11a5856f56bb8cce564a6317f1c1b7b13e466241"
+    },
+    {
+      "path": "assets/minecraft/items/glowstone_dust.json",
+      "size": 419,
+      "sha256": "2069c5962faf0c26d6f38dcf19d0d736d5dc31d464b32f3a507b24faf1d3c190"
+    },
+    {
+      "path": "assets/minecraft/items/nether_brick.json",
+      "size": 417,
+      "sha256": "102ae100473b032b5a85865b9e2354ac859213a12554af81d5f04366ac24f338"
+    },
+    {
+      "path": "assets/minecraft/items/slime_ball.json",
+      "size": 405,
+      "sha256": "fd97ec70fbfc1418fae08bd9dee41a293f03f5e6658d96c1d267a82de1a17a31"
+    },
+    {
+      "path": "assets/minecraft/items/trapped_chest.json",
+      "size": 1029,
+      "sha256": "ad5a8873ce54f6ba8c1c1734c4bde68941a6c7b836d189c0a4fd2be6f45c8381"
+    },
+    {
+      "path": "assets/talexsoultech/items/copper_box.json",
+      "size": 97,
+      "sha256": "2727419e611a091cdbe038126d6c7a71281c1dbf36b2179bc87b53e28d0c84dc"
+    },
+    {
+      "path": "assets/talexsoultech/items/fire_ingot.json",
+      "size": 97,
+      "sha256": "e997b9df2bd70d63ed247f8544a1f140811362f0ffbd131bc21fba323be6d99e"
+    },
+    {
+      "path": "assets/talexsoultech/items/guide_book.json",
+      "size": 97,
+      "sha256": "305e59124538156aa01aed343d9ae33c54b921ccfbde3e4796eb0e6de9ac67d6"
+    },
+    {
+      "path": "assets/talexsoultech/items/guider_book.json",
+      "size": 98,
+      "sha256": "51acb7cda16dd93bb0843cc39afe79e9bc0562b92d30bce27827265a15568bd8"
+    },
+    {
+      "path": "assets/talexsoultech/items/iron_box.json",
+      "size": 95,
+      "sha256": "ad1074f54be3dd571ca4177373bf388e83a9e8e6e6ec959f4e89619c5bc90da7"
+    },
+    {
+      "path": "assets/talexsoultech/items/resin.json",
+      "size": 92,
+      "sha256": "ffebe53e6f0c68f8211ffb44c440a0d65345f247ee4c1623558e883cad6ba27b"
+    },
+    {
+      "path": "assets/talexsoultech/items/space_dust.json",
+      "size": 97,
+      "sha256": "8b0e903e76563cb288f492720b15e19722db2362d4910aa214135bae649ddd8e"
+    },
+    {
+      "path": "assets/talexsoultech/items/void_box.json",
+      "size": 95,
+      "sha256": "9a5fe53451b8c751dde205285bcbe4f22f43e477e1336829f588a24212e1de10"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/copper_box.json",
+      "size": 110,
+      "sha256": "9ac657036e4cb1500eac5bfa76b336d829af5383bc766548406e1e410d99e58d"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/fire_ingot.json",
+      "size": 110,
+      "sha256": "d8740e754b3a158db92b3fccbdae2a6b9a4b9255de4e5a70de9c1a282a4c47d5"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/guide_book.json",
+      "size": 110,
+      "sha256": "d748eb6fea62e8e57d9db4d91869a0eb0aa68eddf8456bf2a9a852663d2f761b"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/guider_book.json",
+      "size": 111,
+      "sha256": "91bd2769ac6427057e7a88584ce9d2be8bb7260c86e3ee620182068f6dbebc4c"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/iron_box.json",
+      "size": 108,
+      "sha256": "a923121cdeb6291cf7ddeafb98f30cbf45e3af826a55b9490455c66928422a2b"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/resin.json",
+      "size": 105,
+      "sha256": "cfbb8f5b4bff7aceb9c2d5148239e1b69b5c12b81ab7c2c776d6e5d48a7597a8"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/space_dust.json",
+      "size": 110,
+      "sha256": "bc4d968566309c1f5cb96500efd99ead1cab7044456d0a3a791c90f03788bf63"
+    },
+    {
+      "path": "assets/talexsoultech/models/item/void_box.json",
+      "size": 108,
+      "sha256": "25fbf1d54fae8dae1d0046ebcb071b6d4804171e79e77d423fb74733550beeb0"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/copper_box.png",
+      "size": 149,
+      "sha256": "e2375d672fa8d9f276ac432d0e2ba7038a73f698bfecdec24791cd5777eee640"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/fire_ingot.png",
+      "size": 143,
+      "sha256": "a0678de9ffb534f3ce2ae6b43bef4ccabd77f5b303a2d09e59c33a80d6730592"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/guide_book.png",
+      "size": 142,
+      "sha256": "28c0628a36c4bc8e26bd798162dd7c944e258c84aa58855e512a95573f79d883"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/guider_book.png",
+      "size": 159,
+      "sha256": "767fc243d2292715f1fed0dfa0e28981ed5ce1fdcd8107044c34f363aefd907a"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/iron_box.png",
+      "size": 148,
+      "sha256": "40c0546e566836d1a557efa46324cbb9a16eb4ebd47e09d4a853aa280a63c56b"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/resin.png",
+      "size": 139,
+      "sha256": "f4bcdde7b0389fa9ab9d02f856aaa6ee63fe150294448bf522a95beb7043c1c6"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/space_dust.png",
+      "size": 130,
+      "sha256": "5a7016c09d8f30c89a0e0408f27c2a11770df4caa158269c56cf9c67b64e416f"
+    },
+    {
+      "path": "assets/talexsoultech/textures/item/void_box.png",
+      "size": 150,
+      "sha256": "440e2370f9be74fd5e7c10d97d33a760ffdbace9945b81c6b81fe2c78175c0cf"
+    },
+    {
+      "path": "pack.mcmeta",
+      "size": 124,
+      "sha256": "700e02a71263801c80911ca10390721d5b3c22297ed93ba4f6c163901fbec2db"
+    }
+  ]
+}

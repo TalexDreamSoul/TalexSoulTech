@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">TalexSoulTech 方块熔芯标记</title>
+  <rect width="64" height="64" fill="#171313"/>
+  <path fill="#d85647" d="M8 8h16v8H16v8H8V8Zm32 0h16v16h-8v-8h-8V8ZM8 40h8v8h8v8H8V40Zm40 0h8v16H40v-8h8v-8Z"/>
+  <path fill="#eee6e2" d="M22 20h20v8h-6v16h-8V28h-6v-8Z"/>
+  <rect x="28" y="32" width="8" height="8" fill="#d85647"/>
+</svg>
