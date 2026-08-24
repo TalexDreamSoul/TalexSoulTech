@@ -16,7 +16,7 @@ public class CompressLog2 extends SoulTechItem {
 
     public CompressLog2() {
 
-        super("compress_log2", new ItemBuilder(Material.LOG).setName("§f超级压缩原木").setLore("", "§8> §f又粗又硬..", "").toItemStack());
+        super("compress_log2", new ItemBuilder(Material.OAK_LOG).setName("§f超级压缩原木").setLore("", "§8> §f又粗又硬..", "").toItemStack());
     }
 
     @Override

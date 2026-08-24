@@ -2,21 +2,24 @@ name: TalexSoulTech
 version: ${project.version}
 main: pubsher.talexsoultech.TalexSoulTech
 prefix: TST
-softdepend:
-  - AcidIsland
-depend:
-  - PlaceholderAPI
-  - TrHologram
-  - HolographicDisplays
-  - ProtocolLib
+api-version: '1.21.3'
 authors: [ TalexDreamSoul ]
 description: Talex Addon
 website: pubsher.com
 commands:
   talexsoultech:
+    description: 查看灵魂科技命令帮助
+    usage: /<command> [help|guide|blood-moon|datalist|item-nbts|cloud [status|link <pairing-code>]|ext [list|reload|run <extension-id> <command> [args...]]]
     aliases:
       - "tst"
       - "soultech"
       - "sc"
       - "tech"
       - "soultechnology"
+permissions:
+  talex.soultech.admin:
+    description: 使用灵魂科技管理、云同步和扩展命令
+    default: op
+  talex.soultech.debug:
+    description: 使用灵魂科技调试命令
+    default: op

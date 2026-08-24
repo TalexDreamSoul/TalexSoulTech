@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
+import java.util.Objects;
+
 /**
  * <br /> {@link pubsher.talexsoultech.data.paper_addon }
  *
@@ -30,21 +32,24 @@ public class TLocation extends Location {
     }
 
     @Override
-    public boolean equals(Object obj) {
-
-        if ( obj instanceof TLocation ) {
-
-            return ( (TLocation) obj ).distance(this) < 1;
-
-        }
-
-        return super.equals(obj);
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (!(object instanceof TLocation other)) return false;
+        if (getWorld() == null || other.getWorld() == null) return false;
+        return getWorld().getUID().equals(other.getWorld().getUID())
+                && getBlockX() == other.getBlockX()
+                && getBlockY() == other.getBlockY()
+                && getBlockZ() == other.getBlockZ();
     }
 
     @Override
     public int hashCode() {
-
-        return getBlockX() * 31 + getBlockY() * 31 + getBlockZ() * 31;
+        return Objects.hash(
+                getWorld() == null ? null : getWorld().getUID(),
+                getBlockX(),
+                getBlockY(),
+                getBlockZ()
+        );
     }
 
 }

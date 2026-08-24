@@ -1,60 +1,34 @@
 package pubsher.talexsoultech.talex.items.machine.rooter;
 
 import org.bukkit.Location;
-import pubsher.talexsoultech.talex.electricity.achieve.Capacity;
-import pubsher.talexsoultech.talex.electricity.achieve.IReceiver;
+import pubsher.talexsoultech.talex.electricity.PowerEndpointType;
 import pubsher.talexsoultech.talex.items.machine.GeneratorMachine;
 
 /**
- * @author TalexDreamSoul
+ * 可双向充放电的基础储能设备。
  */
-public abstract class BaseStorager extends GeneratorMachine implements IReceiver {
+public abstract class BaseStorager extends GeneratorMachine {
 
-    public BaseStorager(Location loc, Capacity capacity, double storageCapacity, double singleSupplyCapacity, double voltage) {
-
-        super(loc, capacity, storageCapacity, singleSupplyCapacity, voltage);
+    public BaseStorager(
+            Location location,
+            long storedEnergy,
+            long storageCapacity,
+            long transferPerCycle
+    ) {
+        super(location, storedEnergy, storageCapacity, transferPerCycle);
     }
 
-    public BaseStorager(Location loc, double storageCapacity, double singleSupplyCapacity, double voltage) {
-
-        super(loc, storageCapacity, singleSupplyCapacity, voltage);
-    }
-
-    @Override
-    public Capacity saveStorageCapacity(Capacity addCapacity) {
-
-        if ( !canStorageCapacity(addCapacity) ) {
-
-            capacity.setStorageCapacity(getStorageCapacity());
-
-            return null;
-        }
-
-        updateHologram();
-
-        Capacity capacity = super.capacity.addStorageCapacity(addCapacity);
-
-        if ( capacity.getStorageCapacity() > getStorageCapacity() ) {
-
-            capacity.setStorageCapacity(getStorageCapacity());
-
-        }
-
-        return capacity;
-
+    public BaseStorager(Location location, long storageCapacity, long transferPerCycle) {
+        super(location, storageCapacity, transferPerCycle);
     }
 
     @Override
-    public double getCapacityVoltage() {
-
-        return getCapacity().getVoltage();
+    public PowerEndpointType type() {
+        return PowerEndpointType.STORAGE;
     }
 
     @Override
-    public boolean canStorageCapacity(Capacity capacity) {
-
-        return getStorageCapacity() > super.capacity.getStorageCapacity();
-
+    public long maxReceivePerCycle() {
+        return getSingleSupplyCapacity();
     }
-
 }

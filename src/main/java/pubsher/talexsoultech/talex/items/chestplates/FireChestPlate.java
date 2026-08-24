@@ -68,7 +68,7 @@ public class FireChestPlate extends SoulTechItem {
 
             if ( event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK ) {
 
-                playerData.playSound(Sound.ENTITY_IRONGOLEM_ATTACK, 0.3f, 1.3f);
+                playerData.playSound(Sound.ENTITY_IRON_GOLEM_ATTACK, 0.3f, 1.3f);
 
                 event.setCancelled(true);
 

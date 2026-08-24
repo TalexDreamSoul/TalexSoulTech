@@ -18,17 +18,17 @@ public class CompressLog extends SoulTechItem {
 
     public CompressLog() {
 
-        super("compress_log", new ItemBuilder(Material.LOG).setName("§f压缩原木").setLore("", "§8> §f又粗又硬..", "").toItemStack());
+        super("compress_log", new ItemBuilder(Material.OAK_LOG).setName("§f压缩原木").setLore("", "§8> §f又粗又硬..", "").toItemStack());
     }
 
     public WorkBenchRecipe getRecipe(CompressWood3 wood) {
 
         return new WorkBenchRecipe("compress_log", this)
 
-                .addRequired(new MineCraftItem(Material.LOG))
-                .addRequired(new MineCraftItem(Material.LOG)).addRequired(new MineCraftItem(Material.LOG)).addRequired(new MineCraftItem(Material.LOG))
-                .addRequired(wood).addRequired(new MineCraftItem(Material.LOG)).addRequired(new MineCraftItem(Material.LOG))
-                .addRequired(new MineCraftItem(Material.LOG)).addRequired(new MineCraftItem(Material.LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG)).addRequired(new MineCraftItem(Material.OAK_LOG)).addRequired(new MineCraftItem(Material.OAK_LOG))
+                .addRequired(wood).addRequired(new MineCraftItem(Material.OAK_LOG)).addRequired(new MineCraftItem(Material.OAK_LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG)).addRequired(new MineCraftItem(Material.OAK_LOG))
 
                 ;
 

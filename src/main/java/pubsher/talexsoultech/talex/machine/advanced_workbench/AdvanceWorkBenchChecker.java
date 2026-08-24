@@ -24,7 +24,7 @@ public class AdvanceWorkBenchChecker extends MachineChecker {
 
         Block block = event.getClickedBlock();
 
-        if ( block != null && block.getType() == Material.WORKBENCH ) {
+        if ( block != null && block.getType() == Material.CRAFTING_TABLE ) {
 
             Block block2 = block.getLocation().clone().add(0, 1, 0).getBlock();
 

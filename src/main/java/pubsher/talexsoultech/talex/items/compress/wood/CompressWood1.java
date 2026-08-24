@@ -15,10 +15,10 @@ public class CompressWood1 extends BaseCompress {
 
     public CompressWood1() {
 
-        super("wood_1", new ItemBuilder(Material.WOOD).setName("§f压缩木板 §8(x9)").addFlag(ItemFlag.HIDE_ENCHANTS).addEnchant(Enchantment.DURABILITY, 1).toItemStack(),
+        super("wood_1", new ItemBuilder(Material.OAK_PLANKS).setName("§f压缩木板 §8(x9)").addFlag(ItemFlag.HIDE_ENCHANTS).addEnchant(Enchantment.UNBREAKING, 1).toItemStack(),
 
 
-                new ItemBuilder(Material.WOOD).setAmount(9).toItemStack()
+                new ItemBuilder(Material.OAK_PLANKS).setAmount(9).toItemStack()
         );
 
         addIgnoreType(SoulTechItem.VerifyIgnoreTypes.IgnoreAmount)
@@ -33,15 +33,15 @@ public class CompressWood1 extends BaseCompress {
 
         WorkBenchRecipe wbr = new WorkBenchRecipe("stc_compress_wood_1", this);
 
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
-        wbr.addRequired(new MineCraftItem(Material.WOOD));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
+        wbr.addRequired(new MineCraftItem(Material.OAK_PLANKS));
 
         return wbr;
 

@@ -17,7 +17,7 @@ public class Compressor extends BaseMachine {
 
     public Compressor() {
 
-        super("compressor", new ItemBuilder(Material.PISTON_BASE)
+        super("compressor", new ItemBuilder(Material.PISTON)
 
                 .setName("§e压缩机")
                 .setLore("", "§8> §e9 个相同物品可以压缩", "")
@@ -39,7 +39,7 @@ public class Compressor extends BaseMachine {
 
                 Block block = e.getClickedBlock();
 
-                if ( block == null || block.getType() != Material.WORKBENCH ) {
+                if ( block == null || block.getType() != Material.CRAFTING_TABLE ) {
                     return false;
                 }
 
@@ -51,7 +51,7 @@ public class Compressor extends BaseMachine {
 
                 Block downBlock = block.getLocation().add(0, 1, 0).getBlock();
 
-                return downBlock != null && downBlock.getType() == Material.PISTON_BASE;
+                return downBlock != null && downBlock.getType() == Material.PISTON;
 
             }
         });
@@ -60,7 +60,7 @@ public class Compressor extends BaseMachine {
     @Override
     public void onOpenMachineInfoViewer(PlayerData playerData) {
 
-        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.PISTON_BASE)
+        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.PISTON)
 
                 .setName("§e压缩台")
                 .setLore("", "§8> 其构造特别简单.", "", "§e你只需要在工作台上放一个铁砧,下面放一个普通活塞即可!", "")

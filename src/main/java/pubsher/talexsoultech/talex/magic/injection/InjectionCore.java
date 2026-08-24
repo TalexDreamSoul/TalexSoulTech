@@ -24,7 +24,7 @@ public class InjectionCore extends SoulTechItem {
 
                 .setLore("", "§8> §5万物, 万灵, 万魔..", "")
 
-                .addEnchant(Enchantment.DURABILITY, 1).addFlag(ItemFlag.HIDE_ENCHANTS)
+                .addEnchant(Enchantment.UNBREAKING, 1).addFlag(ItemFlag.HIDE_ENCHANTS)
 
                 .toItemStack());
 

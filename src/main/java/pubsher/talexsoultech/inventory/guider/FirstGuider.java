@@ -45,7 +45,7 @@ public class FirstGuider extends BaseGuider {
     @Override
     public void SetupForPlayer(Player player, PlayerData playerData) {
 
-        if ( !playerData.isFirstUse() ) {
+        if ( playerData.isGuideInstalled() ) {
             playerData.delayRun(new PlayerDataRunnable() {
 
                 @Override
@@ -56,6 +56,7 @@ public class FirstGuider extends BaseGuider {
                 }
 
             }, 20);
+            return;
         }
 
         new InventoryPainter(this).drawFull();
@@ -117,7 +118,7 @@ public class FirstGuider extends BaseGuider {
 
     public void onlyOpenForPlayer(PlayerData playerData) {
 
-        if ( !playerData.isFirstUse() ) {
+        if ( playerData.isGuideInstalled() ) {
             new GuiderBook(playerData).open();
         }
 

@@ -36,7 +36,7 @@ public class BloodMoonCreator {
             };
     private Particle particles[] = new Particle[] {
 
-            Particle.FLAME, Particle.FALLING_DUST, Particle.CRIT, Particle.LAVA, Particle.CRIT_MAGIC, Particle.CRIT_MAGIC
+            Particle.FLAME, Particle.FALLING_DUST, Particle.CRIT, Particle.LAVA, Particle.ENCHANT, Particle.ENCHANT
 
     };
 
@@ -61,7 +61,7 @@ public class BloodMoonCreator {
             player.sendTitle("§4§l℘", "§c异血猩红素 §b已爆发!", 12, 50, 20);
             player.sendActionBar("§4§l℘");
 
-            player.playSound(player.getLocation(), Sound.ENTITY_ENDERDRAGON_GROWL, 1.0f, 1.0f);
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
 
         }
 
@@ -74,7 +74,7 @@ public class BloodMoonCreator {
             player.sendTitle("§8§l℘", "§c异血猩红素 §b已被抑制!", 15, 50, 40);
             player.sendActionBar("§8§l℘");
 
-            player.playSound(player.getLocation(), Sound.ENTITY_ENDERDRAGON_DEATH, 1.0f, 1.0f);
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_DEATH, 1.0f, 1.0f);
 
         }
 
@@ -131,8 +131,8 @@ public class BloodMoonCreator {
 
             if ( random.nextBoolean() ) {
 
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BASS, 0.75f, 1.0f);
-                player.playSound(player.getLocation(), Sound.BLOCK_WOOD_PRESSUREPLATE_CLICK_ON, 0.255f, 1.0f);
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.75f, 1.0f);
+                player.playSound(player.getLocation(), Sound.BLOCK_WOODEN_PRESSURE_PLATE_CLICK_ON, 0.255f, 1.0f);
 
             }
 
@@ -145,7 +145,7 @@ public class BloodMoonCreator {
 
             if ( random.nextBoolean() ) {
 
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BELL, 0.35f, 1.0f);
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, 0.35f, 1.0f);
                 player.playSound(player.getLocation(), Sound.ENTITY_BLAZE_BURN, 0.45f, 1.0f);
 
             }
@@ -193,8 +193,8 @@ public class BloodMoonCreator {
 
             }
 
-            main.getWorld().playEffect(main, Effect.COLOURED_DUST, 0);
-            main.getWorld().spawnParticle(Particle.CRIT_MAGIC, main, 1, 0, 0, 0, 0.0001);
+            main.getWorld().playEffect(main, Effect.POTION_BREAK, 0);
+            main.getWorld().spawnParticle(Particle.ENCHANT, main, 1, 0, 0, 0, 0.0001);
 
             if ( random.nextDouble() < 0.25 ) {
 
@@ -204,7 +204,7 @@ public class BloodMoonCreator {
 
             if ( random.nextDouble() < 0.000525 ) {
 
-                ParticleUtil.drawBlockParticleLine(main.getBlock(), Particle.CRIT_MAGIC);
+                ParticleUtil.drawBlockParticleLine(main.getBlock(), Particle.ENCHANT);
 
                 main.getWorld().strikeLightning(main);
 

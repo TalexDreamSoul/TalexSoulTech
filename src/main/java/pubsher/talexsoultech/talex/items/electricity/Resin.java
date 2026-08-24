@@ -1,6 +1,7 @@
 package pubsher.talexsoultech.talex.items.electricity;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.Sound;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -17,7 +18,8 @@ public class Resin extends SoulTechItem {
 
                 .setName("§f树脂")
                 .setLore("", "§8> §a洗净的树脂..", "")
-
+                .setCustomModelDataString("talexsoultech:resin")
+                .setRarity(ItemRarity.UNCOMMON)
                 .toItemStack());
 
     }

@@ -37,7 +37,7 @@ public class JumperBoot extends SoulTechItem {
     public JumperBoot() {
 
         super("jumper_boot", new ItemBuilder(Material.LEATHER_BOOTS).setLeatherArmorColor(Color.GREEN)
-                .setLore("", "§8> §a奇妙, 无与伦比", "§e在空中蹲下可飞跃.", "").addEnchant(Enchantment.DURABILITY, 1).toItemStack());
+                .setLore("", "§8> §a奇妙, 无与伦比", "§e在空中蹲下可飞跃.", "").addEnchant(Enchantment.UNBREAKING, 1).toItemStack());
     }
 
     @Override
@@ -112,7 +112,7 @@ public class JumperBoot extends SoulTechItem {
 
         if ( player.getFoodLevel() < 1 ) {
 
-            playerData.playSound(Sound.ENTITY_ENDERDRAGON_SHOOT, 1.0f, 1.2f).title("", "§7饱食度不足!!", 5, 15, 10);
+            playerData.playSound(Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0f, 1.2f).title("", "§7饱食度不足!!", 5, 15, 10);
 
             return;
 
@@ -124,7 +124,7 @@ public class JumperBoot extends SoulTechItem {
 
         player.setVelocity(vector.setY(1.75));
 
-        playerData.playSound(Sound.ENTITY_PARROT_IMITATE_ENDERMAN, 1f, 1.1f);
+        playerData.playSound(Sound.ENTITY_ENDERMAN_AMBIENT, 1f, 1.1f);
 
         CD.put(player.getName(), System.currentTimeMillis());
 

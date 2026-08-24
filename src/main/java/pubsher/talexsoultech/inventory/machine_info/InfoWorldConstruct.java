@@ -24,7 +24,7 @@ public class InfoWorldConstruct extends BaseGuider {
 
         this.display = display;
 
-        playerData.playSound(Sound.BLOCK_NOTE_FLUTE, 1.1F, 1.1F);
+        playerData.playSound(Sound.BLOCK_NOTE_BLOCK_FLUTE, 1.1F, 1.1F);
 
     }
 
@@ -63,7 +63,7 @@ public class InfoWorldConstruct extends BaseGuider {
                 @Override
                 public boolean onClick(InventoryClickEvent e) {
 
-                    playerData.playSound(Sound.BLOCK_NOTE_BASEDRUM, 1.2F, 1.2F).getLastGuider().open(true);
+                    playerData.playSound(Sound.BLOCK_NOTE_BLOCK_BASEDRUM, 1.2F, 1.2F).getLastGuider().open(true);
 
                     return true;
                 }

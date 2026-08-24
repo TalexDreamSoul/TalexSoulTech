@@ -14,6 +14,7 @@ import pubsher.talexsoultech.talex.guider.category.RecipeObject;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.block.TalexBlock;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -23,6 +24,8 @@ public abstract class SoulTechItem extends TalexItem {
 
     @Getter
     private static HashMap<String, SoulTechItem> items = new HashMap<>(64);
+    private static final MachineItem[] NO_GLOBAL_INTERACTION_OBSERVERS = new MachineItem[0];
+    private static volatile MachineItem[] globalInteractionObservers = NO_GLOBAL_INTERACTION_OBSERVERS;
     @Getter
     private final String ID;
     @Getter
@@ -41,27 +44,76 @@ public abstract class SoulTechItem extends TalexItem {
 
     }
 
-    public static SoulTechItem getItem(ItemStack stack) {
-
-        if ( checkItem(stack) ) {
-
-            return items.get(NBTsUtil.getTag(stack, "talex_soul_tc"));
-
+    /**
+     * Registers a machine whose placed blocks are intentionally not tracked by {@link TalexBlock}.
+     * Registration happens during item setup; event dispatch reads the immutable snapshot without copying it.
+     */
+    protected final void registerGlobalInteractionObserver() {
+        if ( !( this instanceof MachineItem machineItem ) ) {
+            throw new IllegalStateException("Only MachineItem can observe global interactions");
         }
 
-        return null;
+        synchronized ( SoulTechItem.class ) {
+            MachineItem[] current = globalInteractionObservers;
+            int replacementIndex = -1;
 
+            for ( int i = 0; i < current.length; i++ ) {
+                MachineItem observer = current[i];
+                if ( observer == machineItem ) {
+                    return;
+                }
+                if ( machineItem.getID().equals(observer.getID()) ) {
+                    replacementIndex = i;
+                }
+            }
+
+            if ( replacementIndex >= 0 ) {
+                MachineItem[] replacement = current.clone();
+                replacement[replacementIndex] = machineItem;
+                globalInteractionObservers = replacement;
+                return;
+            }
+
+            MachineItem[] observers = Arrays.copyOf(current, current.length + 1);
+            observers[current.length] = machineItem;
+            globalInteractionObservers = observers;
+        }
     }
 
-    public static SoulTechItem getWithoutAddon(String ID) {
-
-        return items.get(ID);
-
+    /**
+     * Dispatches the startup-built observer snapshot without an event-time collection copy.
+     */
+    public static void dispatchGlobalInteractionObservers(PlayerData playerData, PlayerInteractEvent event) {
+        MachineItem[] observers = globalInteractionObservers;
+        for ( MachineItem observer : observers ) {
+            observer.onClickedMachineItemBlock(playerData, event);
+        }
     }
 
-    public static SoulTechItem get(String ID) {
+    /**
+     * Releases observer references during plugin shutdown before a possible reload.
+     */
+    public static void clearGlobalInteractionObservers() {
+        synchronized ( SoulTechItem.class ) {
+            globalInteractionObservers = NO_GLOBAL_INTERACTION_OBSERVERS;
+        }
+    }
 
-        return items.get("sti_" + ID);
+    public static SoulTechItem getItem(ItemStack stack) {
+        if ( !checkItem(stack) ) {
+            return null;
+        }
+
+        return get(NBTsUtil.getTag(stack, "soul_tech_item_id"));
+    }
+
+    public static SoulTechItem getWithoutAddon(String id) {
+        return get(id);
+    }
+
+    public static SoulTechItem get(String id) {
+
+        return id == null ? null : items.get("sti_" + id);
 
     }
 
@@ -100,15 +152,11 @@ public abstract class SoulTechItem extends TalexItem {
     public void onInteract(PlayerData playerData, PlayerInteractEvent event) {}
 
     /**
-     * 设置EventCancel 代表方块不破坏 - 如果返回真将会把这个物品从 {@link pubsher.talexsoultech.talex.managers.BlockManager BlockManager}
-     * 中移除!
-     *
-     * @param playerData: 玩家数据
-     * @param event:      事件传递
-     *
-     * @return 是否从BlockManager中移除
+     * 自定义工具可覆盖此方法处理普通方块；默认不接管破坏事件。
      */
-    public boolean useItemBreakBlock(PlayerData playerData, BlockBreakEvent event) {return true;}
+    public boolean useItemBreakBlock(PlayerData playerData, BlockBreakEvent event) {
+        return false;
+    }
 
     public void throwItem(PlayerData playerData, PlayerDropItemEvent event) {}
 
@@ -216,9 +264,7 @@ public abstract class SoulTechItem extends TalexItem {
     }
 
     public boolean hasTag(String key) {
-
-        return !NBTsUtil.hasTag(this.itemBuilder.toItemStack(), key);
-
+        return NBTsUtil.hasTag(this.itemBuilder.toItemStack(), key);
     }
 
     public String getTag(String key) {

@@ -5,8 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
-import me.arasple.mc.trhologram.api.TrHologramAPI;
-import me.arasple.mc.trhologram.module.display.Hologram;
+import pubsher.talexsoultech.platform.TextHologram;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -40,7 +39,7 @@ import java.util.List;
 @NoArgsConstructor
 public class FurnaceCauldronObject implements Serializable {
 
-    public Hologram hologram;
+    public TextHologram hologram;
     private ItemStack processingItem;
     private double totalTime = -1;
     private long startTime = -1;
@@ -129,7 +128,7 @@ public class FurnaceCauldronObject implements Serializable {
         if ( !run ) {
 
             if ( hologram != null ) {
-                hologram.destroy();
+                hologram.delete();
             }
 
         } else {
@@ -138,7 +137,7 @@ public class FurnaceCauldronObject implements Serializable {
 
                 startTime += 500;
 
-                block.getWorld().spawnParticle(Particle.BARRIER, block.getLocation().add(0.5, 0.75, 0.5), 1, 0, 0, 0, 0.00001);
+                block.getWorld().spawnParticle(Particle.SMOKE, block.getLocation().add(0.5, 0.75, 0.5), 1, 0, 0, 0, 0.00001);
                 block.getWorld().playSound(block.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1.3f);
 
                 return;
@@ -166,7 +165,7 @@ public class FurnaceCauldronObject implements Serializable {
 
             if ( hologram != null ) {
 
-                hologram.destroy();
+                hologram.delete();
 
             }
 
@@ -174,9 +173,10 @@ public class FurnaceCauldronObject implements Serializable {
 
             String str = StringUtil.generateProgressString(percent, 5, "§b■", "§7■");
 
-            hologram = TrHologramAPI.builder(block.getLocation().add(0.5, 2.25, 0.5))
-                    .append(player -> processingItem).append("§8[ §r" + str + " §8] §7(§e" + ( new DecimalFormat("##.##").format(percent * 100) ) + "%§7)", 10, 0.15)
-                    .append("§e" + new DecimalFormat("##.###").format(Math.abs(( totalTime - System.currentTimeMillis() + startTime ) / 1000f)) + "秒 ").build();
+            hologram = TextHologram.create(block.getLocation().add(0.5, 2.25, 0.5));
+            hologram.appendItemLine(processingItem);
+            hologram.appendTextLine("§8[ §r" + str + " §8] §7(§e" + new DecimalFormat("##.##").format(percent * 100) + "%§7)");
+            hologram.appendTextLine("§e" + new DecimalFormat("##.###").format(Math.abs((totalTime - System.currentTimeMillis() + startTime) / 1000f)) + "秒 ");
 
             block.getWorld().spawnParticle(Particle.FLAME, block.getLocation().add(0.5, 1.85, 0.5), (int) ( 4 * ( totalTime / 2000 ) + 3 ), 0, 0, 0, 0.01);
             block.getWorld().playSound(block.getLocation(), Sound.BLOCK_ANVIL_LAND, 1, 1.1f);

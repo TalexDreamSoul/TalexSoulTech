@@ -151,7 +151,7 @@ public class MachineList extends BaseGuider {
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 3).setName("§a下一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
+                return new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).setName("§a下一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
 
             }
 
@@ -178,7 +178,7 @@ public class MachineList extends BaseGuider {
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 3).setName("§a上一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
+                return new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).setName("§a上一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
 
             }
 

@@ -79,7 +79,7 @@ public class Line extends ParticleObject implements Playable {
         double vectorLength = vectorAB.length();
         vectorAB.normalize();
         for ( double i = 0; i < vectorLength; i += step ) {
-            locA.getWorld().spawnParticle(Particle.REDSTONE, locA.clone().add(vectorAB.clone().multiply(i)), 1, 0, 0, 0, color);
+            locA.getWorld().spawnParticle(Particle.DUST, locA.clone().add(vectorAB.clone().multiply(i)), 1, 0, 0, 0, color);
         }
     }
 

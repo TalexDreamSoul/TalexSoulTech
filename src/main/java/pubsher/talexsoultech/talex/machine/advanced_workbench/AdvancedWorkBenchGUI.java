@@ -24,6 +24,7 @@ public class AdvancedWorkBenchGUI extends MachineGUI {
     public AdvancedWorkBenchGUI(PlayerData playerData) {
 
         super(playerData, "§b高级工作台", 5);
+        inventoryUI.setCanClose(true);
 
     }
 
@@ -67,7 +68,7 @@ public class AdvancedWorkBenchGUI extends MachineGUI {
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 5).setLore("", "§8> §a伟大的, 不是创造", "").setName("§a合成").toItemStack();
+                return new ItemBuilder(Material.LIME_STAINED_GLASS_PANE).setLore("", "§8> §a伟大的, 不是创造", "").setName("§a合成").toItemStack();
 
             }
 

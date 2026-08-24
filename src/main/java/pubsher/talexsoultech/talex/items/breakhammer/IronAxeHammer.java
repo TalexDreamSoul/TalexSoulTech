@@ -16,7 +16,7 @@ public class IronAxeHammer extends BaseBreakHammer {
 
     public IronAxeHammer(StoneHammer stoneHammer) {
 
-        super("axe_gold", new ItemBuilder(Material.GOLD_AXE).setName("§f◆ 破碎锤斧(金)").setLore("", "§8> §e斧刃!", "").toItemStack());
+        super("axe_gold", new ItemBuilder(Material.GOLDEN_AXE).setName("§f◆ 破碎锤斧(金)").setLore("", "§8> §e斧刃!", "").toItemStack());
 
         this.stoneHammer = stoneHammer;
 
@@ -35,7 +35,7 @@ public class IronAxeHammer extends BaseBreakHammer {
 
             if ( a < 20 ) {
 
-                return new ItemBuilder(Material.getMaterial(351)).setDurability((short) 4).setAmount(random.nextInt(8)).toItemStack();
+                return new ItemBuilder(Material.LAPIS_LAZULI).setAmount(random.nextInt(8)).toItemStack();
 
             }
 

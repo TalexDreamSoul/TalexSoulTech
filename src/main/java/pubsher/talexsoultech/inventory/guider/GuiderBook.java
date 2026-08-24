@@ -41,7 +41,7 @@ public class GuiderBook extends BaseGuider {
         this.category = category;
         this.lastGuiderBook = last;
 
-        playerData.playSound(Sound.BLOCK_NOTE_PLING, 1.0F, 1.0F).setLastGuider(this);
+        playerData.playSound(Sound.BLOCK_NOTE_BLOCK_PLING, 1.0F, 1.0F).setLastGuider(this);
 
     }
 
@@ -77,7 +77,7 @@ public class GuiderBook extends BaseGuider {
                 @Override
                 public InventoryUI.ClickableItem onDrawFull(int slot) {
 
-                    return new InventoryUI.EmptyClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 14).setName("§c无法正确加载分类信息,请联系管理员!").toItemStack());
+                    return new InventoryUI.EmptyClickableItem(new ItemBuilder(Material.RED_STAINED_GLASS_PANE).setName("§c无法正确加载分类信息,请联系管理员!").toItemStack());
 
                 }
 
@@ -91,7 +91,7 @@ public class GuiderBook extends BaseGuider {
             @Override
             public InventoryUI.ClickableItem onDrawFull(int slot) {
 
-                return new InventoryUI.EmptyClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 8).setName("§7").toItemStack());
+                return new InventoryUI.EmptyClickableItem(new ItemBuilder(Material.LIGHT_GRAY_STAINED_GLASS_PANE).setName("§7").toItemStack());
 
             }
 
@@ -294,7 +294,7 @@ public class GuiderBook extends BaseGuider {
 
                     }
 
-                    ib.isTrueAccessEnchant(lock[0], Enchantment.DURABILITY, 1);
+                    ib.isTrueAccessEnchant(lock[0], Enchantment.UNBREAKING, 1);
                     ib.addFlag(ItemFlag.HIDE_ENCHANTS);
 
                     return ib.toItemStack();
@@ -366,7 +366,7 @@ public class GuiderBook extends BaseGuider {
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 3).setName("§a下一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
+                return new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).setName("§a下一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
 
             }
 
@@ -393,7 +393,7 @@ public class GuiderBook extends BaseGuider {
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 3).setName("§a上一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
+                return new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).setName("§a上一页   §8(§a" + now + "§7/§e" + max + "§8)").toItemStack();
 
             }
 

@@ -19,7 +19,7 @@ public class AdvancedWorkBench extends BaseMachine {
 
     public AdvancedWorkBench() {
 
-        super("AdvancedWorkBench", new ItemBuilder(Material.WORKBENCH)
+        super("AdvancedWorkBench", new ItemBuilder(Material.CRAFTING_TABLE)
 
                 .setName("§b高级工作台")
                 .setLore("", "§8> §a本配方需要通过 §b高级工作台 §a合成!", "")
@@ -35,7 +35,7 @@ public class AdvancedWorkBench extends BaseMachine {
             return;
         }
 
-        playerData.actionBar("§b你打开了 高级工作台 !").playSound(Sound.BLOCK_NOTE_GUITAR, 1.2F, 1.2F);
+        playerData.actionBar("§b你打开了 高级工作台 !").playSound(Sound.BLOCK_NOTE_BLOCK_GUITAR, 1.2F, 1.2F);
 
 //        String str = NBTsUtil.Location2String(((PlayerInteractEvent) event).getClickedBlock().getLocation());
 //
@@ -169,7 +169,7 @@ public class AdvancedWorkBench extends BaseMachine {
     @Override
     public void onOpenMachineInfoViewer(PlayerData playerData) {
 
-        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.WORKBENCH)
+        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.CRAFTING_TABLE)
 
                 .setName("§b高级合成台")
                 .setLore("", "§8> 其构造特别简单.", "", "§e你只需要在工作台上放一块玻璃就可以打开它!", "")

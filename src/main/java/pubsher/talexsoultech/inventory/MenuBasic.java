@@ -8,12 +8,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import pubsher.talexsoultech.TalexSoulTech;
 import pubsher.talexsoultech.utils.inventory.InventoryUI;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 public abstract class MenuBasic {
 
-    public static HashMap<Player, ArrayList<MenuBasic>> uis = new HashMap<>();
     public InventoryUI inventoryUI;
     public Player player;
     protected MenuBasic mb = this;
@@ -65,14 +61,6 @@ public abstract class MenuBasic {
 
             }
         };
-
-        if ( !uis.containsKey(uis) ) {
-            uis.put(player, new ArrayList<>());
-        }
-        ArrayList<MenuBasic> al = uis.get(player);
-        al.add(this);
-        uis.put(player, al);
-        //user = LobbyListeners.data.getOrDefault(player.getName(),UserInfo.refreshUserInfo(player.getName()));//UserInfo.refreshUserInfo(player.getName());
 
     }
 

@@ -2,20 +2,17 @@ package pubsher.talexsoultech.talex.magic;
 
 import lombok.Data;
 import lombok.SneakyThrows;
-import me.arasple.mc.trhologram.api.TrHologramAPI;
-import me.arasple.mc.trhologram.api.base.ItemTexture;
-import me.arasple.mc.trhologram.module.display.Hologram;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import pubsher.talexsoultech.platform.TextHologram;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.talex.guider.category.RecipeObject;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
@@ -39,13 +36,15 @@ public class ItemShower extends MachineBlockItem {
 
     public ItemShower() {
 
-        super("magic_item_shower", new ItemBuilder(Material.ENDER_PORTAL_FRAME)
+        super("magic_item_shower", new ItemBuilder(Material.END_PORTAL_FRAME)
 
                 .setName("§5魔力展示台")
 
                 .setLore("", "§8> §a魔法? 微不足道..", "")
 
                 .toItemStack());
+
+        registerGlobalInteractionObserver();
 
     }
 
@@ -55,11 +54,11 @@ public class ItemShower extends MachineBlockItem {
         return new WorkBenchRecipe("magic_item_shower", this)
 
                 .addRequiredNull()
-                .addRequired(new TalexItem(new ItemBuilder(Material.getMaterial(351)).setDurability((short) 4).toItemStack()))
+                .addRequired(new TalexItem(new ItemBuilder(Material.LAPIS_LAZULI).toItemStack()))
                 .addRequiredNull()
-                .addRequired(new TalexItem(new ItemBuilder(Material.getMaterial(44)).setDurability((short) 5).toItemStack()))
+                .addRequired(new TalexItem(new ItemBuilder(Material.STONE_BRICK_SLAB).toItemStack()))
                 .addRequired(new MineCraftItem(Material.ENDER_PEARL))
-                .addRequired(new TalexItem(new ItemBuilder(Material.getMaterial(44)).setDurability((short) 5).toItemStack()))
+                .addRequired(new TalexItem(new ItemBuilder(Material.STONE_BRICK_SLAB).toItemStack()))
                 .addRequiredNull()
                 .addRequired(new MineCraftItem(Material.ANVIL))
                 .addRequiredNull()
@@ -75,11 +74,11 @@ public class ItemShower extends MachineBlockItem {
 
         for ( Map.Entry<String, ItemShowerDisplay> entry : showerHashMap.entrySet() ) {
 
-            Hologram hologram = entry.getValue().hologram;
+            TextHologram hologram = entry.getValue().hologram;
 
             if ( hologram != null ) {
 
-                hologram.destroy();
+                hologram.delete();
 
             }
 
@@ -122,16 +121,8 @@ public class ItemShower extends MachineBlockItem {
             if ( target != null ) {
 
                 isd.stack = target;
-                isd.hologram = TrHologramAPI.builder(loc.clone().add(0.5, 1.35, 0.5))
-                        .append(new ItemTexture() {
-
-                            @Override
-                            public ItemStack generate(Player player) {
-
-                                return isd.stack;
-                            }
-                        }).build();
-
+                isd.hologram = TextHologram.create(loc.clone().add(0.5, 1.35, 0.5));
+                isd.hologram.appendItemLine(isd.stack);
             }
 
             showerHashMap.put(key, isd);
@@ -185,7 +176,7 @@ public class ItemShower extends MachineBlockItem {
 
             if ( itemShower.stack != null ) {
 
-                itemShower.hologram.destroy();
+                itemShower.hologram.delete();
 
                 block.getWorld().dropItem(loc, itemShower.stack);
 
@@ -213,12 +204,12 @@ public class ItemShower extends MachineBlockItem {
 
             itemShower.stack = target;
 
-            itemShower.hologram = TrHologramAPI.builder(loc.clone().add(0.5, 1.35, 0.5))
-                    .append(player -> target, 5, 0).build();
+            itemShower.hologram = TextHologram.create(loc.clone().add(0.5, 1.35, 0.5));
+            itemShower.hologram.appendItemLine(target);
 
         } else {
 
-            itemShower.hologram.destroy();
+            itemShower.hologram.delete();
 
             playerData.getPlayer().getInventory().addItem(itemShower.stack);
 
@@ -256,7 +247,7 @@ public class ItemShower extends MachineBlockItem {
 
         private ItemStack stack;
 
-        private Hologram hologram;
+        private TextHologram hologram;
 
     }
 

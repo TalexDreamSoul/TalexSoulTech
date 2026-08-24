@@ -1,66 +1,32 @@
 package pubsher.talexsoultech.talex.items.machine.rooter;
 
 import lombok.Getter;
-import lombok.Setter;
-import pubsher.talexsoultech.talex.electricity.achieve.Capacity;
-import pubsher.talexsoultech.talex.electricity.achieve.IReceiver;
-import pubsher.talexsoultech.talex.electricity.function.wire.IWire;
+import org.bukkit.Location;
+import pubsher.talexsoultech.talex.electricity.BlockKey;
+import pubsher.talexsoultech.talex.electricity.PowerCable;
 
 /**
- * @author TalexDreamSoul
+ * 导线规格工厂；普通导线不缓存能量。
  */
 @Getter
-public abstract class BaseWire implements IWire, IReceiver {
+public class BaseWire {
 
-    private final double maxStorage;
-    /**
-     * 单次供电大小
-     **/
-    private final double singleSupplyCapacity;
-    protected Capacity capacity;
-    @Setter
-    private String symbol;
+    private final long throughputPerCycle;
+    private final int lossPermille;
+    private final String symbol;
 
-    public BaseWire(double singleSupplyCapacity, double voltage, double maxStorage) {
-
-        this.capacity = new Capacity(0, voltage);
-        this.singleSupplyCapacity = singleSupplyCapacity;
-        this.maxStorage = maxStorage;
-
+    public BaseWire(long throughputPerCycle, int lossPermille, String symbol) {
+        if (throughputPerCycle <= 0) throw new IllegalArgumentException("throughput must be positive");
+        if (lossPermille < 0 || lossPermille >= 1_000) {
+            throw new IllegalArgumentException("lossPermille must be between 0 and 999");
+        }
+        if (symbol == null || symbol.isBlank()) throw new IllegalArgumentException("symbol must not be blank");
+        this.throughputPerCycle = throughputPerCycle;
+        this.lossPermille = lossPermille;
+        this.symbol = symbol;
     }
 
-    @Override
-    public Capacity provideCapacity(Capacity willCapacity) {
-
-        return capacity.provideStorageCapacity(willCapacity);
-
+    public PowerCable at(Location location) {
+        return new PowerCable(BlockKey.from(location), throughputPerCycle, lossPermille, symbol);
     }
-
-    @Override
-    public boolean canProvideCapacity(Capacity willCapacity) {
-
-        return capacity.canProvideCapacity(willCapacity);
-
-    }
-
-    @Override
-    public Capacity saveStorageCapacity(Capacity addCapacity) {
-
-        return capacity.addStorageCapacity(addCapacity);
-
-    }
-
-    @Override
-    public double getCapacityVoltage() {
-
-        return capacity.getVoltage();
-    }
-
-    @Override
-    public boolean canStorageCapacity(Capacity capacity) {
-
-        return this.capacity.getStorageCapacity() < getMaxStorage();
-
-    }
-
 }

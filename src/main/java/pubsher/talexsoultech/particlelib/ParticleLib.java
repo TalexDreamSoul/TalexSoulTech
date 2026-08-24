@@ -92,10 +92,10 @@ public class ParticleLib {
                 high.clone().add(0, 0, 5));
 
         Grid grid = new Grid(low, lowers.get(2), 1.4D);
-        grid.setParticle(Particle.FIREWORKS_SPARK);
+        grid.setParticle(Particle.FIREWORK);
         grid.show();
         Grid grid2 = new Grid(high, highers.get(2), 1.4D);
-        grid2.setParticle(Particle.FIREWORKS_SPARK);
+        grid2.setParticle(Particle.FIREWORK);
         grid2.show();
         for ( int i = 0; i < lowers.size(); i++ ) {
             Location origin = lowers.get(i);
@@ -122,7 +122,7 @@ public class ParticleLib {
             }
             // 绘制网格面
             Grid grid3 = new Grid(origin, topNext, 1.4D);
-            grid3.setParticle(Particle.FIREWORKS_SPARK);
+            grid3.setParticle(Particle.FIREWORK);
             grid3.show();
         }
     }

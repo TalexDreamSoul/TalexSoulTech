@@ -124,7 +124,7 @@ public class GriddleObject implements Serializable {
 
         double percent = getProgressPercent();
 
-        block.getWorld().spawnParticle(Particle.BLOCK_DUST, block.getLocation().add(0.5, 0.45, 0.5), 100, 0, 0, 0, 0.01);
+        block.getWorld().spawnParticle(Particle.BLOCK, block.getLocation().add(0.5, 0.45, 0.5), 100, 0, 0, 0, 0.01);
 
         String str = StringUtil.generateProgressString(percent, 9, "§b■", "§7■");
 

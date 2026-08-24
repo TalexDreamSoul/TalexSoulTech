@@ -141,21 +141,13 @@ public class CategoryObject extends BaseGuider {
     }
 
     public CategoryObject addPreposition(String categoryID) {
+        if (preposition == null) preposition = new HashSet<>();
 
-        if ( preposition == null ) {
-            preposition = new HashSet<>();
-        }
-
-        CategoryObject categoryObject = BaseTalex.getInstance().getCategoryManager().getCategoryObject(ID);
-
-        if ( categoryObject == null ) {
-            return this;
-        }
-
-        preposition.add(categoryObject);
-
+        CategoryObject categoryObject = BaseTalex.getInstance()
+                .getCategoryManager()
+                .getCategoryObject(categoryID);
+        if (categoryObject != null) preposition.add(categoryObject);
         return this;
-
     }
 
     public CategoryObject addPreposition(CategoryObject categoryObject) {

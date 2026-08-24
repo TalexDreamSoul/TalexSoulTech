@@ -4,12 +4,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.map.MapView;
 
 import java.util.ArrayList;
@@ -76,7 +81,8 @@ public class ItemBuilder {
      */
     public ItemBuilder(Material m, int amount, byte durability) {
 
-        is = new ItemStack(m, amount, durability);
+        this(m, amount);
+        setDamage(durability);
     }
 
     /**
@@ -90,13 +96,26 @@ public class ItemBuilder {
     }
 
     /**
-     * Change the durability of the item.
-     *
-     * @param dur The durability to set it to.
+     * @deprecated 使用 {@link #setDamage(int)}；旧版 data 值不再参与物品视觉。
      */
+    @Deprecated
     public ItemBuilder setDurability(short dur) {
 
-        is.setDurability(dur);
+        return setDamage(dur);
+    }
+
+    /**
+     * 设置可损坏物品的 damage 组件；非工具类材质保持原样。
+     *
+     * @param damage 要设置的 damage 值
+     */
+    public ItemBuilder setDamage(int damage) {
+
+        ItemMeta itemMeta = is.getItemMeta();
+        if ( itemMeta instanceof Damageable damageable ) {
+            damageable.setDamage(Math.max(0, damage));
+            is.setItemMeta(itemMeta);
+        }
         return this;
     }
 
@@ -214,6 +233,82 @@ public class ItemBuilder {
     }
 
     /**
+     * 为兼容旧调用保留；仅写入 glint override，不附加伪附魔。
+     */
+    public ItemBuilder setEnchantmentGlint(boolean enabled) {
+
+        return setEnchantmentGlintOverride(enabled);
+    }
+
+    /**
+     * 设置 enchantment glint override；传入 {@code null} 可清除覆盖。
+     */
+    public ItemBuilder setEnchantmentGlintOverride(Boolean override) {
+
+        ItemMeta itemMeta = is.getItemMeta();
+        itemMeta.setEnchantmentGlintOverride(override);
+        is.setItemMeta(itemMeta);
+        return this;
+    }
+
+    /**
+     * 设置客户端物品模型键。此组件只影响视觉，业务身份仍应使用 PDC。
+     */
+    public ItemBuilder setItemModel(NamespacedKey itemModel) {
+
+        ItemMeta itemMeta = is.getItemMeta();
+        itemMeta.setItemModel(itemModel);
+        is.setItemMeta(itemMeta);
+        return this;
+    }
+
+    /**
+     * 写入 CustomModelData 的首个字符串选择器。资源包可在基础材质的 items 定义中
+     * 按此键选择模型；未装资源包的客户端仍使用该材质的原版定义。
+     *
+     * @param selector 命名空间字符串选择器，例如 {@code talexsoultech:guide_book}
+     */
+    public ItemBuilder setCustomModelDataString(String selector) {
+
+        return setCustomModelDataStrings(List.of(selector));
+    }
+
+    /**
+     * 写入 CustomModelData 字符串选择器快照，不使用已弃用的整数 custom model data。
+     */
+    public ItemBuilder setCustomModelDataStrings(List<String> selectors) {
+
+        ItemMeta itemMeta = is.getItemMeta();
+        CustomModelDataComponent customModelData = itemMeta.getCustomModelDataComponent();
+        customModelData.setStrings(List.copyOf(selectors));
+        itemMeta.setCustomModelDataComponent(customModelData);
+        is.setItemMeta(itemMeta);
+        return this;
+    }
+
+    /**
+     * 设置客户端提示框样式键。
+     */
+    public ItemBuilder setTooltipStyle(NamespacedKey tooltipStyle) {
+
+        ItemMeta itemMeta = is.getItemMeta();
+        itemMeta.setTooltipStyle(tooltipStyle);
+        is.setItemMeta(itemMeta);
+        return this;
+    }
+
+    /**
+     * 设置原版稀有度颜色。
+     */
+    public ItemBuilder setRarity(ItemRarity rarity) {
+
+        ItemMeta itemMeta = is.getItemMeta();
+        itemMeta.setRarity(rarity);
+        is.setItemMeta(itemMeta);
+        return this;
+    }
+
+    /**
      * Add multiple enchants at once.
      *
      * @param enchantments The enchants to add.
@@ -225,18 +320,17 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets infinity durability on the item by setting the durability to Short.MAX_VALUE.
+     * Makes the item unbreakable.
      */
     public ItemBuilder setInfinityDurability() {
 
-        is.setDurability(Short.MAX_VALUE);
-        return this;
+        return setUnbreakable();
     }
 
     public ItemBuilder setUnbreakable() {
 
         ItemMeta im = is.getItemMeta();
-        im.spigot().setUnbreakable(true);
+        im.setUnbreakable(true);
         is.setItemMeta(im);
         return this;
     }
@@ -372,32 +466,24 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets the dye color on an item.
-     * <b>* Notice that this doesn't check for item type, sets the literal data of the dyecolor as durability.</b>
+     * Sets the material to the requested dye color.
      *
-     * @param color The color to put.
+     * @param color The dye color to use.
      */
     public ItemBuilder setDyeColor(DyeColor color) {
 
-        this.is.setDurability(color.getDyeData());
+        is.setType(Material.valueOf(color.name() + "_DYE"));
         return this;
     }
 
     /**
-     * Sets the dye color of a wool item. Works only on wool.
+     * Sets the material to the requested wool color.
      *
-     * @param color The DyeColor to set the wool item to.
-     *
-     * @see ItemBuilder @setDyeColor(DyeColor)
-     * @deprecated As of version 1.2 changed to setDyeColor.
+     * @param color The wool color to use.
      */
-    @Deprecated
     public ItemBuilder setWoolColor(DyeColor color) {
 
-        if ( !is.getType().equals(Material.WOOL) ) {
-            return this;
-        }
-        this.is.setDurability(color.getWoolData());
+        is.setType(Material.valueOf(color.name() + "_WOOL"));
         return this;
     }
 
@@ -418,13 +504,17 @@ public class ItemBuilder {
     }
 
     /**
-     * 设置ID
+     * 设置地图视图。
      *
-     * @param mapView 要设置的id
+     * @param mapView 要设置的地图视图
      */
     public ItemBuilder setMapView(MapView mapView) {
 
-        setDurability(mapView.getId());
+        ItemMeta itemMeta = is.getItemMeta();
+        if ( itemMeta instanceof MapMeta mapMeta ) {
+            mapMeta.setMapView(mapView);
+            is.setItemMeta(mapMeta);
+        }
         return this;
     }
 //    /**
@@ -477,11 +567,7 @@ public class ItemBuilder {
 
     public ItemBuilder isTrueSetDurability(boolean condition, short dur) {
 
-        if ( condition ) {
-            is.setDurability(dur);
-        }
-
-        return this;
+        return condition ? setDurability(dur) : this;
 
     }
 

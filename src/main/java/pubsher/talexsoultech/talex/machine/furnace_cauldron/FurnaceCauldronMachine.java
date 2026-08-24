@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -46,7 +47,7 @@ public class FurnaceCauldronMachine extends BaseMachine {
 
     public FurnaceCauldronMachine() {
 
-        super("furnace_cauldron", new ItemBuilder(Material.CAULDRON_ITEM).setName("§c冶炼锅炉").setLore("", "§8> §c冶炼的打造 无尽的锤炼!", "").toItemStack(), new MachineChecker() {
+        super("furnace_cauldron", new ItemBuilder(Material.CAULDRON).setName("§c冶炼锅炉").setLore("", "§8> §c冶炼的打造 无尽的锤炼!", "").toItemStack(), new MachineChecker() {
 
             @Override
             public boolean onCheck(PlayerEvent event) {
@@ -61,7 +62,7 @@ public class FurnaceCauldronMachine extends BaseMachine {
 
                         Block fire = block.getLocation().add(0, -1, 0).getBlock();
 
-                        return fire.getType() == Material.FIRE || ( fire.getType().name().contains("LAVA") && fire.getState().getData().getData() == 0 );
+                        return isHeatSource(fire);
 
                     }
 
@@ -72,6 +73,17 @@ public class FurnaceCauldronMachine extends BaseMachine {
         });
 
         runner();
+
+    }
+
+private static boolean isHeatSource(Block block) {
+
+        if ( block.getType() == Material.FIRE ) {
+            return true;
+        }
+        return block.getType() == Material.LAVA
+                && block.getBlockData() instanceof Levelled levelled
+                && levelled.getLevel() == 0;
 
     }
 
@@ -112,11 +124,11 @@ public class FurnaceCauldronMachine extends BaseMachine {
 
                     Block fire = block.getLocation().add(0, -1, 0).getBlock();
 
-                    if ( block.getType() != Material.CAULDRON || ( fire.getType() != Material.FIRE && !( fire.getType().name().contains("LAVA") && fire.getState().getData().getData() == 0 ) ) ) {
+                    if ( block.getType() != Material.CAULDRON || ( !isHeatSource(fire) ) ) {
 
                         if ( obj.hologram != null ) {
 
-                            obj.hologram.destroy();
+                            obj.hologram.delete();
 
                         }
 
@@ -144,7 +156,7 @@ public class FurnaceCauldronMachine extends BaseMachine {
 
                     if ( fire.getType().name().contains("LAVA") ) {
 
-                        ParticleUtil.drawBlockParticleLine(block, Particle.DRIP_LAVA, 1.05);
+                        ParticleUtil.drawBlockParticleLine(block, Particle.DRIPPING_LAVA, 1.05);
 
                         entry.getValue().speed();
 
@@ -161,7 +173,7 @@ public class FurnaceCauldronMachine extends BaseMachine {
     @Override
     public void onOpenMachineInfoViewer(PlayerData playerData) {
 
-        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.CAULDRON_ITEM)
+        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.CAULDRON)
 
                 .setName("§c冶炼熔炉")
 
@@ -276,7 +288,7 @@ public class FurnaceCauldronMachine extends BaseMachine {
             FurnaceCauldronObject obj = entry.getValue();
 
             if ( obj.hologram != null ) {
-                obj.hologram.destroy();
+                obj.hologram.delete();
             }
 
             yaml.set("Objects." + entry.getKey(), NBTsUtil.Base64_Encode(obj.toString()));

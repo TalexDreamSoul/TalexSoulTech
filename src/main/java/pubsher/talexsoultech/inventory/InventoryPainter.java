@@ -132,14 +132,14 @@ public class InventoryPainter implements IInventoryPainter {
     @Override
     public InventoryUI.ClickableItem onDrawBorder(int slot) {
 
-        return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 7).setName("§7*").toItemStack());
+        return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName("§7*").toItemStack());
 
     }
 
     @Override
     public InventoryUI.ClickableItem onDrawLine(int slot) {
 
-        return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 7).setName("§7#").toItemStack());
+        return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName("§7#").toItemStack());
 
     }
 
@@ -246,7 +246,7 @@ public class InventoryPainter implements IInventoryPainter {
     @Override
     public InventoryUI.ClickableItem onDrawFull(int slot) {
 
-        return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 7).setName("§7#").toItemStack());
+        return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE).setName("§7#").toItemStack());
 
     }
 

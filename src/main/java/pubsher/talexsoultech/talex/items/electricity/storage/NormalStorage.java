@@ -1,7 +1,6 @@
 package pubsher.talexsoultech.talex.items.electricity.storage;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import lombok.SneakyThrows;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,8 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.entity.PlayerDataRunnable;
-import pubsher.talexsoultech.talex.electricity.achieve.Capacity;
-import pubsher.talexsoultech.talex.electricity.achieve.IReceiver;
+import pubsher.talexsoultech.talex.electricity.EnergyUnits;
 import pubsher.talexsoultech.talex.electricity.function.generator.BaseGeneratorObject;
 import pubsher.talexsoultech.talex.items.machine.GeneratorMachine;
 import pubsher.talexsoultech.talex.items.machine.MachineCore;
@@ -28,7 +26,6 @@ import pubsher.talexsoultech.utils.block.TalexBlock;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
 import pubsher.talexsoultech.utils.item.MineCraftItem;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,13 +39,67 @@ public class NormalStorage extends BaseGeneratorObject {
     private final HashMap<String, BaseStorager> storages = new HashMap<>(16);
 
     public NormalStorage() {
+        super(
+                "normal_storage",
+                new ItemBuilder(Material.JUKEBOX)
+                        .setName("§a基础蓄电池")
+                        .setLore("", "§8> §a储存富余电量，并在发电不足时自动补充"),
+                1500,
+                30
+        );
+    }
 
-        super("normal_storage", new ItemBuilder(Material.JUKEBOX)
 
-                .setName("§a基础畜电池")
-                .setLore("", "§8> §a把电存起来!"), 1500, 30, 330);
+    private BaseStorager createStorage(Location location, long storedEnergy) {
+        return new BaseStorager(
+                location,
+                storedEnergy,
+                getStorageCapacity(),
+                getSingleSupplyCapacity()
+        ) {
+            @Override
+            public void beforePowerCycle() {
+                if (location.getWorld() == null
+                        || !location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+                    return;
+                }
+                if (location.getBlock().getType() != Material.JUKEBOX) {
+                    storages.remove(Location2String(location));
+                    unRegisterHolograms();
+                    ElectricityManager.INSTANCE.unregister(location);
+                    return;
+                }
+                registerHolograms(location.clone().add(0.5, 1.55, 0.5));
+            }
 
+            @Override
+            public void updateMachineHologram(GeneratorMachine generatorMachine) {
+                this.hologram.clearLines();
+                this.hologram.appendTextLine(
+                        "§f存储电量: §c" + EnergyUnits.format(getEnergyBuffer().stored(), 3) + " §e§lSE ⚡"
+                );
+            }
+        };
+    }
 
+    private long readStoredEnergy(JsonObject json) {
+        long stored = 0L;
+        if (json.has("energyMilliSe")) {
+            stored = json.get("energyMilliSe").getAsLong();
+        } else if (json.has("capacity") && json.get("capacity").isJsonObject()) {
+            JsonObject legacy = json.getAsJsonObject("capacity");
+            if (legacy.has("storageCapacity")) {
+                stored = EnergyUnits.fromSe(Math.max(0D, legacy.get("storageCapacity").getAsDouble()));
+            }
+        }
+        return Math.max(0L, Math.min(stored, getStorageCapacity()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static HashMap<String, Object> readMeta(JsonObject json) {
+        if (!json.has("meta") || !json.get("meta").isJsonObject()) return new HashMap<>();
+        HashMap<String, Object> meta = new Gson().fromJson(json.get("meta"), HashMap.class);
+        return meta == null ? new HashMap<>() : meta;
     }
 
     @Override
@@ -98,23 +149,13 @@ public class NormalStorage extends BaseGeneratorObject {
 
     @Override
     public boolean onItemBlockBreak(PlayerData playerData, TalexBlock tb, BlockBreakEvent event) {
+        Location location = event.getBlock().getLocation();
+        BaseStorager storage = storages.remove(Location2String(location));
+        if (storage == null) return false;
 
-        Block block = tb.getLoc().getBlock();
-
-        Location loc = block.getLocation();
-
-        String strLoc = Location2String(loc);
-
-        BaseStorager baseStorager = storages.get(strLoc);
-
-        baseStorager.unRegisterHolograms();
-
-        storages.remove(strLoc);
-
-        ElectricityManager.INSTANCE.unRegisterReceiver(loc);
-
+        storage.unRegisterHolograms();
+        ElectricityManager.INSTANCE.unregister(location);
         return true;
-
     }
 
     @Override
@@ -143,47 +184,15 @@ public class NormalStorage extends BaseGeneratorObject {
 
     @Override
     public boolean onPlaceItem(PlayerData playerData, BlockPlaceEvent event) {
-
         Block block = event.getBlock();
+        if (block.getType() != Material.JUKEBOX) return false;
 
-        if ( block != null && block.getType() == Material.JUKEBOX ) {
+        BaseStorager storage = createStorage(block.getLocation(), 0L);
+        storage.registerHolograms(block.getLocation().clone().add(0.5, 1.55, 0.5));
 
-            String loc = Location2String(block.getLocation());
-
-            BaseStorager gm = new BaseStorager(block.getLocation(), 0, getSingleSupplyCapacity(), getCapacity().getVoltage()) {
-
-                @Override
-                public Location getMainTransferLocation() {
-
-                    return block.getLocation();
-                }
-
-                @Override
-                public double getProvideMaxDistance() {
-
-                    return 16;
-                }
-
-                @Override
-                public void updateMachineHologram(GeneratorMachine generatorMachine) {
-
-                    this.hologram.clearLines();
-
-                    this.hologram.appendTextLine("§f存储电量: §c" + String.format("% .4f", this.getCapacity().getStorageCapacity()) + " §e§lSE ⚡");
-
-                }
-
-            };
-
-            gm.registerHolograms(block.getLocation().clone().add(0.5, 1.55, 0.5));
-
-            storages.put(loc, gm);
-            ElectricityManager.INSTANCE.registerElectricity(block.getLocation(), (IReceiver) gm);
-
-        }
-
+        storages.put(Location2String(block.getLocation()), storage);
+        ElectricityManager.INSTANCE.registerEndpoint(storage);
         return false;
-
     }
 
     @Override
@@ -198,93 +207,44 @@ public class NormalStorage extends BaseGeneratorObject {
 
     @Override
     public String onSave() {
+        List<JsonObject> saved = new ArrayList<>();
+        Gson gson = new Gson();
 
-        List<JsonObject> list = new ArrayList<>();
-
-        for ( Map.Entry<String, BaseStorager> entry : storages.entrySet() ) {
-
-            JsonObject jsonObject = new JsonObject();
-
-            jsonObject.addProperty("loc", NBTsUtil.Base64_Encode(entry.getKey()));
-            jsonObject.addProperty("status", entry.getValue().getMachineStatus().name());
-            jsonObject.add("capacity", new JsonParser().parse(new Gson().toJson(entry.getValue().getCapacity())));
-
-            jsonObject.add("meta", new JsonParser().parse(new GsonBuilder().enableComplexMapKeySerialization().create().toJson(entry.getValue().getReceiverPathMap())));
-
-            list.add(jsonObject);
-
+        for (Map.Entry<String, BaseStorager> entry : storages.entrySet()) {
+            JsonObject json = new JsonObject();
+            json.addProperty("loc", NBTsUtil.Base64_Encode(entry.getKey()));
+            json.addProperty("status", entry.getValue().getMachineStatus().name());
+            json.addProperty("energyMilliSe", entry.getValue().getEnergyBuffer().stored());
+            json.add("meta", gson.toJsonTree(entry.getValue().getMeta()));
+            saved.add(json);
         }
 
-        return new Gson().toJson(list);
-
+        return gson.toJson(saved);
     }
 
     @SneakyThrows
     @Override
-    public void onLoad(String str) {
+    public void onLoad(String serialized) {
+        if (serialized == null || serialized.isBlank()) return;
 
-        JsonElement je = new JsonParser().parse(str);
-
-        JsonArray ja = je.getAsJsonArray();
-
-        for ( JsonElement element : ja ) {
-
+        JsonArray saved = JsonParser.parseString(serialized).getAsJsonArray();
+        for (JsonElement element : saved) {
             JsonObject json = element.getAsJsonObject();
+            Location location = String2Location(NBTsUtil.Base64_Decode(json.get("loc").getAsString()));
+            if (location == null || location.getWorld() == null) continue;
+            boolean loaded = location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+            if (loaded && location.getBlock().getType() != Material.JUKEBOX) continue;
 
-            Location loc = String2Location(NBTsUtil.Base64_Decode(json.get("loc").getAsString()));
-
-            if ( loc == null ) {
-                continue;
+            BaseStorager storage = createStorage(location, readStoredEnergy(json));
+            storage.setMeta(readMeta(json));
+            if (json.has("status")) {
+                storage.setMachineStatus(MachineInfo.MachineStatus.valueOf(json.get("status").getAsString()));
             }
+            if (loaded) storage.registerHolograms(location.clone().add(0.5, 1.55, 0.5));
 
-            Block block = loc.getBlock();
-
-            if ( block == null || block.getType() != Material.JUKEBOX ) {
-                continue;
-            }
-
-            MachineInfo.MachineStatus status = MachineInfo.MachineStatus.valueOf(json.get("status").getAsString());
-
-            Capacity capacity = new Gson().fromJson(json.get("capacity").getAsJsonObject(), Capacity.class);
-
-            BaseStorager gm = new BaseStorager(loc, capacity, getStorageCapacity(), getSingleSupplyCapacity(), getCapacity().getVoltage()) {
-
-                @Override
-                public Location getMainTransferLocation() {
-
-                    return loc;
-                }
-
-                @Override
-                public double getProvideMaxDistance() {
-
-                    return 16;
-                }
-
-                @Override
-                public void updateMachineHologram(GeneratorMachine generatorMachine) {
-
-                    this.hologram.clearLines();
-                    this.hologram.appendTextLine("§f存储电量: §c" + String.format("% .4f", this.getCapacity().getStorageCapacity()) + " §e§lSE ⚡");
-
-                }
-
-            };
-
-            Type type = new TypeToken<HashMap<String, Object>>() {}.getType();
-
-            HashMap<String, Object> meta = new GsonBuilder().enableComplexMapKeySerialization().create().fromJson(json.get("meta").getAsJsonObject(), type);
-
-            gm.setMeta(meta);
-
-            gm.setMachineStatus(status);
-            gm.registerHolograms(loc.clone().add(0.5, 1.55, 0.5));
-
-            storages.put(Location2String(loc), gm);
-            ElectricityManager.INSTANCE.registerElectricity(loc, (IReceiver) gm);
-
+            storages.put(Location2String(location), storage);
+            ElectricityManager.INSTANCE.registerEndpoint(storage);
         }
-
     }
 
 }

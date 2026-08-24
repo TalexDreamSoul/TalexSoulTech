@@ -1,11 +1,9 @@
 package pubsher.talexsoultech.utils;
 
-import net.minecraft.server.v1_12_R1.EntityLiving;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -21,7 +19,7 @@ public class LocationUtil {
 
     public static ItemStack getHead(String value) {
 
-        ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD, 1, (short) 3);
         UUID hashAsId = UUID.nameUUIDFromBytes(value.getBytes());
         return Bukkit.getUnsafe().modifyItemStack(skull,
                 "{SkullOwner:{Id:\"" + hashAsId + "\",Properties:{textures:[{Value:\"" + value + "\"}]}}}"
@@ -147,24 +145,15 @@ public class LocationUtil {
         return blocks;
     }
 
-    public static List<EntityLiving> getNearbyPlayers(Location where, int range) {
+    public static List<Player> getNearbyPlayers(Location where, int range) {
 
-        List<EntityLiving> found = new ArrayList<>();
+        List<Player> found = new ArrayList<>();
 
-//        Log.debug("Do getNearbyPlayers");
-
-        for ( Entity entity : where.getWorld().getEntities() ) {
-            if ( isInBorder(where, entity.getLocation(), (double) range) ) {
-
-                net.minecraft.server.v1_12_R1.Entity e = ( (CraftEntity) entity ).getHandle();
-//                Log.debug("get entity");
-                if ( entity.getType() == EntityType.PLAYER && e.isAlive() ) {
-                    found.add((EntityLiving) e);
-                }
+        for (Entity entity : where.getWorld().getEntities()) {
+            if (entity instanceof Player player && !player.isDead() && isInBorder(where, entity.getLocation(), (double) range)) {
+                found.add(player);
             }
         }
-
-//        Log.debug("Did getNearbyPlayers");
 
         return found;
     }

@@ -111,3 +111,11 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+# Cloudflare local state
+site/.wrangler/
+
+# Local agent state
+.codex-temp/
+.serena/
+.spec-workflow/

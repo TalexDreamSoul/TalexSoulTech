@@ -21,7 +21,7 @@ public class ResinExtractor extends SoulTechItem {
 
     public ResinExtractor() {
 
-        super("resin_extractor", new ItemBuilder(Material.WOOD_HOE)
+        super("resin_extractor", new ItemBuilder(Material.WOODEN_HOE)
 
                 .setName("§f树脂提取器")
                 .setLore("", "§8> §f破坏树叶即可提取..", "")
@@ -39,7 +39,7 @@ public class ResinExtractor extends SoulTechItem {
         return new WorkBenchRecipe("resin_extractor", this)
 
                 .addRequiredNull()
-                .addRequired(new MineCraftItem(Material.WOOD))
+                .addRequired(new MineCraftItem(Material.OAK_PLANKS))
                 .addRequiredNull()
                 .addRequiredNull()
                 .addRequired("compress_stick")
@@ -63,7 +63,7 @@ public class ResinExtractor extends SoulTechItem {
 
         Block block = event.getBlock();
 
-        if ( block.getType() != Material.LEAVES ) {
+        if ( block.getType() != Material.OAK_LEAVES ) {
             return false;
         }
 

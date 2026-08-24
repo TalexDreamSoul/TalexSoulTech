@@ -68,7 +68,7 @@ public class CauldronGUI extends BaseGuider {
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 14)
+                return new ItemBuilder(Material.RED_STAINED_GLASS_PANE)
                         .setName("§e放置冶炼物品").toItemStack();
 
             }
@@ -90,7 +90,7 @@ public class CauldronGUI extends BaseGuider {
                 @Override
                 public InventoryUI.ClickableItem onDrawLine(int slot) {
 
-                    return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 14).setName("§c空位不足").toItemStack());
+                    return new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.RED_STAINED_GLASS_PANE).setName("§c空位不足").toItemStack());
 
                 }
             }.drawLineRow(6);
@@ -99,9 +99,9 @@ public class CauldronGUI extends BaseGuider {
 
             inventoryPainter.drawProgressBarHorizontal(5, 7, percent, LocationFloat.FLOAT_CENTER, new InventoryUI.EmptyCancelledClickableItem(
 
-                    new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 3).setName("§a*").toItemStack()
+                    new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS_PANE).setName("§a*").toItemStack()
 
-            ), new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.STAINED_GLASS_PANE).setName("§a*").setDurability((short) 4).toItemStack()));
+            ), new InventoryUI.EmptyCancelledClickableItem(new ItemBuilder(Material.YELLOW_STAINED_GLASS_PANE).setName("§a*").toItemStack()));
 
         }
 
@@ -114,7 +114,7 @@ public class CauldronGUI extends BaseGuider {
 
                 if ( object.getProcessingItem() == null ) {
 
-                    builder = new ItemBuilder(Material.STAINED_GLASS_PANE).setDurability((short) 8);
+                    builder = new ItemBuilder(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
 
                     builder.setName("§b点击放置物品");
 

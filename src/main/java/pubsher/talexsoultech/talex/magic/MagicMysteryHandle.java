@@ -30,7 +30,7 @@ public class MagicMysteryHandle extends BaseHandle {
     public MagicMysteryHandle() {
 
         super("normal", new ItemBuilder(Material.BLAZE_ROD)
-                .setName("§5◈ §c恐怖手杖 §eI").setLore("", "§c聚千物之灵魂, 养万年之精魄", "", "§e> §a剩余魔能: §e∞").addEnchant(Enchantment.DURABILITY, 1).addFlag(ItemFlag.HIDE_ENCHANTS).toItemStack());
+                .setName("§5◈ §c恐怖手杖 §eI").setLore("", "§c聚千物之灵魂, 养万年之精魄", "", "§e> §a剩余魔能: §e∞").addEnchant(Enchantment.UNBREAKING, 1).addFlag(ItemFlag.HIDE_ENCHANTS).toItemStack());
 
         addIgnoreType(VerifyIgnoreTypes.IgnoreLores);
 
@@ -77,7 +77,7 @@ public class MagicMysteryHandle extends BaseHandle {
                     double y = Math.sin(radians) * 3.5;
 
                     Location loc2 = playerBackCoordinate.newLocation(x, y);
-                    loc.getWorld().spawnParticle(Particle.CRIT_MAGIC, loc2, 1, 0, 0, 0, 0);
+                    loc.getWorld().spawnParticle(Particle.ENCHANT, loc2, 1, 0, 0, 0, 0);
 
                 }
 
@@ -127,7 +127,7 @@ public class MagicMysteryHandle extends BaseHandle {
                             double y = Math.sin(radians) * 2.5;
 
                             Location loc2 = entity.getLocation().clone().add(x, 1, y);
-                            finalLoc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc2, 1, 0, 0, 0, 0);
+                            finalLoc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc2, 1, 0, 0, 0, 0);
 
                         }
 
@@ -182,7 +182,7 @@ public class MagicMysteryHandle extends BaseHandle {
                             double y = Math.sin(radians) * 5.5;
 
                             Location loc2 = entity.getLocation().clone().add(x, 0.5, y);
-                            finalLoc.getWorld().spawnParticle(Particle.SLIME, loc2, 3, 0, 0, 0, 0);
+                            finalLoc.getWorld().spawnParticle(Particle.ITEM_SLIME, loc2, 3, 0, 0, 0, 0);
 
                         }
 
@@ -204,13 +204,13 @@ public class MagicMysteryHandle extends BaseHandle {
 
             }, 100);
 
-            playerData.actionBar("§a你使用了 §5剥夺灵魄").playSound(Sound.ENTITY_ENDERDRAGON_SHOOT, 1.1F, 1.1F);
+            playerData.actionBar("§a你使用了 §5剥夺灵魄").playSound(Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.1F, 1.1F);
 
             return;
 
         }
 
-        playerData.actionBar("§a按下 §eSHIFT §a进行施法...").playSound(Sound.BLOCK_NOTE_BELL, 1.1F, 1.1F);
+        playerData.actionBar("§a按下 §eSHIFT §a进行施法...").playSound(Sound.BLOCK_NOTE_BLOCK_BELL, 1.1F, 1.1F);
 
         for ( int angle = 0; angle < 90; angle++ ) {
 
@@ -219,7 +219,7 @@ public class MagicMysteryHandle extends BaseHandle {
             double y = Math.sin(radians) * 5.5;
 
             Location loc2 = playerBackCoordinate.newLocation(x, y);
-            loc.getWorld().spawnParticle(Particle.CRIT_MAGIC, loc2, 1, 0, 0, 0, 0);
+            loc.getWorld().spawnParticle(Particle.ENCHANT, loc2, 1, 0, 0, 0, 0);
 
         }
 

@@ -1,8 +1,7 @@
 package pubsher.talexsoultech.talex.items.space;
 
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import pubsher.talexsoultech.talex.guider.category.RecipeObject;
 import pubsher.talexsoultech.talex.items.breakhammer.BaseBreakHammer;
 import pubsher.talexsoultech.talex.machine.break_hammer.BreakHammerRecipe;
@@ -20,13 +19,18 @@ public class SpaceDust extends SoulTechItem {
     public SpaceDust() {
 
         super("space_dust", new ItemBuilder(Material.GLOWSTONE_DUST)
-                .setName("§e空间碎片").setLore("", "§8> §a虚空的波动能量..", "").addEnchant(Enchantment.DURABILITY, 1).addFlag(ItemFlag.HIDE_ENCHANTS).toItemStack());
+                .setName("§e空间碎片")
+                .setLore("", "§8> §a虚空的波动能量..", "")
+                .setCustomModelDataString("talexsoultech:space_dust")
+                .setRarity(ItemRarity.RARE)
+                .setEnchantmentGlintOverride(true)
+                .toItemStack());
     }
 
     @Override
     public RecipeObject getRecipe() {
 
-        return new BreakHammerRecipe("space_dust", Material.ENDER_STONE, this).setDisplayRequireHammerTool((BaseBreakHammer) SoulTechItem.get("break_hammer_gold_pickaxe"));
+        return new BreakHammerRecipe("space_dust", Material.END_STONE, this).setDisplayRequireHammerTool((BaseBreakHammer) SoulTechItem.get("break_hammer_gold_pickaxe"));
 
     }
 

@@ -1,7 +1,6 @@
 package pubsher.talexsoultech.talex.items.maker;
 
-import com.gmail.filoghost.holographicdisplays.api.Hologram;
-import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+import pubsher.talexsoultech.platform.TextHologram;
 import lombok.SneakyThrows;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -209,7 +208,7 @@ public class CobbleStoneMaker2 extends MachineBlockItem {
         }
 
         Map<String, Integer> atomicMap = new HashMap<>(placedPlaces.size());
-        Map<String, Hologram> hologramMap = new HashMap<>(placedPlaces.size());
+        Map<String, TextHologram> hologramMap = new HashMap<>(placedPlaces.size());
 
         new BukkitRunnable() {
 
@@ -226,11 +225,11 @@ public class CobbleStoneMaker2 extends MachineBlockItem {
                         @Override
                         public void run() {
 
-                            Hologram hologram = hologramMap.get(strLoc);
+                            TextHologram hologram = hologramMap.get(strLoc);
 
                             if ( hologram == null ) {
 
-                                hologramMap.put(strLoc, HologramsAPI.createHologram(TalexSoulTech.getInstance(), block.getLocation().add(0.5, 2.25, 0.5)));
+                                hologramMap.put(strLoc, TextHologram.create(block.getLocation().add(0.5, 2.25, 0.5)));
 
                             }
 

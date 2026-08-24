@@ -23,7 +23,7 @@ public class StoneHammer extends BaseBreakHammer {
 
         Material material = block.getType();
 
-        if ( material == Material.WOOD ) {
+        if ( material == Material.OAK_PLANKS ) {
             return new ItemStack(Material.COBBLESTONE);
         }
         if ( material == Material.COBBLESTONE ) {
@@ -54,7 +54,7 @@ public class StoneHammer extends BaseBreakHammer {
         }
         if ( material == Material.SAND ) {
 
-            return new ItemBuilder(Material.SAND).setDurability((short) 1).toItemStack();
+            return new ItemBuilder(Material.RED_SAND).toItemStack();
 
         }
 

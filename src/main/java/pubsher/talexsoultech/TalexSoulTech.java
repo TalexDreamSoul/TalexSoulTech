@@ -1,7 +1,6 @@
 package pubsher.talexsoultech;
 
-import com.gmail.filoghost.holographicdisplays.api.Hologram;
-import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+import pubsher.talexsoultech.platform.TextHologram;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
@@ -9,22 +8,26 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.listener.BlockListener;
 import pubsher.talexsoultech.listener.Listeners;
+import pubsher.talexsoultech.listener.MultiblockProtectionListener;
 import pubsher.talexsoultech.talex.BaseTalex;
+import pubsher.talexsoultech.talex.storage.StorageBoxManager;
+import pubsher.talexsoultech.talex.world.WildernessListener;
+import pubsher.talexsoultech.talex.world.WildernessManager;
 import pubsher.talexsoultech.talex.machine.BaseMachine;
 import pubsher.talexsoultech.talex.managers.BlockManager;
+import pubsher.talexsoultech.talex.multiblock.MultiblockStructureRegistry;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.inventory.UIListener;
 import pubsher.talexsoultech.utils.item.MachineBlockItem;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+
+import pubsher.talexsoultech.cloud.CloudSyncService;
+import pubsher.talexsoultech.extensions.ExtensionManager;
 
 /**
  * @author TalexDreamSoul
@@ -40,6 +43,15 @@ public final class TalexSoulTech extends JavaPlugin {
     @Getter
     private BaseTalex baseTalex;
 
+    @Getter
+    private CloudSyncService cloudSyncService;
+
+    @Getter
+    private ExtensionManager extensionManager;
+
+    private WildernessManager wildernessManager;
+    private StorageBoxManager storageBoxManager;
+
     @SneakyThrows
     @Override
     public void onEnable() {
@@ -54,28 +66,37 @@ public final class TalexSoulTech extends JavaPlugin {
 
         this.baseTalex = BaseTalex.getInstance();
         this.baseTalex.enable();
+        this.cloudSyncService = new CloudSyncService(this);
+        this.extensionManager = new ExtensionManager(this);
 
         getServer().getPluginManager().registerEvents(new Listeners(), this);
         getServer().getPluginManager().registerEvents(new BlockListener(), this);
+        getServer().getPluginManager().registerEvents(new MultiblockProtectionListener(), this);
         getServer().getPluginManager().registerEvents(new UIListener(), this);
-        getServer().getPluginCommand("talexsoultech").setExecutor(new Commands());
 
-        for ( Player player : Bukkit.getOnlinePlayers() ) {
+        this.storageBoxManager = new StorageBoxManager(this);
+        this.storageBoxManager.enable();
 
-            new BukkitRunnable() {
+        this.wildernessManager = new WildernessManager(this);
+        wildernessManager.install();
+        getServer().getPluginManager().registerEvents(new WildernessListener(wildernessManager), this);
 
-                @Override
-                public void run() {
+        Commands commands = new Commands();
+        var pluginCommand = getServer().getPluginCommand("talexsoultech");
+        if (pluginCommand == null) {
+            throw new IllegalStateException("Missing talexsoultech command declaration");
+        }
+        pluginCommand.setExecutor(commands);
+        pluginCommand.setTabCompleter(commands);
 
-                    new PlayerData(baseTalex, player);
+        cloudSyncService.startIfConfigured();
+        extensionManager.startIfConfigured();
 
-                }
-            }.runTaskLaterAsynchronously(this, 1L);
-
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            baseTalex.loadPlayer(player);
         }
 
         log("&7[&5灵魂&b科技&7] &e加载玩家数据完毕!");
-
         log("&7[&5灵魂&b科技&7] &a启动完毕!");
 
     }
@@ -107,59 +128,77 @@ public final class TalexSoulTech extends JavaPlugin {
     @Override
     public void onDisable() {
 
-        Bukkit.getOnlinePlayers().forEach(Player::closeInventory);
+        if (baseTalex != null) {
+            baseTalex.beginPlayerShutdown();
+        }
 
-        HologramsAPI.getHolograms(this).forEach(Hologram::delete);
+        if (wildernessManager != null) {
+            wildernessManager.close();
+            wildernessManager = null;
+        }
+        if (storageBoxManager != null) {
+            storageBoxManager.disable();
+            storageBoxManager = null;
+        }
 
-        saveMachines();
+        if (extensionManager != null) {
+            extensionManager.stop();
+            extensionManager = null;
+        }
+        if (cloudSyncService != null) {
+            cloudSyncService.stop();
+        }
 
-        YamlConfiguration yaml = new YamlConfiguration();
+        if (baseTalex != null) {
+            baseTalex.saveAndClearPublishedPlayerData();
+        }
 
-        for ( Map.Entry<String, SoulTechItem> item : SoulTechItem.getItems().entrySet() ) {
+        try {
+            Bukkit.getOnlinePlayers().forEach(Player::closeInventory);
 
-            if ( item.getValue() instanceof MachineBlockItem ) {
+            if (baseTalex != null) {
+                baseTalex.getElectricityManager().stop();
+            }
+            TextHologram.clearAll();
 
-                MachineBlockItem mbi = ( (MachineBlockItem) item.getValue() );
-
-                String str = mbi.onSave();
-
-                yaml.set("MachineBlockItems." + mbi.getID() + ".class", mbi.getClass().getName());
-                yaml.set("MachineBlockItems." + mbi.getID() + ".save", NBTsUtil.Base64_Encode(str));
-                yaml.set("MachineBlockItems." + mbi.getID() + ".ID", mbi.getID());
-                yaml.set("MachineBlockItems." + mbi.getID() + ".ItemStack", NBTsUtil.ItemData(mbi.getItemBuilder().toItemStack()));
-
+            if (baseTalex != null) {
+                saveMachines();
             }
 
+            YamlConfiguration yaml = new YamlConfiguration();
+
+            for (Map.Entry<String, SoulTechItem> item : SoulTechItem.getItems().entrySet()) {
+                if (item.getValue() instanceof MachineBlockItem mbi) {
+                    String str = mbi.onSave();
+
+                    yaml.set("MachineBlockItems." + mbi.getID() + ".class", mbi.getClass().getName());
+                    yaml.set("MachineBlockItems." + mbi.getID() + ".save", NBTsUtil.Base64_Encode(str));
+                    yaml.set("MachineBlockItems." + mbi.getID() + ".ID", mbi.getID());
+                    yaml.set("MachineBlockItems." + mbi.getID() + ".ItemStack", NBTsUtil.ItemData(mbi.getItemBuilder().toItemStack()));
+                }
+            }
+
+            yaml.save(getDataFolder() + "/caches/SoulTechItems.yml");
+
+            BlockManager blockManager = baseTalex == null ? null : baseTalex.getBlockManager();
+            if (blockManager != null) {
+                blockManager.saveAllIntoFile(new File(getDataFolder() + "/caches/block_caches.yml"));
+            } else {
+                getServer().getConsoleSender().sendMessage("BlockManager 异常 - 无法保存方块数据 # 所有数据将丢失!");
+            }
+
+        } finally {
+            if (baseTalex != null) {
+                baseTalex.getElectricityManager().clear();
+            }
+            MultiblockStructureRegistry.INSTANCE.clear();
+            SoulTechItem.clearGlobalInteractionObservers();
+
+            if (baseTalex != null) {
+                baseTalex.getMysqlManager().shutdown();
+                baseTalex.reportPlayerPersistenceWarnings();
+            }
         }
-
-        yaml.save(getDataFolder() + "/caches/SoulTechItems.yml");
-
-        BlockManager bm = this.baseTalex.getBlockManager();
-
-        if ( bm != null ) {
-
-            bm.saveAllIntoFile(new File(getDataFolder() + "/caches/block_caches.yml"));
-
-
-        } else {
-
-            getServer().getConsoleSender().sendMessage("BlockManager 异常 - 无法保存方块数据 # 所有数据将丢失!");
-
-        }
-
-        if ( baseTalex.getMysqlManager() == null ) {
-            return;
-        }
-
-        HashMap<String, PlayerData> map = baseTalex.getPlayerManager();
-
-        for ( Map.Entry<String, PlayerData> entry : new HashSet<>(map.entrySet()) ) {
-
-            entry.getValue().leave();
-
-        }
-
-        baseTalex.getMysqlManager().shutdown();
 
         log("&7[&5灵魂&b科技&7] &c插件已卸载!");
 

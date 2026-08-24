@@ -22,7 +22,7 @@ public class MachineCore extends SoulTechItem {
 
     private MachineCore() {
 
-        super("machine_core", new ItemBuilder(Material.OBSERVER).addEnchant(Enchantment.DURABILITY, 1).addFlag(ItemFlag.HIDE_ENCHANTS).setName("§b机器核心").setLore("", "§8> §c是心中的炽焰.", "").toItemStack());
+        super("machine_core", new ItemBuilder(Material.OBSERVER).addEnchant(Enchantment.UNBREAKING, 1).addFlag(ItemFlag.HIDE_ENCHANTS).setName("§b机器核心").setLore("", "§8> §c是心中的炽焰.", "").toItemStack());
 
         INSTANCE = this;
 
@@ -103,15 +103,15 @@ public class MachineCore extends SoulTechItem {
 
         return new WorkBenchRecipe("st_machine_core", this)
 
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired(new MineCraftItem(Material.FURNACE))
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired(new MineCraftItem(Material.FURNACE))
                 .addRequired(new MineCraftItem(Material.IRON_BLOCK))
                 .addRequired(new MineCraftItem(Material.FURNACE))
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired(new MineCraftItem(Material.FURNACE))
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
 
                 ;
 

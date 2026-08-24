@@ -1,6 +1,7 @@
 package pubsher.talexsoultech.talex.items.material.ingots;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -28,7 +29,12 @@ public class FireIngot extends SoulTechItem {
 
     public FireIngot() {
 
-        super("fire_ingot", new ItemBuilder(Material.NETHER_BRICK_ITEM).setName("§4火焰锭").setLore("", "§8> §c微微的灼烧感..", "").toItemStack());
+        super("fire_ingot", new ItemBuilder(Material.NETHER_BRICK)
+                .setName("§4火焰锭")
+                .setLore("", "§8> §c微微的灼烧感..", "")
+                .setCustomModelDataString("talexsoultech:fire_ingot")
+                .setRarity(ItemRarity.UNCOMMON)
+                .toItemStack());
     }
 
     @Override

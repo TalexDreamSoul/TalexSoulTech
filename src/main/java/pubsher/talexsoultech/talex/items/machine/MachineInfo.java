@@ -1,7 +1,6 @@
 package pubsher.talexsoultech.talex.items.machine;
 
-import com.gmail.filoghost.holographicdisplays.api.Hologram;
-import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
+import pubsher.talexsoultech.platform.TextHologram;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -12,7 +11,7 @@ import java.util.Map;
 
 public abstract class MachineInfo {
 
-    protected Hologram hologram;
+    protected TextHologram hologram;
     @Getter
     @Setter
     private MachineStatus machineStatus = MachineStatus.PREPARING;
@@ -32,7 +31,7 @@ public abstract class MachineInfo {
             return;
         }
 
-        this.hologram = HologramsAPI.createHologram(TalexSoulTech.getInstance(), loc.clone());
+        this.hologram = TextHologram.create(loc);
 
         updateHologram();
 

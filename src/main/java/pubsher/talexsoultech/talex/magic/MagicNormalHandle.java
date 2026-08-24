@@ -30,7 +30,7 @@ public class MagicNormalHandle extends BaseHandle {
     public MagicNormalHandle() {
 
         super("normal", new ItemBuilder(Material.STICK)
-                .setName("§5◈ §b魔力手杖 §eI").setLore("", "§5蕴含奇妙能量的手杖..", "", "§e> §a剩余魔能: §e0.0/100").addEnchant(Enchantment.DURABILITY, 1).addFlag(ItemFlag.HIDE_ENCHANTS).toItemStack());
+                .setName("§5◈ §b魔力手杖 §eI").setLore("", "§5蕴含奇妙能量的手杖..", "", "§e> §a剩余魔能: §e0.0/100").addEnchant(Enchantment.UNBREAKING, 1).addFlag(ItemFlag.HIDE_ENCHANTS).toItemStack());
 
         addIgnoreType(VerifyIgnoreTypes.IgnoreLores);
 
@@ -84,7 +84,7 @@ public class MagicNormalHandle extends BaseHandle {
                     double y = Math.sin(radians) * 1.5;
 
                     Location loc2 = playerBackCoordinate.newLocation(x, y);
-                    loc.getWorld().spawnParticle(Particle.CRIT_MAGIC, loc2, 1, 0, 0, 0, 0);
+                    loc.getWorld().spawnParticle(Particle.ENCHANT, loc2, 1, 0, 0, 0, 0);
 
                 }
 
@@ -92,13 +92,13 @@ public class MagicNormalHandle extends BaseHandle {
 
             }
 
-            playerData.actionBar("§a你使用了 §f引力波动").playSound(Sound.ENTITY_ENDERDRAGON_SHOOT, 1.1F, 1.1F);
+            playerData.actionBar("§a你使用了 §f引力波动").playSound(Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.1F, 1.1F);
 
             return;
 
         }
 
-        playerData.actionBar("§a按下 §eSHIFT §a进行施法...").playSound(Sound.BLOCK_NOTE_BELL, 1.1F, 1.1F);
+        playerData.actionBar("§a按下 §eSHIFT §a进行施法...").playSound(Sound.BLOCK_NOTE_BLOCK_BELL, 1.1F, 1.1F);
 
         for ( int angle = 0; angle < 90; angle++ ) {
 
@@ -107,7 +107,7 @@ public class MagicNormalHandle extends BaseHandle {
             double y = Math.sin(radians) * 0.5;
 
             Location loc2 = playerBackCoordinate.newLocation(x, y);
-            loc.getWorld().spawnParticle(Particle.CRIT_MAGIC, loc2, 1, 0, 0, 0, 0);
+            loc.getWorld().spawnParticle(Particle.ENCHANT, loc2, 1, 0, 0, 0, 0);
 
         }
 

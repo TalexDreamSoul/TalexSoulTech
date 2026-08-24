@@ -5,6 +5,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -68,7 +69,7 @@ public abstract class BaseTank extends SoulTechItem {
             stack = NBTsUtil.addTag(stack, "liquid_tank_mode", mode.name());
 
             playerData.title("", "§7模式已切换!", 5, 12, 5)
-                    .playSound(Sound.BLOCK_NOTE_PLING, 1, 1.1f);
+                    .playSound(Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.1f);
 
         } else {
 
@@ -124,7 +125,7 @@ public abstract class BaseTank extends SoulTechItem {
 
                 }
 
-                ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.VILLAGER_HAPPY, 0.95);
+                ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.HAPPY_VILLAGER, 0.95);
 
                 block2.setType(material);
 
@@ -137,13 +138,13 @@ public abstract class BaseTank extends SoulTechItem {
 
                     event.setCancelled(true);
 
-                    ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.REDSTONE, 0.95);
+                    ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.DUST, 0.95);
 
                     return;
 
                 }
 
-                ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.SLIME, 0.95);
+                ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.ITEM_SLIME, 0.95);
 
                 if ( !liquidType.equals("") && !liquidType.equalsIgnoreCase(materialType) ) {
 
@@ -157,7 +158,7 @@ public abstract class BaseTank extends SoulTechItem {
 
                     if ( materialType == null ) {
 
-                        ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.REDSTONE, 0.95);
+                        ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.DUST, 0.95);
 
                         playerData.actionBar("&c不是支持的类型!");
 
@@ -169,7 +170,7 @@ public abstract class BaseTank extends SoulTechItem {
 
                         storaged += 1000;
 
-                        ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.VILLAGER_HAPPY, 0.95);
+                        ParticleUtil.drawBlockParticleLine(block2.getLocation(), Particle.HAPPY_VILLAGER, 0.95);
 
                         playerData
                                 .playSound(material.name().contains("LAVA") ? Sound.ITEM_BUCKET_FILL_LAVA : Sound.ITEM_BUCKET_FILL, 1, 1.1f);
@@ -191,28 +192,16 @@ public abstract class BaseTank extends SoulTechItem {
 
     private String getMaterialLiquidType(Block block) {
 
-        if ( !block.isLiquid() ) {
+        if ( !block.isLiquid() || !(block.getBlockData() instanceof Levelled levelled) || levelled.getLevel() != 0 ) {
             return null;
         }
 
-        short data = block.getState().getData().getData();
-
-        if ( data != 0 ) {
-            return null;
-        }
-
-        String name = block.getType().name();
-
-        if ( name.contains("WATER") ) {
-
+        if ( block.getType() == Material.WATER ) {
             return "WATER";
-
-        } else if ( name.contains("LAVA") ) {
-
-            return "LAVA";
-
         }
-
+        if ( block.getType() == Material.LAVA ) {
+            return "LAVA";
+        }
         return null;
 
     }
@@ -253,12 +242,12 @@ public abstract class BaseTank extends SoulTechItem {
 
         if ( mode == TankMode.PROVIDE ) {
 
-            im.addEnchant(Enchantment.DURABILITY, 1, true);
+            im.addEnchant(Enchantment.UNBREAKING, 1, true);
             im.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
         } else {
 
-            im.removeEnchant(Enchantment.DURABILITY);
+            im.removeEnchant(Enchantment.UNBREAKING);
             im.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
 
         }

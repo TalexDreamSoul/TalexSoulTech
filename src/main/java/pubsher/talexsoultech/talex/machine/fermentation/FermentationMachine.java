@@ -41,7 +41,7 @@ public class FermentationMachine extends BaseMachine {
 
     public FermentationMachine() {
 
-        super("furnace_cauldron", new ItemBuilder(Material.CAULDRON_ITEM).setName("§c冶炼锅炉").setLore("", "§8> §c冶炼的打造 无尽的锤炼!", "").toItemStack(), new MachineChecker() {
+        super("furnace_cauldron", new ItemBuilder(Material.CAULDRON).setName("§c冶炼锅炉").setLore("", "§8> §c冶炼的打造 无尽的锤炼!", "").toItemStack(), new MachineChecker() {
 
             @Override
             public boolean onCheck(PlayerEvent event) {
@@ -109,7 +109,7 @@ public class FermentationMachine extends BaseMachine {
 
                         if ( obj.hologram != null ) {
 
-                            obj.hologram.destroy();
+                            obj.hologram.delete();
 
                         }
 
@@ -146,7 +146,7 @@ public class FermentationMachine extends BaseMachine {
     @Override
     public void onOpenMachineInfoViewer(PlayerData playerData) {
 
-        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.CAULDRON_ITEM)
+        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.CAULDRON)
 
                 .setName("§c冶炼熔炉")
 
@@ -261,7 +261,7 @@ public class FermentationMachine extends BaseMachine {
             FermentationObject obj = entry.getValue();
 
             if ( obj.hologram != null ) {
-                obj.hologram.destroy();
+                obj.hologram.delete();
             }
 
             yaml.set("Objects." + entry.getKey(), NBTsUtil.Base64_Encode(obj.toString()));

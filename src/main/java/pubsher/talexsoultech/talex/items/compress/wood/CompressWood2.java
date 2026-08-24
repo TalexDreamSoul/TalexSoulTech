@@ -13,7 +13,7 @@ public class CompressWood2 extends BaseCompress {
 
     public CompressWood2() {
 
-        super("wood_2", new ItemBuilder(Material.WOOD).setName("§f压缩木板 §8(x81)").addFlag(ItemFlag.HIDE_ENCHANTS).addEnchant(Enchantment.DURABILITY, 1).toItemStack(),
+        super("wood_2", new ItemBuilder(Material.OAK_PLANKS).setName("§f压缩木板 §8(x81)").addFlag(ItemFlag.HIDE_ENCHANTS).addEnchant(Enchantment.UNBREAKING, 1).toItemStack(),
 
                 new ItemBuilder(new CompressWood1().getItemBuilder().toItemStack()).setAmount(9).toItemStack()
 

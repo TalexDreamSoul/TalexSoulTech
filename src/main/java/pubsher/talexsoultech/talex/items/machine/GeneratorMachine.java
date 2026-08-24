@@ -2,110 +2,72 @@ package pubsher.talexsoultech.talex.items.machine;
 
 import lombok.Getter;
 import org.bukkit.Location;
-import pubsher.talexsoultech.talex.electricity.achieve.Capacity;
-import pubsher.talexsoultech.talex.electricity.achieve.IPower;
-import pubsher.talexsoultech.talex.electricity.achieve.IReceiver;
-import pubsher.talexsoultech.talex.electricity.achieve.transfer.MCTransfer;
-import pubsher.talexsoultech.talex.electricity.achieve.transfer.RouterPath;
-import pubsher.talexsoultech.talex.electricity.function.generator.IElectricityGenerator;
-
-import java.util.HashMap;
-import java.util.Map;
+import pubsher.talexsoultech.talex.electricity.BlockKey;
+import pubsher.talexsoultech.talex.electricity.EnergyBuffer;
+import pubsher.talexsoultech.talex.electricity.PowerEndpoint;
+import pubsher.talexsoultech.talex.electricity.PowerEndpointType;
 
 @Getter
-public abstract class GeneratorMachine extends ElectricityMachine implements IElectricityGenerator, IPower, MCTransfer {
+public abstract class GeneratorMachine extends ElectricityMachine implements PowerEndpoint {
 
-    /**
-     * 最多存储电量
-     **/
-    private final double storageCapacity;
-    /**
-     * 接收能量设备到路径额映射
-     **/
-    private final Map<IReceiver, RouterPath> receiverPathMap = new HashMap<>(16);
-    protected Capacity capacity;
-    /**
-     * 单次供电大小
-     **/
-    private double singleSupplyCapacity = 0;
+    private final BlockKey key;
+    private final EnergyBuffer energyBuffer;
+    private final long singleSupplyCapacity;
 
-    public GeneratorMachine(Location loc, Capacity capacity, double storageCapacity, double singleSupplyCapacity, double voltage) {
-
-        super(loc.clone().add(0.5, 1.45, 0.5));
-
+    public GeneratorMachine(
+            Location location,
+            long storedEnergy,
+            long storageCapacity,
+            long singleSupplyCapacity
+    ) {
+        super(location.clone().add(0.5, 1.45, 0.5));
+        if (singleSupplyCapacity < 0) {
+            throw new IllegalArgumentException("singleSupplyCapacity must be non-negative");
+        }
+        this.key = BlockKey.from(location);
+        this.energyBuffer = new EnergyBuffer(storageCapacity, Math.min(storedEnergy, storageCapacity));
         this.singleSupplyCapacity = singleSupplyCapacity;
-        this.capacity = capacity;
-        this.storageCapacity = storageCapacity;
-
     }
 
-    public GeneratorMachine(Location loc, double storageCapacity, double singleSupplyCapacity, double voltage) {
-
-        super(loc.clone().add(0.5, 1.45, 0.5));
-
-        this.singleSupplyCapacity = singleSupplyCapacity;
-        this.capacity = new Capacity(0, voltage);
-        this.storageCapacity = storageCapacity;
-
-    }
-
-    public GeneratorMachine delReceiverPath(IReceiver receiver, RouterPath routerPath) {
-
-        receiverPathMap.remove(receiver, routerPath);
-
-        return this;
-
-    }
-
-    public GeneratorMachine addReceiverPath(IReceiver receiver, RouterPath routerPath) {
-
-        receiverPathMap.put(receiver, routerPath);
-
-        return this;
-
+    public GeneratorMachine(Location location, long storageCapacity, long singleSupplyCapacity) {
+        this(location, 0L, storageCapacity, singleSupplyCapacity);
     }
 
     @Override
-    public Capacity provideCapacity(Capacity willCapacity) {
+    public BlockKey key() {
+        return key;
+    }
 
+    @Override
+    public PowerEndpointType type() {
+        return PowerEndpointType.PRODUCER;
+    }
+
+    @Override
+    public EnergyBuffer buffer() {
+        return energyBuffer;
+    }
+
+    @Override
+    public long maxReceivePerCycle() {
+        return 0L;
+    }
+
+    @Override
+    public long maxExtractPerCycle() {
+        return singleSupplyCapacity;
+    }
+
+    @Override
+    public void onPowerChanged() {
         updateHologram();
-
-        return capacity.provideStorageCapacity(willCapacity);
-
-    }
-
-    @Override
-    public boolean canProvideCapacity(Capacity willCapacity) {
-
-        return capacity.canProvideCapacity(willCapacity);
-
-    }
-
-    @Override
-    public void clearStorageCapacity() {
-
-        updateHologram();
-
-        capacity = null;
-
     }
 
     @Override
     public void updateHologram() {
-
-        if ( hologram == null || hologram.isDeleted() ) {
-            return;
-        }
-
+        if (hologram == null || hologram.isDeleted()) return;
         updateMachineHologram(this);
-
     }
 
-    /**
-     * 重写方法 - 给予本类对象 # 便于调用变量
-     *
-     * @param generatorMachine 本类实例
-     */
     public abstract void updateMachineHologram(GeneratorMachine generatorMachine);
-
 }

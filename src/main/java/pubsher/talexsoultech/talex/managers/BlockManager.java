@@ -13,6 +13,7 @@ import pubsher.talexsoultech.data.paper_addon.TLocation;
 import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.block.TalexBlock;
+import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,14 @@ public class BlockManager {
 
     }
 
+
+    public void rebindItem(SoulTechItem item) {
+        for (TalexBlock block : placeBlocks.values()) {
+            String itemId = NBTsUtil.getTag(block.getStack(), "soul_tech_item_id");
+            if (item.getID().equals(itemId)) block.setItem(item);
+        }
+    }
+
     public TalexBlock check(BlockBreakEvent event) {
 
         Block block = event.getBlock();
@@ -63,7 +72,12 @@ public class BlockManager {
 
     public BlockManager delBlock(Location location) {
 
-        placeBlocks.remove(new TLocation(location.getBlock()));
+        placeBlocks.remove(new TLocation(
+                location.getWorld(),
+                location.getBlockX(),
+                location.getBlockY(),
+                location.getBlockZ()
+        ));
 
         return this;
 
@@ -175,7 +189,8 @@ public class BlockManager {
                 continue;
             }
 
-            new TalexBlock(loc, stack);
+            TalexBlock loadedBlock = new TalexBlock(loc, stack);
+            loadedBlock.setItem(SoulTechItem.getItem(stack));
 
             whole++;
 
@@ -199,7 +214,12 @@ public class BlockManager {
             return this;
         }
 
-        placeBlocks.put(new TLocation(loc.getBlock()), block);
+        placeBlocks.put(new TLocation(
+                loc.getWorld(),
+                loc.getBlockX(),
+                loc.getBlockY(),
+                loc.getBlockZ()
+        ), block);
 
         return this;
 

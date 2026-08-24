@@ -1,101 +1,118 @@
 package pubsher.talexsoultech.talex.managers;
 
-import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import pubsher.talexsoultech.talex.electricity.achieve.IPower;
-import pubsher.talexsoultech.talex.electricity.achieve.IReceiver;
-import pubsher.talexsoultech.talex.electricity.function.wire.IWire;
-import pubsher.talexsoultech.talex.items.machine.GeneratorMachine;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+import pubsher.talexsoultech.talex.electricity.BlockKey;
+import pubsher.talexsoultech.talex.electricity.PowerCable;
+import pubsher.talexsoultech.talex.electricity.PowerCycleStats;
+import pubsher.talexsoultech.talex.electricity.PowerEndpoint;
+import pubsher.talexsoultech.talex.electricity.PowerGrid;
 
-import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
 
 /**
- * 电力管理类
- *
- * @author TalexDreamSoul
+ * Paper 主线程中的电力系统入口。设备注册改变拓扑，定时任务只负责运行纯电网结算。
  */
-public class ElectricityManager {
+public final class ElectricityManager {
 
     public static final ElectricityManager INSTANCE = new ElectricityManager();
 
-    @Getter
-    private final HashMap<Location, GeneratorMachine> generatorHashMap = new HashMap<>(32);
+    private static final int MAX_NETWORK_NODES = 4_096;
+    private static final long POWER_CYCLE_TICKS = 2L;
 
-    @Getter
-    private final HashMap<Location, IReceiver> receiverHashMap = new HashMap<>(64);
+    private final PowerGrid grid = new PowerGrid(MAX_NETWORK_NODES);
+    private BukkitTask cycleTask;
+    private JavaPlugin plugin;
+    private PowerCycleStats lastStats = new PowerCycleStats(
+            0L, 0L, 0, 0, 0, 0, 0L, 0L, 0L, 0L, 0L
+    );
 
-    @Getter
-    private final HashMap<Location, IWire> wireHashMap = new HashMap<>(128);
-
-    public IPower getPowerInstance(Location loc) {
-
-        GeneratorMachine gm = generatorHashMap.getOrDefault(loc, null);
-        IReceiver ir = receiverHashMap.getOrDefault(loc, null);
-
-        return gm == null ? ( ir == null ? wireHashMap.getOrDefault(loc, null) : ir ) : gm;
-
+    private ElectricityManager() {
     }
 
-    public boolean checkPowerAndReceiver(Location loc) {
-
-        IPower power = getPowerInstance(loc);
-
-        return power instanceof IReceiver;
-
+    public void start(JavaPlugin plugin) {
+        requirePrimaryThread();
+        this.plugin = java.util.Objects.requireNonNull(plugin, "plugin");
+        if (cycleTask != null) return;
+        cycleTask = Bukkit.getScheduler().runTaskTimer(
+                plugin,
+                this::runCycleSafely,
+                1L,
+                POWER_CYCLE_TICKS
+        );
     }
 
-    public void registerElectricity(Location loc, GeneratorMachine generator) {
-
-        this.generatorHashMap.put(loc.clone().getBlock().getLocation(), generator);
-
+    public void stop() {
+        requirePrimaryThread();
+        if (cycleTask == null) return;
+        cycleTask.cancel();
+        cycleTask = null;
     }
 
-    public void registerElectricity(Location loc, IReceiver receiver) {
-
-        this.receiverHashMap.put(loc.clone().getBlock().getLocation(), receiver);
-
+    public void clear() {
+        requirePrimaryThread();
+        grid.clear();
     }
 
-    public void registerElectricity(Location loc, IWire wire) {
-
-        this.wireHashMap.put(loc.clone().getBlock().getLocation(), wire);
-
+    public void registerEndpoint(PowerEndpoint endpoint) {
+        requirePrimaryThread();
+        grid.register(endpoint);
     }
 
-    public void unRegisterElectricity(Location loc, GeneratorMachine generator) {
-
-        this.generatorHashMap.remove(loc.clone().getBlock().getLocation(), generator);
-
+    public void registerCable(PowerCable cable) {
+        requirePrimaryThread();
+        grid.register(cable);
     }
 
-    public void unRegisterElectricity(Location loc, IReceiver receiver) {
-
-        this.receiverHashMap.remove(loc.clone().getBlock().getLocation(), receiver);
-
+    public boolean unregister(Location location) {
+        requirePrimaryThread();
+        return grid.unregister(BlockKey.from(location));
     }
 
-    public void unRegisterElectricity(Location loc, IWire wire) {
-
-        this.wireHashMap.remove(loc.clone().getBlock().getLocation(), wire);
-
+    public Optional<PowerEndpoint> getEndpoint(Location location) {
+        return grid.endpoint(BlockKey.from(location));
     }
 
-    public void unRegisterGenerator(Location loc) {
 
-        this.generatorHashMap.remove(loc.clone().getBlock().getLocation());
-
+    public Optional<PowerEndpoint> getEndpoint(BlockKey key) {
+        return grid.endpoint(key);
     }
 
-    public void unRegisterReceiver(Location loc) {
-
-        this.receiverHashMap.remove(loc.clone().getBlock().getLocation());
-
+    public List<PowerCable> getCables() {
+        return grid.cables();
     }
 
-    public void unRegisterWire(Location loc) {
-
-        this.wireHashMap.remove(loc.clone().getBlock().getLocation());
-
+    public List<PowerEndpoint> getEndpoints() {
+        return grid.endpoints();
     }
 
+    public PowerCycleStats runCycleNow() {
+        requirePrimaryThread();
+        lastStats = grid.tick();
+        return lastStats;
+    }
+
+    public PowerCycleStats getLastStats() {
+        return lastStats;
+    }
+
+    private void runCycleSafely() {
+        try {
+            runCycleNow();
+        } catch (RuntimeException exception) {
+            if (plugin != null) {
+                plugin.getLogger().log(Level.SEVERE, "Electricity cycle failed", exception);
+            }
+        }
+    }
+
+    private static void requirePrimaryThread() {
+        if (!Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("ElectricityManager must be used on the Paper primary thread");
+        }
+    }
 }

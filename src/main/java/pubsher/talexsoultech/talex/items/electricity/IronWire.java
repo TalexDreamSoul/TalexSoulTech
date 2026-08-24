@@ -11,7 +11,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import pubsher.talexsoultech.entity.PlayerData;
-import pubsher.talexsoultech.talex.electricity.function.wire.IWire;
+import pubsher.talexsoultech.talex.electricity.EnergyUnits;
+import pubsher.talexsoultech.talex.electricity.PowerCable;
 import pubsher.talexsoultech.talex.items.machine.rooter.BaseWire;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
 import pubsher.talexsoultech.talex.managers.ElectricityManager;
@@ -22,7 +23,6 @@ import pubsher.talexsoultech.utils.item.MineCraftItem;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static pubsher.talexsoultech.utils.NBTsUtil.Location2String;
 import static pubsher.talexsoultech.utils.NBTsUtil.String2Location;
@@ -32,15 +32,27 @@ import static pubsher.talexsoultech.utils.NBTsUtil.String2Location;
  */
 public class IronWire extends MachineBlockItem {
 
+    private static final long THROUGHPUT_PER_CYCLE = EnergyUnits.fromSe(50);
+    private static final int LOSS_PERMILLE = 5;
+
     public IronWire() {
+        super(
+                "iron_wire",
+                new ItemBuilder(Material.IRON_BARS)
+                        .setName("§b铁质导线")
+                        .setLore(
+                                "",
+                                "§f线路损耗: §e0.5% §f/ 段",
+                                "§f周期通量: §e50 §lSE ⚡",
+                                ""
+                        )
+                        .toItemStack()
+        );
+    }
 
-        super("iron_wire", new ItemBuilder(Material.getMaterial(101))
 
-                .setName("§b铁质导线")
-                .setLore("", "§f损耗: §e0.5 §lSE ⚡§e/m", "§f电压: §e0 - 330 §lSV ⚡", "§f上限: §e50 §lSE ⚡", "")
-
-                .toItemStack());
-
+    private BaseWire createWire() {
+        return new BaseWire(THROUGHPUT_PER_CYCLE, LOSS_PERMILLE, getID());
     }
 
     @Override
@@ -49,13 +61,13 @@ public class IronWire extends MachineBlockItem {
         return new WorkBenchRecipe("iron_wire", this)
 
                 .addRequired("resin")
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired("resin")
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired("resin")
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired("resin")
-                .addRequired(new MineCraftItem(Material.getMaterial(101)))
+                .addRequired(new MineCraftItem(Material.IRON_BARS))
                 .addRequired("resin")
 
                 .setAmount(4);
@@ -93,25 +105,9 @@ public class IronWire extends MachineBlockItem {
 
     @Override
     public boolean onPlaceItem(PlayerData playerData, BlockPlaceEvent event) {
-
-        BaseWire bw = new BaseWire(50, 330, 30) {
-
-            @Override
-            public double getSingleTransmissionLoss() {
-
-                return 0.5;
-            }
-
-        };
-
-        bw.setSymbol(getID());
-
-        ElectricityManager.INSTANCE.registerElectricity(event.getBlock().getLocation(), (IWire) bw);
-
+        ElectricityManager.INSTANCE.registerCable(createWire().at(event.getBlock().getLocation()));
         playerData.actionBar("§f你放置了 §b铁质导线");
-
         return false;
-
     }
 
     @Override
@@ -124,93 +120,49 @@ public class IronWire extends MachineBlockItem {
 
     }
 
-    /**
-     * 当放置的方块被破坏时
-     *
-     * @param playerData 玩家数据
-     * @param event      事件传递
-     *
-     * @return 返回真则从BlockManager中删除
-     */
     @Override
     public boolean onItemBlockBreak(PlayerData playerData, TalexBlock tb, BlockBreakEvent event) {
-
-        ElectricityManager.INSTANCE.unRegisterWire(event.getBlock().getLocation());
-
+        ElectricityManager.INSTANCE.unregister(event.getBlock().getLocation());
         return true;
     }
 
     @Override
     public String onSave() {
+        List<JsonObject> saved = new ArrayList<>();
+        for (PowerCable cable : ElectricityManager.INSTANCE.getCables()) {
+            if (!cable.symbol().equalsIgnoreCase(getID())) continue;
 
-        List<JsonObject> list = new ArrayList<>();
+            Location location = org.bukkit.Bukkit.getWorld(cable.key().worldId()) == null
+                    ? null
+                    : new Location(
+                            org.bukkit.Bukkit.getWorld(cable.key().worldId()),
+                            cable.key().x(),
+                            cable.key().y(),
+                            cable.key().z()
+                    );
+            if (location == null) continue;
 
-        for ( Map.Entry<Location, IWire> entry : ElectricityManager.INSTANCE.getWireHashMap().entrySet() ) {
-
-            IWire wire = entry.getValue();
-
-            if ( !( wire instanceof BaseWire ) ) {
-                continue;
-            }
-
-            BaseWire bw = (BaseWire) wire;
-
-            if ( !bw.getSymbol().equalsIgnoreCase(getID()) ) {
-                continue;
-            }
-
-            JsonObject jsonObject = new JsonObject();
-
-            jsonObject.addProperty("loc", Location2String(entry.getKey()));
-
-            list.add(jsonObject);
-
+            JsonObject json = new JsonObject();
+            json.addProperty("loc", Location2String(location));
+            saved.add(json);
         }
-
-        return new Gson().toJson(list);
-
+        return new Gson().toJson(saved);
     }
 
     @SneakyThrows
     @Override
-    public void onLoad(String str) {
+    public void onLoad(String serialized) {
+        if (serialized == null || serialized.isBlank()) return;
 
-        JsonElement je = new JsonParser().parse(str);
-
-        JsonArray ja = je.getAsJsonArray();
-
-        for ( JsonElement element : ja ) {
-
+        JsonArray saved = JsonParser.parseString(serialized).getAsJsonArray();
+        for (JsonElement element : saved) {
             JsonObject json = element.getAsJsonObject();
-
-            Location loc = String2Location(json.get("loc").getAsString());
-
-            if ( loc == null ) {
-                continue;
-            }
-
-            Block block = loc.getBlock();
-
-            if ( block == null || block.getType() != Material.getMaterial(101) ) {
-                continue;
-            }
-
-            BaseWire bw = new BaseWire(50, 330, 30) {
-
-                @Override
-                public double getSingleTransmissionLoss() {
-
-                    return 0.5;
-                }
-
-            };
-
-            bw.setSymbol(getID());
-
-            ElectricityManager.INSTANCE.registerElectricity(loc, (IWire) bw);
-
+            Location location = String2Location(json.get("loc").getAsString());
+            if (location == null || location.getWorld() == null) continue;
+            boolean loaded = location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+            if (loaded && location.getBlock().getType() != Material.IRON_BARS) continue;
+            ElectricityManager.INSTANCE.registerCable(createWire().at(location));
         }
-
     }
 
 }

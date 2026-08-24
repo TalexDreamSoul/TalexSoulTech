@@ -17,8 +17,8 @@ public class GoldHammer extends BaseBreakHammer {
 
     public GoldHammer() {
 
-        super("gold_pickaxe", new ItemBuilder(Material.GOLD_PICKAXE)
-                .addEnchant(Enchantment.DIG_SPEED, 1).setName("§f◆ 破碎锤(金)").setLore("", "§8> §e破坏总比创造易!", "").toItemStack());
+        super("gold_pickaxe", new ItemBuilder(Material.GOLDEN_PICKAXE)
+                .addEnchant(Enchantment.EFFICIENCY, 1).setName("§f◆ 破碎锤(金)").setLore("", "§8> §e破坏总比创造易!", "").toItemStack());
 
     }
 
@@ -34,7 +34,7 @@ public class GoldHammer extends BaseBreakHammer {
 
         Material material = block.getType();
 
-        if ( material == Material.ENDER_STONE ) {
+        if ( material == Material.END_STONE ) {
 
             if ( Math.random() <= 0.00001 ) {
 

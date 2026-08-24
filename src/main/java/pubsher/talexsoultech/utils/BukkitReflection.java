@@ -66,7 +66,7 @@ public class BukkitReflection {
             Object lighobj = constu.newInstance(wh, l.getX(), l.getY(), l.getZ(), true, true);
             Object obj = getNMSClass("PacketPlayOutSpawnEntityWeather").getConstructor(getNMSClass("Entity")).newInstance(lighobj);
             sendPacket(p, obj);
-            p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_THUNDER, 100.0F, 1.0F);
+            p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 100.0F, 1.0F);
         } catch ( SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | NoSuchMethodException var7 ) {
             var7.printStackTrace();
         }

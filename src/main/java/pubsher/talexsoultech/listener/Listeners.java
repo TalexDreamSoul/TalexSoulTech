@@ -1,8 +1,8 @@
 package pubsher.talexsoultech.listener;
 
-import com.wasteofplastic.acidisland.ASkyBlockAPI;
-import com.wasteofplastic.acidisland.Island;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,19 +14,18 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-import pubsher.talexsoultech.TalexSoulTech;
+import org.bukkit.inventory.PlayerInventory;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.inventory.guider.FirstGuider;
+import pubsher.talexsoultech.inventory.guider.GuiderBook;
 import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.utils.NBTsUtil;
+import pubsher.talexsoultech.utils.block.TalexBlock;
 import pubsher.talexsoultech.utils.item.MachineItem;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 import pubsher.talexsoultech.utils.item.TalexItem;
 
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author TalexDreamSoul
@@ -37,16 +36,7 @@ public class Listeners implements Listener {
     public void onJoin(PlayerJoinEvent event) {
 
         event.setJoinMessage("");
-
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-
-                new PlayerData(BaseTalex.getInstance(), event.getPlayer());
-
-            }
-        }.runTaskAsynchronously(TalexSoulTech.getInstance());
+        BaseTalex.getInstance().loadPlayer(event.getPlayer());
 
     }
 
@@ -55,69 +45,58 @@ public class Listeners implements Listener {
 
         Inventory inventory = event.getClickedInventory();
 
-        if ( inventory == null ) {
+        if ( inventory == null || inventory.getType() != InventoryType.WORKBENCH ) {
             return;
         }
 
-        if ( inventory.getType() == InventoryType.WORKBENCH ) {
-
-            ItemStack stack = event.getCurrentItem();
-
-            if ( !TalexItem.checkItem(stack) || !TalexItem.checkItem(event.getCursor()) ) {
-
-                SoulTechItem item = SoulTechItem.getItem(stack);
-
-                if ( item != null && item.canUseAsOrigin() ) {
-
-                    return;
-
-                }
-
-                event.setCancelled(true);
-
-                Player player = (Player) event.getWhoClicked();
-
-                PlayerData pd = BaseTalex.getInstance().getPlayerManager().get(player.getName());
-
-                pd.playSound(Sound.ENTITY_VILLAGER_NO, 1.1F, 1.1F).actionBar("§c§l物品的诡异魔力让你无法操纵!!").closeInventory();
-
-            }
-
+        boolean currentForbidden = isForbiddenWorkbenchItem(event.getCurrentItem());
+        boolean cursorForbidden = isForbiddenWorkbenchItem(event.getCursor());
+        if ( !currentForbidden && !cursorForbidden ) {
+            return;
         }
+
+        event.setCancelled(true);
+
+        Player player = (Player) event.getWhoClicked();
+        PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(player.getName());
+        if ( playerData == null ) {
+            player.sendActionBar(Component.text("数据加载中，请稍后再试"));
+            return;
+        }
+
+        playerData.playSound(Sound.ENTITY_VILLAGER_NO, 1.1F, 1.1F)
+                .actionBar("§c§l物品的诡异魔力让你无法操纵!!")
+                .closeInventory();
+
+    }
+
+    private static boolean isForbiddenWorkbenchItem(ItemStack stack) {
+
+        if ( !TalexItem.checkItem(stack) ) {
+            return false;
+        }
+
+        SoulTechItem item = SoulTechItem.get(NBTsUtil.getTag(stack, "soul_tech_item_id"));
+        return item == null || !item.canUseAsOrigin();
 
     }
 
     @EventHandler
     public void onItemHold(PlayerItemHeldEvent event) {
 
-        ItemStack stack = event.getPlayer().getItemInHand();
+        if ( event.isCancelled() ) {
+            return;
+        }
 
-        if ( stack != null && !TalexItem.checkItem(stack) ) {
+        ItemStack stack = event.getPlayer().getInventory().getItem(event.getNewSlot());
+        SoulTechItem item = SoulTechItem.getItem(stack);
+        if ( item == null || !"st_items".equalsIgnoreCase(NBTsUtil.getTag(stack, "talex_soul_tc")) ) {
+            return;
+        }
 
-            String type = NBTsUtil.getTag(stack, "talex_soul_tc");
-
-            PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
-
-            if ( type.equalsIgnoreCase("st_items") ) {
-
-                for ( Map.Entry<String, SoulTechItem> entry : SoulTechItem.getItems().entrySet() ) {
-
-                    SoulTechItem sti = entry.getValue();
-
-                    ItemStack thisStack = stack.clone();
-
-                    if ( sti.verify(thisStack) ) {
-
-                        sti.onItemHeld(playerData, event);
-
-                        break;
-
-                    }
-
-                }
-
-            }
-
+        PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
+        if ( playerData != null ) {
+            item.onItemHeld(playerData, event);
         }
 
     }
@@ -127,10 +106,9 @@ public class Listeners implements Listener {
 
         event.setQuitMessage("");
 
-        PlayerData pd = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
-
-        if ( pd != null ) {
-            pd.leave();
+        BaseTalex talex = BaseTalex.getInstance();
+        if (talex != null) {
+            talex.unloadPlayer(event.getPlayer());
         }
 
     }
@@ -138,56 +116,47 @@ public class Listeners implements Listener {
     @EventHandler
     public void onToggleSneak(PlayerToggleSneakEvent event) {
 
+        PlayerInventory inventory = event.getPlayer().getInventory();
+        SoulTechItem mainHand = SoulTechItem.getItem(inventory.getItemInMainHand());
+        SoulTechItem offHand = SoulTechItem.getItem(inventory.getItemInOffHand());
+        SoulTechItem helmet = SoulTechItem.getItem(inventory.getHelmet());
+        SoulTechItem chestplate = SoulTechItem.getItem(inventory.getChestplate());
+        SoulTechItem leggings = SoulTechItem.getItem(inventory.getLeggings());
+        SoulTechItem boots = SoulTechItem.getItem(inventory.getBoots());
+
+        if ( mainHand == null && offHand == null && helmet == null && chestplate == null && leggings == null && boots == null ) {
+            return;
+        }
+
         PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
+        if ( playerData == null ) {
+            return;
+        }
 
-        for ( Map.Entry<String, SoulTechItem> entry : SoulTechItem.getItems().entrySet() ) {
-
-            entry.getValue().onSneak(playerData, event);
-
+        if ( mainHand != null ) {
+            mainHand.onSneak(playerData, event);
+        }
+        if ( offHand != null && offHand != mainHand ) {
+            offHand.onSneak(playerData, event);
+        }
+        if ( helmet != null && helmet != mainHand && helmet != offHand ) {
+            helmet.onSneak(playerData, event);
+        }
+        if ( chestplate != null && chestplate != mainHand && chestplate != offHand && chestplate != helmet ) {
+            chestplate.onSneak(playerData, event);
+        }
+        if ( leggings != null && leggings != mainHand && leggings != offHand && leggings != helmet && leggings != chestplate ) {
+            leggings.onSneak(playerData, event);
+        }
+        if ( boots != null && boots != mainHand && boots != offHand && boots != helmet && boots != chestplate && boots != leggings ) {
+            boots.onSneak(playerData, event);
         }
 
     }
 
     @EventHandler
     public void onPreTeleport(PlayerTeleportEvent event) {
-
-        Player player = event.getPlayer();
-
-        if ( player.hasPermission("talex.soultech.admin") ) {
-            return;
-        }
-
-        if ( !ASkyBlockAPI.getInstance().hasIsland(player.getUniqueId()) ) {
-
-            return;
-
-        }
-
-        Island island = ASkyBlockAPI.getInstance().getIslandAt(event.getTo());
-
-        if ( island.getOwner().equals(player.getUniqueId()) || island.getMembers().contains(player.getUniqueId()) ) {
-
-            return;
-
-        }
-
-        PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
-
-        if ( !playerData.isCategoryUnLock("st_space") ) {
-
-            event.setCancelled(true);
-
-            playerData.title("§4§l℘", "§c虚空腥幻能 §7阻止了传送!", 5, 12, 10)
-                    .playSound(Sound.ENTITY_SPIDER_AMBIENT, 1.0f, 1.1f)
-                    .playSound(Sound.ENTITY_CREEPER_HURT, 1.0f, 1.1f)
-                    .playSound(Sound.ENTITY_CAT_AMBIENT, 1.0f, 1.1f)
-                    .playSound(Sound.ENTITY_CAT_HISS, 1.0f, 1.1f)
-                    .playSound(Sound.ENTITY_PLAYER_LEVELUP, 1.2f, 1.2f)
-                    .actionBar("§c§l你需要解锁 §e空间学 §c§l才可以传送!")
-            ;
-
-        }
-
+        // 旧 AcidIsland 空岛传送限制待迁移到目标服务器选定的空岛 API。
     }
 
     @EventHandler
@@ -197,7 +166,7 @@ public class Listeners implements Listener {
 
         ItemStack stack = event.getPlayer().getItemInHand();
 
-        if ( TalexItem.checkItem(stack) ) {
+        if ( !TalexItem.checkItem(stack) ) {
             return;
         }
 
@@ -217,19 +186,45 @@ public class Listeners implements Listener {
     public void onDamaged(EntityDamageEvent event) {
 
         Entity entity = event.getEntity();
-
-        if ( !( entity instanceof Player ) ) {
+        if ( !( entity instanceof Player player ) ) {
             return;
         }
 
-        PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(( (Player) entity ).getName());
+        PlayerInventory inventory = player.getInventory();
+        SoulTechItem mainHand = SoulTechItem.getItem(inventory.getItemInMainHand());
+        SoulTechItem offHand = SoulTechItem.getItem(inventory.getItemInOffHand());
+        SoulTechItem helmet = SoulTechItem.getItem(inventory.getHelmet());
+        SoulTechItem chestplate = SoulTechItem.getItem(inventory.getChestplate());
+        SoulTechItem leggings = SoulTechItem.getItem(inventory.getLeggings());
+        SoulTechItem boots = SoulTechItem.getItem(inventory.getBoots());
 
-        for ( Map.Entry<String, SoulTechItem> entry : SoulTechItem.getItems().entrySet() ) {
-
-            entry.getValue().onDamaged(playerData, event);
-
+        if ( mainHand == null && offHand == null && helmet == null && chestplate == null && leggings == null && boots == null ) {
+            return;
         }
 
+        PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(player.getName());
+        if ( playerData == null ) {
+            return;
+        }
+
+        if ( mainHand != null ) {
+            mainHand.onDamaged(playerData, event);
+        }
+        if ( offHand != null && offHand != mainHand ) {
+            offHand.onDamaged(playerData, event);
+        }
+        if ( helmet != null && helmet != mainHand && helmet != offHand ) {
+            helmet.onDamaged(playerData, event);
+        }
+        if ( chestplate != null && chestplate != mainHand && chestplate != offHand && chestplate != helmet ) {
+            chestplate.onDamaged(playerData, event);
+        }
+        if ( leggings != null && leggings != mainHand && leggings != offHand && leggings != helmet && leggings != chestplate ) {
+            leggings.onDamaged(playerData, event);
+        }
+        if ( boots != null && boots != mainHand && boots != offHand && boots != helmet && boots != chestplate && boots != leggings ) {
+            boots.onDamaged(playerData, event);
+        }
 
     }
 
@@ -237,68 +232,49 @@ public class Listeners implements Listener {
     public void onInteract(PlayerInteractEvent event) {
 
         PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
+        if ( playerData == null ) {
+            return;
+        }
 
         if ( !BaseTalex.getInstance().getProtectorManager().checkProtect(playerData, event) ) {
-
             return;
-
         }
 
         BaseTalex.getInstance().getMachineManager().onEvent(event);
 
-        for ( Map.Entry<String, SoulTechItem> entry : new HashSet<>(SoulTechItem.getItems().entrySet()) ) {
-
-            if ( entry.getValue() instanceof MachineItem ) {
-
-                ( (MachineItem) entry.getValue() ).onClickedMachineItemBlock(playerData, event);
-
+        Block clickedBlock = event.getClickedBlock();
+        if ( clickedBlock != null ) {
+            TalexBlock talexBlock = BaseTalex.getInstance().getBlockManager().getBlock(clickedBlock);
+            if ( talexBlock != null && talexBlock.getItem() instanceof MachineItem machineItem ) {
+                machineItem.onClickedMachineItemBlock(playerData, event);
             }
-
         }
+        SoulTechItem.dispatchGlobalInteractionObservers(playerData, event);
 
-        ItemStack stack = event.getPlayer().getItemInHand();
-
-        if ( TalexItem.checkItem(stack) ) {
+        ItemStack stack = event.getItem();
+        if ( !TalexItem.checkItem(stack) ) {
             return;
         }
 
         String type = NBTsUtil.getTag(stack, "talex_soul_tc");
-
         if ( type.toLowerCase(Locale.ROOT).contains("guide") ) {
+            event.setCancelled(true);
 
-            if ( playerData.getLastGuider() != null ) {
+            if ( !playerData.isGuideInstalled() ) {
+                new FirstGuider(playerData).open();
+            } else if ( playerData.getLastGuider() != null ) {
                 playerData.getLastGuider().open(true);
             } else {
-                new FirstGuider(playerData).open();
+                new GuiderBook(playerData).open();
             }
+            return;
+        }
 
-        } else if ( "st_items".equalsIgnoreCase(type) ) {
-
-            String itemID = NBTsUtil.getTag(stack, "soul_tech_item_id");
-
-            SoulTechItem sItem = SoulTechItem.get(itemID);
-
-            if ( sItem != null ) {
-
-                sItem.onInteract(playerData, event);
-
+        if ( "st_items".equalsIgnoreCase(type) ) {
+            SoulTechItem soulTechItem = SoulTechItem.getItem(stack);
+            if ( soulTechItem != null ) {
+                soulTechItem.onInteract(playerData, event);
             }
-
-//            for(Map.Entry<String, SoulTechItem> entry : SoulTechItem.getItems().entrySet()) {
-//
-//                SoulTechItem sti = entry.getValue();
-//
-//                ItemStack thisStack = stack.clone();
-//
-//                if(sti.verify(thisStack)) {
-//
-//                    sti.onInteract(playerData, event);
-//                    return;
-//
-//                }
-//
-//            }
-
         }
 
     }
@@ -306,52 +282,35 @@ public class Listeners implements Listener {
     @EventHandler( priority = EventPriority.HIGHEST )
     public void onDrop(PlayerDropItemEvent event) {
 
-        ItemStack stack = event.getItemDrop().getItemStack().clone();
-
-        if ( TalexItem.checkItem(stack) ) {
+        ItemStack stack = event.getItemDrop().getItemStack();
+        if ( !TalexItem.checkItem(stack) ) {
             return;
         }
 
         PlayerData playerData = BaseTalex.getInstance().getPlayerManager().get(event.getPlayer().getName());
-
-        String type = NBTsUtil.getTag(stack, "talex_soul_tc");
-
-        if ( type.toLowerCase(Locale.ROOT).contains("guide") ) {
-
-            event.setCancelled(true);
-
-            if ( playerData.getLastGuider() != null ) {
-                playerData.getLastGuider().open(true);
-            } else {
-                new FirstGuider(playerData).open();
-            }
-        } else {
-
-            String itemID = NBTsUtil.getTag(stack, "soul_tech_item_id");
-
-            SoulTechItem sItem = SoulTechItem.get(itemID);
-
-            if ( sItem != null ) {
-
-                sItem.throwItem(playerData, event);
-
-            }
-
+        if ( playerData == null ) {
+            return;
         }
 
-//        for(Map.Entry<String, SoulTechItem> entry : SoulTechItem.getItems().entrySet()) {
-//
-//            SoulTechItem sti = entry.getValue();
-//
-//            if(sti.verify(stack, new HashSet<>(Arrays.asList(TalexItem.VerifyIgnoreTypes.IgnoreAmount, TalexItem.VerifyIgnoreTypes.IgnoreDurability)))) {
-//
-//                sti.throwItem(playerData, event);
-//
-//                return;
-//
-//            }
-//
-//        }
+        String type = NBTsUtil.getTag(stack, "talex_soul_tc");
+        if ( type.toLowerCase(Locale.ROOT).contains("guide") ) {
+            event.setCancelled(true);
+
+            if ( !playerData.isGuideInstalled() ) {
+                new FirstGuider(playerData).open();
+            } else if ( playerData.getLastGuider() != null ) {
+                playerData.getLastGuider().open(true);
+            } else {
+                new GuiderBook(playerData).open();
+            }
+            return;
+        }
+
+        String itemID = NBTsUtil.getTag(stack, "soul_tech_item_id");
+        SoulTechItem soulTechItem = SoulTechItem.get(itemID);
+        if ( soulTechItem != null ) {
+            soulTechItem.throwItem(playerData, event);
+        }
 
     }
 

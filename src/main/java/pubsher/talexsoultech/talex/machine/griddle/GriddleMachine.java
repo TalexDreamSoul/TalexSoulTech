@@ -42,7 +42,7 @@ public class GriddleMachine extends BaseMachine {
 
     public GriddleMachine() {
 
-        super("griddles", new ItemBuilder(Material.TRAP_DOOR).setName("§c过滤筛子").setLore("", "§8> §e无尽的磨练即千锤百炼!", "").toItemStack(), new MachineChecker() {
+        super("griddles", new ItemBuilder(Material.OAK_TRAPDOOR).setName("§c过滤筛子").setLore("", "§8> §e无尽的磨练即千锤百炼!", "").toItemStack(), new MachineChecker() {
 
             @Override
             public boolean onCheck(PlayerEvent event) {
@@ -71,14 +71,14 @@ public class GriddleMachine extends BaseMachine {
         MAP.put(Material.COBBLESTONE, 7);
         MAP.put(Material.DIRT, 5);
         MAP.put(Material.GRAVEL, 5);
-        MAP.put(Material.WOOL, 12);
+        MAP.put(Material.WHITE_WOOL, 12);
 
     }
 
     @Override
     public void onOpenMachineInfoViewer(PlayerData playerData) {
 
-        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.TRAP_DOOR)
+        new InfoWorldConstruct(playerData, new TalexItem(new ItemBuilder(Material.OAK_TRAPDOOR)
 
                 .setName("§c筛子")
 

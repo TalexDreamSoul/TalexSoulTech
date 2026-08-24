@@ -1,8 +1,5 @@
 package pubsher.talexsoultech.utils.item;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import org.apache.commons.lang.WordUtils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -11,10 +8,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
-import pubsher.talexsoultech.utils.BukkitReflection;
 
 import java.beans.ConstructorProperties;
-import java.lang.reflect.Field;
 import java.util.*;
 
 public final class ItemUtil {
@@ -60,32 +55,7 @@ public final class ItemUtil {
 
     public static String getName(ItemStack item) {
 
-        String reflectedName;
-        if ( item.getDurability() != 0 ) {
-            reflectedName = BukkitReflection.getItemStackName(item);
-            if ( reflectedName != null ) {
-                if ( reflectedName.contains(".") ) {
-                    reflectedName = WordUtils.capitalize(item.getType().toString().toLowerCase().replace("_", " "));
-                }
-
-                return reflectedName;
-            }
-        }
-
-        reflectedName = item.getType().toString().replace("_", " ");
-        char[] chars = reflectedName.toLowerCase().toCharArray();
-        boolean found = false;
-
-        for ( int i = 0; i < chars.length; ++i ) {
-            if ( !found && Character.isLetter(chars[i]) ) {
-                chars[i] = Character.toUpperCase(chars[i]);
-                found = true;
-            } else if ( Character.isWhitespace(chars[i]) || chars[i] == '.' || chars[i] == '\'' ) {
-                found = false;
-            }
-        }
-
-        return String.valueOf(chars);
+        return formatMaterial(item.getType());
     }
 
     public static ItemStack createItem(Material material, String name) {
@@ -126,7 +96,7 @@ public final class ItemUtil {
     public static ItemStack setUnbreakable(ItemStack item) {
 
         ItemMeta meta = item.getItemMeta();
-        meta.spigot().setUnbreakable(true);
+        meta.setUnbreakable(true);
         meta.addItemFlags(new ItemFlag[] { ItemFlag.HIDE_UNBREAKABLE });
         item.setItemMeta(meta);
         return item;
@@ -171,21 +141,10 @@ public final class ItemUtil {
         return item;
     }
 
-    public static ItemStack getCustomSkull(String url) {
+    public static ItemStack getCustomSkull(String texture) {
 
-        ItemStack ib = new ItemStack(Material.SKULL_ITEM, 1, (byte) 3);
-        SkullMeta skull = (SkullMeta) ib.getItemMeta();
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
-        profile.getProperties().put("textures", new Property("textures", url));
-        try {
-            Field profileField = skull.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(skull, profile);
-        } catch ( NoSuchFieldException | IllegalAccessException e ) {
-            e.printStackTrace();
-        }
-        ib.setItemMeta(skull);
-        return ib;
+        // 旧版 GameProfile 反射已在 Paper 26 移除；保留安全的原生玩家头占位。
+        return new ItemStack(Material.PLAYER_HEAD);
     }
 
     public static ItemStack addItemFlag(ItemStack item, ItemFlag flag) {

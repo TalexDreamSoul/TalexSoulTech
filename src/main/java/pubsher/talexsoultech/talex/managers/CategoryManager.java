@@ -27,6 +27,10 @@ import pubsher.talexsoultech.talex.items.material.ingots.FireIngot;
 import pubsher.talexsoultech.talex.items.material.mesh.NormalMesh;
 import pubsher.talexsoultech.talex.items.material.mesh.NormalMeshPlus;
 import pubsher.talexsoultech.talex.items.material.others.SuperString;
+import pubsher.talexsoultech.talex.items.multiblock.gravity.GravityCatalog;
+import pubsher.talexsoultech.talex.items.multiblock.industry.IndustrialMachines;
+import pubsher.talexsoultech.talex.items.multiblock.magic.MagicCatalog;
+import pubsher.talexsoultech.talex.items.multiblock.space.SpaceMultiblockCatalog;
 import pubsher.talexsoultech.talex.items.space.EndStoneDust;
 import pubsher.talexsoultech.talex.items.space.SpaceDust;
 import pubsher.talexsoultech.talex.items.tank.NormalTank;
@@ -34,6 +38,7 @@ import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
 import pubsher.talexsoultech.talex.machine.break_hammer.BreakHammerRecipe;
 import pubsher.talexsoultech.talex.machine.furnace_cauldron.FurnaceCauldronRecipe;
 import pubsher.talexsoultech.talex.machine.griddle.GriddleRecipe;
+import pubsher.talexsoultech.talex.machine.multiblock.PoweredMultiblockMachineItem;
 import pubsher.talexsoultech.talex.magic.ItemShower;
 import pubsher.talexsoultech.talex.magic.MagicNormalHandle;
 import pubsher.talexsoultech.talex.magic.injection.InjectionCore;
@@ -44,6 +49,7 @@ import pubsher.talexsoultech.utils.item.TalexItem;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -66,17 +72,11 @@ public class CategoryManager {
     }
 
     public Set<CategoryObject> getCategories() {
-
-        Set<CategoryObject> sets = new HashSet<>(categories.values());
-
-        for ( CategoryObject categoryObject : sets ) {
-
-            sets.addAll(deepCategories(categoryObject));
-
+        Set<CategoryObject> result = new HashSet<>();
+        for (CategoryObject categoryObject : categories.values()) {
+            result.addAll(deepCategories(categoryObject));
         }
-
-        return sets;
-
+        return result;
     }
 
     private Set<CategoryObject> deepCategories(CategoryObject categoryObject) {
@@ -101,15 +101,15 @@ public class CategoryManager {
 
         this.categories.put("talex_soul_tech_root", rootCategory);
 
-        CategoryObject material = new CategoryObject(0, "st_material", new ItemBuilder(Material.NETHER_BRICK_ITEM).setLore("", "§8> §f奇特的材料赋予你更多的选择..", "").setName("§c材料学").toItemStack());
-        CategoryObject sapling = new CategoryObject(0, "st_sapling", new ItemBuilder(Material.SAPLING).setLore("", "§8> §f万物万灵之启..", "").setName("§a植物学").toItemStack());
+        CategoryObject material = new CategoryObject(0, "st_material", new ItemBuilder(Material.NETHER_BRICK).setLore("", "§8> §f奇特的材料赋予你更多的选择..", "").setName("§c材料学").toItemStack());
+        CategoryObject sapling = new CategoryObject(0, "st_sapling", new ItemBuilder(Material.OAK_SAPLING).setLore("", "§8> §f万物万灵之启..", "").setName("§a植物学").toItemStack());
         CategoryObject chestplates = new CategoryObject(0, "st_chestplates", new ItemBuilder(Material.LEATHER_CHESTPLATE).setLore("", "§8> §f防御，强壮自我.", "").setName("§f§l防御学").toItemStack());
 
-        CategoryObject industry = new CategoryObject(1, "st_industry", new ItemBuilder(Material.POWERED_MINECART).setLore("", "§8> §b科技成就梦想", "").setName("§f科技学").toItemStack());
+        CategoryObject industry = new CategoryObject(1, "st_industry", new ItemBuilder(Material.FURNACE_MINECART).setLore("", "§8> §b科技成就梦想", "").setName("§f科技学").toItemStack());
 
         industry.addPreposition(base);
 
-        CategoryObject magic = new CategoryObject(1, "st_magic", new ItemBuilder(Material.FLOWER_POT_ITEM).setLore("", "§8> §b光明与黑暗 本就该共存", "").setName("§f魔法学").toItemStack());
+        CategoryObject magic = new CategoryObject(1, "st_magic", new ItemBuilder(Material.FLOWER_POT).setLore("", "§8> §b光明与黑暗 本就该共存", "").setName("§f魔法学").toItemStack());
 
         magic.addPreposition(base);
 
@@ -137,6 +137,7 @@ public class CategoryManager {
         initMagic(magic);
         initMaterial(material);
         initChestplates(chestplates);
+        initMultiblockDisciplines(industry, magic, space, gravitation);
 
         base.addChild(new CategoryObject(6, "st_mesh_normal", new NormalMesh().getRecipe()));
         base.addChild(new CategoryObject(6, "st_mesh_normal_plus", new NormalMeshPlus().getRecipe()));
@@ -145,7 +146,7 @@ public class CategoryManager {
         space.addChild(new CategoryObject(0, "st_hammer_gold_pickaxe", new GoldHammer().getRecipe()));
         space.addChild(new CategoryObject(0, "st_space_dust", new SpaceDust().getRecipe()));
         space.addChild(new CategoryObject(0, "st_end_stone_dust", new EndStoneDust().getRecipe()));
-        space.addChild(new CategoryObject(0, "st_end_stone", new FurnaceCauldronRecipe("end_stone", new MineCraftItem(Material.ENDER_STONE), 5)
+        space.addChild(new CategoryObject(0, "st_end_stone", new FurnaceCauldronRecipe("end_stone", new MineCraftItem(Material.END_STONE), 5)
                 .setNeed(SoulTechItem.get("end_stone_dust"))));
 
         space.addChild(new CategoryObject(0, "st_obsidian", new FurnaceCauldronRecipe("obsidian", new MineCraftItem(Material.OBSIDIAN), 85000)
@@ -157,7 +158,7 @@ public class CategoryManager {
 
         sapling.addChild(new CategoryObject(-1, "st_food_super_bone", new SuperBone().getRecipe()));
 
-        sapling.addChild(new CategoryObject(0, "st_sapling_reeds", new GriddleRecipe("reeds", new MineCraftItem(Material.getMaterial(338)))
+        sapling.addChild(new CategoryObject(0, "st_sapling_reeds", new GriddleRecipe("reeds", new MineCraftItem(Material.SUGAR_CANE))
                 .setNeed(new MineCraftItem(Material.SAND)).setRandom(0.01f).setAllowedRepeat(true)));
 
         sapling.addChild(new CategoryObject(0, "st_pumpkin_seeds", new GriddleRecipe("pumpkin_seeds", new MineCraftItem(Material.PUMPKIN_SEEDS))
@@ -206,6 +207,36 @@ public class CategoryManager {
 
         magic.addChild(new CategoryObject(0, "st_magic_injection_core", new InjectionCore().getRecipe()));
 
+    }
+
+
+    private void initMultiblockDisciplines(
+            CategoryObject industry,
+            CategoryObject magic,
+            CategoryObject space,
+            CategoryObject gravitation
+    ) {
+        registerContent(industry, 3, IndustrialMachines.items(), IndustrialMachines.machines());
+        registerContent(magic, 3, MagicCatalog.items(), MagicCatalog.machines());
+        registerContent(space, 4, SpaceMultiblockCatalog.items(), SpaceMultiblockCatalog.machines());
+        registerContent(gravitation, 5, GravityCatalog.items(), GravityCatalog.machines());
+    }
+
+    private void registerContent(
+            CategoryObject category,
+            int tier,
+            List<SoulTechItem> items,
+            List<PoweredMultiblockMachineItem> machines
+    ) {
+        for (SoulTechItem item : items) {
+            var recipe = item.getRecipe();
+            if (recipe != null) {
+                category.addChild(new CategoryObject(tier, "st_content_" + item.getID(), recipe));
+            }
+        }
+        for (PoweredMultiblockMachineItem machine : machines) {
+            category.addChild(new CategoryObject(tier, "st_machine_" + machine.getID(), machine.getRecipe()));
+        }
     }
 
     private void initElectricity(CategoryObject industry) {
@@ -292,16 +323,16 @@ public class CategoryManager {
 
         ));
 
-        base.addChild(new CategoryObject(2, "st_cobblestone", new BreakHammerRecipe("st_hammer_recipe_cobblestone", Material.WOOD, Material.COBBLESTONE)));
+        base.addChild(new CategoryObject(2, "st_cobblestone", new BreakHammerRecipe("st_hammer_recipe_cobblestone", Material.OAK_PLANKS, Material.COBBLESTONE)));
         base.addChild(new CategoryObject(2, "st_gravel", new BreakHammerRecipe("st_hammer_recipe_gravel", Material.COBBLESTONE, Material.GRAVEL)));
         base.addChild(new CategoryObject(2, "st_sand", new BreakHammerRecipe("st_hammer_recipe_sand", Material.GRAVEL, Material.SAND)).addPreposition("st_gravel"));
-        base.addChild(new CategoryObject(2, "st_red_sand", new BreakHammerRecipe("st_hammer_recipe_red_sand", Material.SAND, new ItemBuilder(Material.SAND).setDurability((short) 1).toItemStack())).addPreposition("st_sand"));
+        base.addChild(new CategoryObject(2, "st_red_sand", new BreakHammerRecipe("st_hammer_recipe_red_sand", Material.SAND, new ItemBuilder(Material.RED_SAND).toItemStack())).addPreposition("st_sand"));
         base.addChild(new CategoryObject(2, "st_soul_sand", new BreakHammerRecipe("st_hammer_recipe_soul_sand", Material.NETHERRACK, Material.SOUL_SAND).setDisplayRequireHammerTool(new IronHammer(new StoneHammer()))).addPreposition("st_red_sand"));
 
         base.addChild(new CategoryObject(3, "st_coal", new BreakHammerRecipe("st_hammer_recipe_coal", Material.COBBLESTONE, new ItemBuilder(Material.COAL).setLore("", "§8> §b较小几率产出随机 1 - 6 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
         base.addChild(new CategoryObject(3, "st_red_stone", new BreakHammerRecipe("st_hammer_recipe_red_stone", Material.COBBLESTONE, new ItemBuilder(Material.REDSTONE).setLore("", "§8> §b较小几率产出随机 1 - 5 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
         base.addChild(new CategoryObject(3, "st_iron_ore", new BreakHammerRecipe("st_hammer_recipe_iron_ore", Material.COBBLESTONE, new ItemBuilder(Material.IRON_ORE).setLore("", "§8> §b较小几率产出 1 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
-        base.addChild(new CategoryObject(3, "st_dye_four", new BreakHammerRecipe("st_hammer_recipe_dye_four", Material.COBBLESTONE, new ItemBuilder(Material.getMaterial(351)).setDurability((short) 4).setLore("", "§8> §b较小几率产出随机 1 - 8 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
+        base.addChild(new CategoryObject(3, "st_dye_four", new BreakHammerRecipe("st_hammer_recipe_dye_four", Material.COBBLESTONE, new ItemBuilder(Material.LAPIS_LAZULI).setLore("", "§8> §b较小几率产出随机 1 - 8 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
         base.addChild(new CategoryObject(3, "st_gold_ore", new BreakHammerRecipe("st_hammer_recipe_gold_ore", Material.GRAVEL, new ItemBuilder(Material.GOLD_ORE).setLore("", "§8> §b较小几率产出随机 1 - 2 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack()).setDisplayRequireHammerTool(ironHammer)));
 
         base.addChild(new CategoryObject(4, "st_machine_core", MachineCore.INSTANCE.getRecipe()));

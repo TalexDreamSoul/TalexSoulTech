@@ -25,7 +25,7 @@ public abstract class ParticleObject {
     private long period;
     private boolean running = false;
 
-    private Particle particle = Particle.VILLAGER_HAPPY;
+    private Particle particle = Particle.HAPPY_VILLAGER;
     private int count = 1;
     private double offsetX = 0;
     private double offsetY = 0;
@@ -391,13 +391,13 @@ public abstract class ParticleObject {
 //        if (color != null) {
 //            if (isNewer()) {
 //                Particle.DustOptions dust = new Particle.DustOptions(color, 1);
-//                location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, offsetX, offsetY, offsetZ, 1, dust);
+//                location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, offsetX, offsetY, offsetZ, 1, dust);
 //            } else {
 //                // 对低版本的黑色做一个小小的兼容
 //                if (color.getRed() == 0 && color.getBlue() == 0 && color.getGreen() == 0) {
-//                    location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, 1);
+//                    location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, 1);
 //                } else {
-//                    location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1);
+//                    location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1);
 //                }
 //            }
 //            return;
@@ -434,14 +434,14 @@ public abstract class ParticleObject {
         if ( color != null ) {
             if ( isNewer() ) {
 
-                location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, offsetX, offsetY, offsetZ, 1, color);
+                location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, offsetX, offsetY, offsetZ, 1, color);
 
             } else {
                 // 对低版本的黑色做一个小小的兼容
                 if ( color.getRed() == 0 && color.getBlue() == 0 && color.getGreen() == 0 ) {
-                    location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, 1);
+                    location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, Float.MIN_VALUE / 255.0f, 1);
                 } else {
-                    location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1);
+                    location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1);
                 }
             }
             return;
@@ -465,9 +465,9 @@ public abstract class ParticleObject {
 //        }
 //        if (isNewer()) {
 //            Particle.DustOptions dust = new Particle.DustOptions(color, 1);
-//            location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, 0, 0, 0, 1, dust);
+//            location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, 0, 0, 0, 1, dust);
 //        } else {
-//            location.getWorld().spawnParticle(Particle.REDSTONE, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1);
+//            location.getWorld().spawnParticle(Particle.DUST, showLocation.getX(), showLocation.getY(), showLocation.getZ(), 0, color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 1);
 //        }
 //    }
 

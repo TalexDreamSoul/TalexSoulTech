@@ -35,7 +35,7 @@ public class IronHammer extends BaseBreakHammer {
 
             if ( a < 10 ) {
 
-                return new ItemBuilder(Material.getMaterial(351)).setDurability((short) 4).setAmount(random.nextInt(8)).toItemStack();
+                return new ItemBuilder(Material.LAPIS_LAZULI).setAmount(random.nextInt(8)).toItemStack();
 
             }
 

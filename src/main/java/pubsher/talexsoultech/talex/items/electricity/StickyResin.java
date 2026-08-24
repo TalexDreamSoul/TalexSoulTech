@@ -29,7 +29,7 @@ public class StickyResin extends SoulTechItem {
 
                 .setName("§f粘性树脂")
                 .setLore("", "§8> §a黏糊糊的,就像是§l鼻涕§a...", "§e试试全身泡在水里丢出它..", "")
-                .addEnchant(Enchantment.DURABILITY, 1)
+                .addEnchant(Enchantment.UNBREAKING, 1)
                 .addFlag(ItemFlag.HIDE_ENCHANTS)
 
                 .toItemStack());
@@ -81,7 +81,7 @@ public class StickyResin extends SoulTechItem {
             dropItem.remove();
 
             item.getWorld().dropItem(loc, SoulTechItem.get("resin"));
-            item.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, item.getLocation(), 5, 0, 0.1, 0, 0.001);
+            item.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, item.getLocation(), 5, 0, 0.1, 0, 0.001);
 
         }
 

@@ -1,12 +1,75 @@
-#Talexs - SettingTemplateYaml
-
+# TalexSoulTech runtime settings
 Settings:
   prefix: "Talexs"
   mysql:
-    ip: "localhost"
+    # Set true only after supplying production credentials on the server.
+    enabled: false
+    ip: "127.0.0.1"
     port: 3306
-    user: "root"
-    pass: "123456"
+    user: ""
+    pass: ""
     db: "soul_tech"
 
-#Talexs - SettingTemplateYaml
+  cloud:
+    # Disabled by default. HTTPS is required, except loopback HTTP during local development.
+    enabled: false
+    api-base: ""
+    server-id: ""
+    api-key: ""
+    sync-interval-seconds: 300
+    sequence: 0
+
+  extensions:
+    enabled: true
+    refresh-interval-seconds: 60
+    max-source-bytes: 131072
+    callback-budget-millis: 50
+Features:
+  wilderness:
+    # 关闭时仅停止新矿脉与怪物强化；已有 v2 索引的矿脉继续保持交互。
+    enabled: false
+    worlds:
+      - world
+    ore:
+      # 关闭时仅停止新矿脉生成；已有 v2 索引矿脉仍会被识别。
+      enabled: true
+      min-y: -32
+      max-y: 24
+      attempts-per-chunk: 3
+      vein-size: 3
+      max-blocks-per-chunk: 8
+      material: RAW_GOLD_BLOCK
+      replaceable:
+        - STONE
+        - DEEPSLATE
+      drop:
+        material: GOLD_NUGGET
+        amount: 1
+        experience: 1
+    mobs:
+      enabled: true
+      chance: 0.04
+      allowed-types:
+        - ZOMBIE
+        - SKELETON
+      max-health-multiplier: 1.15
+      attack-damage-multiplier: 1.10
+      movement-speed-multiplier: 1.05
+      max-health-cap: 40.0
+      attack-damage-cap: 12.0
+      movement-speed-cap: 0.4
+      name: "&6荒野 %type%"
+      name-visible: false
+      drop:
+        material: GOLD_NUGGET
+        amount: 1
+  storage:
+    enabled: true
+    item-models:
+      enabled: true
+    copper_box:
+      enabled: true
+    iron_box:
+      enabled: true
+    void_box:
+      enabled: true

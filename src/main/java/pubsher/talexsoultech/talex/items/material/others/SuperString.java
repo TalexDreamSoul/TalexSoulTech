@@ -27,7 +27,7 @@ public class SuperString extends SoulTechItem {
     @Override
     public RecipeObject getRecipe() {
 
-        return new GriddleRecipe("super_string", this).setRandom(0.02f).setAmount(2).setNeed(new MineCraftItem(Material.WOOL));
+        return new GriddleRecipe("super_string", this).setRandom(0.02f).setAmount(2).setNeed(new MineCraftItem(Material.WHITE_WOOL));
     }
 
 }

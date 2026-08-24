@@ -1,17 +1,15 @@
 package pubsher.talexsoultech.talex.items.food;
 
-import org.bukkit.CropState;
-import org.bukkit.Effect;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.material.Crops;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.talex.guider.category.RecipeObject;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
@@ -35,7 +33,7 @@ public class SuperBone extends SoulTechItem {
 
     public SuperBone() {
 
-        super("super_bone", new ItemBuilder(Material.getMaterial(351)).setDurability((short) 15)
+        super("super_bone", new ItemBuilder(Material.BONE_MEAL)
 
                 .setName("§a超级骨粉")
 
@@ -47,7 +45,7 @@ public class SuperBone extends SoulTechItem {
     @Override
     public RecipeObject getRecipe() {
 
-        TalexItem dye = new TalexItem(new ItemBuilder(Material.getMaterial(351)).setDurability((short) 15));
+        TalexItem dye = new TalexItem(new ItemBuilder(Material.BONE_MEAL));
 
         return new WorkBenchRecipe("super_bone", this)
 
@@ -72,30 +70,16 @@ public class SuperBone extends SoulTechItem {
         }
 
         Block block = event.getClickedBlock();
-
-        if ( block == null ) {
+        if ( block == null || !(block.getBlockData() instanceof Ageable ageable) ) {
             return;
         }
 
-        BlockState state = block.getState();
+        event.setCancelled(true);
+        playerData.reducePlayerHandItem(1);
 
-        if ( state.getData() instanceof Crops ) {
-
-            event.setCancelled(true);
-
-            playerData.reducePlayerHandItem(1);
-
-            Crops crops = (Crops) state.getData();
-
-            crops.setState(CropState.RIPE);
-
-            state.setData(crops);
-
-            state.update(true);
-
-            block.getWorld().playEffect(block.getLocation(), Effect.VILLAGER_PLANT_GROW, 30);
-
-        }
+        ageable.setAge(ageable.getMaximumAge());
+        block.setBlockData(ageable, true);
+        block.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, block.getLocation().add(0.5, 0.5, 0.5), 30, 0.35, 0.35, 0.35, 0);
 
     }
 

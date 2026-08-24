@@ -21,7 +21,7 @@ public class NormalMeshPlus extends BaseGriddleMesh {
 
     public NormalMeshPlus() {
 
-        super(new ItemBuilder(Material.TRAP_DOOR).setName("§f高级筛网").setLore("", "§8> §a高级的筛网.", "", "§f耐久: §c120", ""), (short) 120);
+        super(new ItemBuilder(Material.OAK_TRAPDOOR).setName("§f高级筛网").setLore("", "§8> §a高级的筛网.", "", "§f耐久: §c120", ""), (short) 120);
     }
 
     @Override
@@ -35,15 +35,15 @@ public class NormalMeshPlus extends BaseGriddleMesh {
 
         return new WorkBenchRecipe("mesh_normal_plus", this)
 
-                .addRequired(new MineCraftItem(Material.LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG))
                 .addRequired("super_string")
-                .addRequired(new MineCraftItem(Material.LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG))
                 .addRequired("super_string")
                 .addRequired("fire_ingot_block")
                 .addRequired("super_string")
-                .addRequired(new MineCraftItem(Material.LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG))
                 .addRequired("super_string")
-                .addRequired(new MineCraftItem(Material.LOG))
+                .addRequired(new MineCraftItem(Material.OAK_LOG))
 
                 ;
     }
