@@ -181,38 +181,3 @@ The 54-path dirty workspace was fully attributed and split into three commits: r
 
 No balance number was changed from synthetic acceptance alone. The next tuning decision requires observed survival acquisition time, charge cadence, and tool-use telemetry from normal players; the current evidence only proves correctness and bounded performance.
 
-
-## Session 3: SoulTech production convergence and Mac Work handoff
-
-**Date**: 2026-08-25
-**Task**: SoulTech production convergence and Mac Work handoff
-**Branch**: `main`
-
-### Summary
-
-Delivered 50 electrical entries, item/admin commands, real-client resource/storage/wilderness/multiblock acceptance, complete Mac Work source/client handoff, Cloudflare Worker bb11bf55, and atomic wlcb1 JAR 3aa8dfbe release.
-
-### Main Changes
-
-(Add details)
-
-### Git Commits
-
-| Hash | Message |
-|------|---------|
-| `36389e6` | (see git log) |
-| `64f8229` | (see git log) |
-| `e6c4940` | (see git log) |
-| `3ef4103` | (see git log) |
-
-### Testing
-
-- [OK] (Add test results)
-
-### Status
-
-[OK] **Completed**
-
-### Next Steps
-
-- None - task complete
