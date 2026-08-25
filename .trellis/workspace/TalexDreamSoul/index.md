@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 2
-- **Last Active**: 2026-08-23
+- **Total Sessions**: 3
+- **Last Active**: 2026-08-25
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~150 | Active |
+| `journal-1.md` | ~218 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 3 | 2026-08-25 | SoulTech production convergence and Mac Work handoff | `36389e6`, `64f8229`, `e6c4940`, `3ef4103` | `main` |
 | 2 | 2026-08-23 | TalexSoulTech architecture and production handoff | `fa95e52`, `f946cf2` | `main` |
 | 1 | 2026-08-23 | 野外玩法、箱子、资源包与持久化收口 | `fa95e52`, `f946cf2` | `main` |
 <!-- @@@/auto:session-history -->
