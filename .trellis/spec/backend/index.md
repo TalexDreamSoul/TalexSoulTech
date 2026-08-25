@@ -1,39 +1,34 @@
 # Backend Development Guidelines
 
-> Best practices for backend development in this project.
+> Source-backed guidance for the TalexSoulTech Paper runtime and Cloudflare control plane.
 
----
+## Required reading
 
-## Overview
+Before backend work, read the files matching the change:
 
-This directory is being bootstrapped from the real repository. `system-invariants.md` is source-backed and authoritative; the remaining generated templates stay non-authoritative until their placeholder sections are replaced.
+| Guide | Use when changing | Status |
+|---|---|---|
+| [Directory Structure](./directory-structure.md) | Package/file ownership or new modules | Current |
+| [Database Guidelines](./database-guidelines.md) | MySQL, D1, migrations, persistence | Current |
+| [Error Handling](./error-handling.md) | Exceptions, API errors, degraded modes | Current |
+| [Quality Guidelines](./quality-guidelines.md) | Implementation, review, tests, release | Current |
+| [Logging Guidelines](./logging-guidelines.md) | Runtime logs, audit evidence, redaction | Current |
+| [System Runtime and Release Invariants](./system-invariants.md) | Electricity, equipment, multiblocks, wilderness, cloud, release | Authoritative |
 
----
+Also read the shared [thinking guides](../guides/index.md) for cross-layer and reuse checks.
 
-## Guidelines Index
+## Pre-development checklist
 
-| Guide | Description | Status |
-|-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Database Guidelines](./database-guidelines.md) | ORM patterns, queries, migrations | To fill |
-| [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
-| [System Runtime and Release Invariants](./system-invariants.md) | Paper, gameplay, persistence, Cloudflare, and release contracts | Current |
+- Identify whether the code is pure domain, Bukkit main-thread boundary, persistence worker, Worker API, or SSR/static UI.
+- Read `system-invariants.md` for any runtime/release change.
+- Search for the existing catalog, registry, decoder, migration, or transaction owner before adding one.
+- Map lifecycle: enable/load -> active operation -> save/close/rollback.
+- Define the observable verification before editing.
 
----
+## Project baseline
 
-## How to Fill These Guidelines
-
-For each guideline file:
-
-1. Document your project's **actual conventions** (not ideals)
-2. Include **code examples** from your codebase
-3. List **forbidden patterns** and why
-4. Add **common mistakes** your team has made
-
-The goal is to help AI assistants and new team members understand how YOUR project works.
-
----
-
-**Language**: All documentation should be written in **English**.
+- Java 25, Paper 26.1.2 build 74, Maven.
+- Cloudflare Worker + D1 + Durable Objects under `site/`.
+- Direct MySQL/JDBC compatibility for optional Paper player persistence.
+- One no-voltage `long` milli-SE energy domain.
+- Main-thread Bukkit access, bounded generation/event work, fail-closed tenant/security boundaries.

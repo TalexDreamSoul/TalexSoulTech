@@ -1,51 +1,51 @@
 # Logging Guidelines
 
-> How logging is done in this project.
+> Logs are operational evidence, not a data export channel.
 
----
+## Logging surfaces
 
-## Overview
+- Paper uses `JavaPlugin#getLogger()` for runtime state and the existing colored `plugin.log(...)` helper for legacy lifecycle messages.
+- Cloudflare uses `console.error` only for unexpected failures; expected API errors flow through `ApiError` without noisy stack traces.
+- Durable business actions are recorded as tenant-scoped D1 audit events rather than reconstructed from console logs.
 
-<!--
-Document your project's logging conventions here.
+## Levels
 
-Questions to answer:
-- What logging library do you use?
-- What are the log levels and when to use each?
-- What should be logged?
-- What should NOT be logged (PII, secrets)?
--->
+- **INFO**: lifecycle transitions, catalog counts, machine load/save completion, successful cloud sync summary, measured durations.
+- **WARNING**: explicitly degraded but safe operation, such as MySQL-disabled non-durable mode, read-only player fallback, invalid optional config using a documented safe default.
+- **SEVERE / error**: a service cannot uphold its contract. Prefer failing plugin startup or the request instead of repeatedly logging from a tick loop.
+- Debug detail belongs behind a deliberate debug command/config; do not add unconditional per-tick/per-event logs.
 
-(To be filled by the team)
+## Required context
 
----
+A useful operational line names the bounded operation and safe identity:
 
-## Log Levels
+```java
+plugin.getLogger().info(
+    "Machine catalog ready: " + total
+        + " total (legacy=" + legacy
+        + ", powered-multiblock=" + powered + ")"
+);
+```
 
-<!-- When to use each level: debug, info, warn, error -->
+Include counts, revisions, sequence numbers, durations, and stable non-secret IDs when they change an operator decision.
 
-(To be filled by the team)
+## Never log
 
----
+- Passwords, cookies, session tokens, API keys, pairing codes, secret config, full authorization headers.
+- Full snapshot/request bodies or extension source.
+- Complete process command lines when they may contain credentials.
+- Player IP addresses copied into project reports.
+- Repeated expected failures every tick; aggregate or rate-limit them.
 
-## Structured Logging
+## Failure reporting
 
-<!-- Log format, required fields -->
+- Paper asynchronous workers publish bounded warning summaries back to the main-thread owner.
+- Worker unexpected failures log only `SoulTech Worker request failed`; the client receives `internal_error`.
+- Release evidence records hashes, commit IDs, Worker version IDs, counts, and timestamps, never credentials.
 
-(To be filled by the team)
+## Review checklist
 
----
-
-## What to Log
-
-<!-- Important events to log -->
-
-(To be filled by the team)
-
----
-
-## What NOT to Log
-
-<!-- Sensitive data, PII, secrets -->
-
-(To be filled by the team)
+- Is the line actionable and bounded?
+- Can it fire once per tick/entity/block? If so, remove or aggregate it.
+- Does it expose user or secret data?
+- Does warning/error correspond to a safe degraded state or a failed contract?

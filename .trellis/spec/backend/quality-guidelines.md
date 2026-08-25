@@ -1,51 +1,58 @@
 # Quality Guidelines
 
-> Code quality standards for backend development.
+> Correctness and bounded Paper behavior come before abstraction or coverage counts.
 
----
+## Forbidden patterns
 
-## Overview
+- Async access to Bukkit worlds, chunks, blocks, inventories, entities, sounds, particles, or UI.
+- Forced chunk loading from machine/wilderness history paths.
+- Per-item/per-machine scheduler creation when one bounded service cycle suffices.
+- Direct `Block#setType(AIR)` for area tools; use accepted Paper break events and guarded `Player.breakBlock`.
+- `double` for settled energy. Energy is non-negative `long` milli-SE.
+- Duplicate registries, silent ID overwrite, forward upgrade dependencies, or lore-only catalog entries.
+- New string-NBT charge fields, secrets in source/config defaults, or writable fallback after persistence failure.
+- Cloud queries without tenant ownership predicates.
 
-<!--
-Document your project's quality standards here.
+## Required patterns
 
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
+- Main-thread ownership assertions at Bukkit service boundaries.
+- Bounded loops and explicit caps for chunks, blocks, entities, players, queues, payloads, source, and KV.
+- Simulate-then-commit inventory/energy transactions.
+- UUID ownership for persisted machines, structures, players, and transient state.
+- Fail-fast catalog/schema/config validation before partial registration.
+- Clean lifecycle teardown: cancel tasks, revoke only owned state, dispose extensions LIFO, save before clearing registries.
 
-(To be filled by the team)
+## Tests
 
----
+Use the smallest proof that defends an observable contract:
 
-## Forbidden Patterns
+- Pure Java tests for energy conservation, fairness, topology, catalog shape, multiblock occupancy, wilderness determinism, and portable arithmetic.
+- Extension tests for staging, sandbox capabilities, KV atomicity, rollback, corruption recovery, and LKG.
+- Site API tests for auth, quotas, tenant isolation, pairing, sequence monotonicity, extension CRUD, and redaction.
+- SSR tests for route privacy/cache/indexing and catalog rendering.
+- Paper smoke for load, cycle stability, command registration, PDC migration, and graceful stop.
+- Real-client checks for visuals, input/UI, placement/break/drop, protected containers, and resource-pack fallback.
 
-<!-- Patterns that should never be used and why -->
+Required release commands:
 
-(To be filled by the team)
+```sh
+docker run --rm --volume "$PWD:/workspace" --workdir /workspace \
+  maven:3.9-eclipse-temurin-25 mvn -B -ntp package
 
----
+cd site
+npm run test:ssr
+npm run test:api   # with the local Worker on 127.0.0.1:8788
+```
 
-## Required Patterns
+## Review checklist
 
-<!-- Patterns that must always be used -->
+- Trace every exported/registered call site and lifecycle owner.
+- Verify cancellation/protection/ownership before mutation and charging.
+- Check unloaded chunks and reload/disable transitions.
+- Check overflow, negative values, full output inventories, duplicate IDs, and stale sequences.
+- Separate unrelated pre-existing warnings/failures from the change under review.
+- For a release, compare exact JAR/resource-pack/manifest/server hashes and retain rollback material.
 
-(To be filled by the team)
+## Definition of done
 
----
-
-## Testing Requirements
-
-<!-- What level of testing is expected -->
-
-(To be filled by the team)
-
----
-
-## Code Review Checklist
-
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+Compilation alone is not proof. The changed path must run end to end at the appropriate boundary, and every acceptance claim must point to observed output, a behavior test, or a real-client/runtime check.
