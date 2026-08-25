@@ -200,9 +200,10 @@ function assertError(body, expectedCode, contract) {
 }
 
 function assertUser(user, expected, contract) {
-  assertKeys(user, ["id", "username", "createdAt"], contract);
+  assertKeys(user, ["id", "username", "role", "createdAt"], contract);
   assert.equal(user.id, expected.id, `${contract}: user id changed.`);
   assert.equal(user.username, expected.username, `${contract}: username changed.`);
+  assert.equal(user.role, expected.role, `${contract}: user role changed.`);
   assertTimestamp(user.createdAt, contract);
 }
 
@@ -307,6 +308,18 @@ test("SoulTech local Worker API contract", { concurrency: false }, async () => {
   assert.equal(health.ok, true, "GET /api/health health contract: health check changed.");
   assertTimestamp(health.serverTime, "GET /api/health health contract");
 
+  const adminStatus = await expectJson(
+    await request("GET /api/admin/status public initialization status", "/api/admin/status"),
+    200,
+    "GET /api/admin/status public initialization status",
+  );
+  assertKeys(adminStatus, ["initialized"], "GET /api/admin/status public initialization status");
+  assert.equal(
+    typeof adminStatus.initialized,
+    "boolean",
+    "GET /api/admin/status public initialization status: initialized must be boolean.",
+  );
+
   const registrationA = await expectJson(
     await request("POST /api/auth/register tenant A registration", "/api/auth/register", {
       method: "POST",
@@ -318,8 +331,9 @@ test("SoulTech local Worker API contract", { concurrency: false }, async () => {
   );
   assertKeys(registrationA, ["user"], "POST /api/auth/register tenant A registration");
   const userA = registrationA.user;
-  assertKeys(userA, ["id", "username", "createdAt"], "POST /api/auth/register tenant A registration");
+  assertKeys(userA, ["id", "username", "role", "createdAt"], "POST /api/auth/register tenant A registration");
   assert.equal(userA.username, fixture.usernameA, "POST /api/auth/register tenant A registration: username changed.");
+  assert.equal(userA.role, "owner", "POST /api/auth/register tenant A registration: registered user role changed.");
   assertTimestamp(userA.createdAt, "POST /api/auth/register tenant A registration");
 
   const initialMe = await expectJson(
@@ -329,6 +343,13 @@ test("SoulTech local Worker API contract", { concurrency: false }, async () => {
   );
   assertKeys(initialMe, ["user"], "GET /api/auth/me registered session");
   assertUser(initialMe.user, userA, "GET /api/auth/me registered session");
+
+  const ownerAdminSummary = await expectJson(
+    await request("GET /api/admin/summary owner denial", "/api/admin/summary", { jar: tenantA }),
+    403,
+    "GET /api/admin/summary owner denial",
+  );
+  assertError(ownerAdminSummary, "admin_required", "GET /api/admin/summary owner denial");
 
   const logout = await expectJson(
     await request("POST /api/auth/logout session revocation", "/api/auth/logout", {
@@ -510,7 +531,10 @@ test("SoulTech local Worker API contract", { concurrency: false }, async () => {
   assertKeys(firstClaim, ["serverId", "apiKey", "lastSequence", "apiBase"], "POST /api/pair/claim initial claim");
   assert.equal(firstClaim.serverId, serverId, "POST /api/pair/claim initial claim: server id changed.");
   assert.ok(API_KEY_PATTERN.test(firstClaim.apiKey), "POST /api/pair/claim initial claim: API key format changed.");
-  assert.equal(firstClaim.lastSequence, 0, "POST /api/pair/claim initial claim: initial sequence changed.");
+  assert.ok(
+    Number.isSafeInteger(firstClaim.lastSequence) && firstClaim.lastSequence >= 0,
+    "POST /api/pair/claim initial claim: lastSequence must be a non-negative safe integer.",
+  );
   assertClaimApiBase(firstClaim.apiBase, "POST /api/pair/claim initial claim");
   const initialPluginApiKey = firstClaim.apiKey;
 

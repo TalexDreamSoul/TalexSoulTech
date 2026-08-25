@@ -142,7 +142,6 @@ const byId = (id) => document.getElementById(id);
 const state = {
   catalog: {
     allItems: [],
-    itemById: new Map(),
     query: "",
     discipline: "all",
     status: "all",
@@ -337,6 +336,7 @@ function renderInto(nodeOrId, value, options = {}) {
 }
 
 function setInlineMessage(node, message, retryHandler) {
+  if (!node) return;
   node.replaceChildren(createElement("span", { text: message }));
   if (retryHandler) {
     const button = createElement("button", {
@@ -351,12 +351,14 @@ function setInlineMessage(node, message, retryHandler) {
 }
 
 function hideMessage(node) {
+  if (!node) return;
   node.hidden = true;
   node.replaceChildren();
 }
 
 function showToast(message) {
   const region = byId("toast-region");
+  if (!region) return;
   const toast = createElement("div", { className: "toast", text: message });
   region.append(toast);
   window.setTimeout(() => toast.remove(), 4200);
@@ -437,38 +439,6 @@ function setButtonBusy(button, busy, busyLabel = "处理中...") {
   }
 }
 
-function initNavigation() {
-  const toggle = byId("nav-toggle");
-  const nav = byId("primary-nav");
-  const label = toggle.querySelector(".sr-only");
-
-  const closeNav = () => {
-    toggle.setAttribute("aria-expanded", "false");
-    nav.dataset.open = "false";
-    setText(label, "打开导航");
-  };
-
-  toggle.addEventListener("click", () => {
-    const open = toggle.getAttribute("aria-expanded") !== "true";
-    toggle.setAttribute("aria-expanded", String(open));
-    nav.dataset.open = String(open);
-    setText(label, open ? "关闭导航" : "打开导航");
-  });
-
-  nav.addEventListener("click", (event) => {
-    if (event.target.closest("a")) closeNav();
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
-      closeNav();
-      toggle.focus();
-    }
-  });
-
-  window.matchMedia("(min-width: 64.001rem)").addEventListener("change", closeNav);
-}
-
 function renderSharedContent() {
   const { brand = {}, hero = {}, overview = {}, compatibility = {}, download = {}, quickInstall = {}, mysql = {}, footer = {} } = SITE_CONTENT;
 
@@ -516,7 +486,7 @@ function renderSharedContent() {
   setText("fact-sync", SAAS_ARCHITECTURE?.sync?.title, "按服务器顺序同步");
 
   const brandName = normalizeCopy(brand.name || "TalexSoulTech");
-  document.title = `${brandName} | 灵魂科技工业手册`;
+  if (byId("hero-title")) document.title = `${brandName} | 灵魂科技工业手册`;
 
   const navTargets = {
     overview: "plugin",
@@ -537,6 +507,8 @@ function renderSharedContent() {
 
 async function loadArtifactManifest() {
   const meta = byId("artifact-meta");
+  if (!meta) return;
+
   try {
     const response = await fetch(MANIFEST_URL, {
       credentials: "same-origin",
@@ -576,7 +548,9 @@ async function loadArtifactManifest() {
 function initTutorials() {
   const index = byId("tutorial-index");
   const reader = byId("tutorial-reader");
+  if (!index || !reader) return;
 
+  index.replaceChildren();
   if (!Array.isArray(TUTORIALS) || !TUTORIALS.length) {
     index.replaceChildren();
     reader.replaceChildren(
@@ -671,6 +645,8 @@ function initTutorials() {
 
 function renderPlanning() {
   const container = byId("planning-content");
+  if (!container) return;
+
   const sections = [
     SITE_CONTENT.guidebook,
     SITE_CONTENT.machines,
@@ -697,6 +673,8 @@ function renderPlanning() {
 }
 
 function renderArchitecturePanel(node, data) {
+  if (!node) return;
+
   const fragment = document.createDocumentFragment();
   if (data?.lead) fragment.append(createElement("p", { className: "hero-summary", text: data.lead }));
 
@@ -717,11 +695,14 @@ function renderArchitecturePanel(node, data) {
 }
 
 function initArchitecture() {
-  renderArchitecturePanel(byId("architecture-plugin"), TECH_ARCHITECTURE);
-  renderArchitecturePanel(byId("architecture-saas"), SAAS_ARCHITECTURE);
+  const pluginPanel = byId("architecture-plugin");
+  const saasPanel = byId("architecture-saas");
+  renderArchitecturePanel(pluginPanel, TECH_ARCHITECTURE);
+  renderArchitecturePanel(saasPanel, SAAS_ARCHITECTURE);
 
   const tabs = [byId("architecture-plugin-tab"), byId("architecture-saas-tab")];
-  const panels = [byId("architecture-plugin"), byId("architecture-saas")];
+  const panels = [pluginPanel, saasPanel];
+  if (tabs.some((tab) => !tab) || panels.some((panel) => !panel)) return;
 
   const selectTab = (index, focus = false) => {
     tabs.forEach((tab, tabIndex) => {
@@ -744,6 +725,7 @@ function initArchitecture() {
     if (event.key === "End") next = tabs.length - 1;
     selectTab(next, true);
   }));
+  selectTab(0);
 }
 
 function initializeCatalogData() {
@@ -780,11 +762,12 @@ function initializeCatalogData() {
   }
 
   state.catalog.allItems = flattened;
-  state.catalog.itemById = new Map(flattened.map((item) => [item.id, item]));
 }
 
 function renderCatalogStats() {
   const container = byId("catalog-stats");
+  if (!container) return;
+
   const computedImplemented = state.catalog.allItems.filter((item) => item.status === "implemented").length;
   const rows = [
     ["学科总数", CATALOG_STATS?.disciplineCount ?? DISCIPLINES.length],
@@ -794,39 +777,59 @@ function renderCatalogStats() {
   ];
   const fragment = document.createDocumentFragment();
   for (const [label, value] of rows) {
-    const list = createElement("dl", { className: "catalog-stat" });
-    list.append(createElement("dt", { text: label }), createElement("dd", { text: formatScalar(value) }));
-    fragment.append(list);
+    const entry = createElement("div", { className: "catalog-stat" });
+    entry.append(createElement("dt", { text: label }), createElement("dd", { text: formatScalar(value) }));
+    fragment.append(entry);
   }
   container.replaceChildren(fragment);
 }
 
+function catalogHref(overrides = {}) {
+  const query = {
+    q: state.catalog.query,
+    discipline: state.catalog.discipline,
+    status: state.catalog.status,
+    page: state.catalog.page,
+    ...overrides,
+  };
+  const params = new URLSearchParams();
+  if (query.q) params.set("q", query.q);
+  if (query.discipline !== "all") params.set("discipline", query.discipline);
+  if (query.status !== "all") params.set("status", query.status);
+  if (query.page > 1) params.set("page", String(query.page));
+  const serialized = params.toString();
+  return serialized ? `/catalog?${serialized}` : "/catalog";
+}
+
 function renderDisciplineControls() {
-  const select = byId("discipline-filter");
-  const strip = byId("discipline-strip");
-  const selectFragment = document.createDocumentFragment();
-  const stripFragment = document.createDocumentFragment();
-
-  for (const discipline of DISCIPLINES) {
-    selectFragment.append(createElement("option", {
-      text: discipline.name,
-      attributes: { value: discipline.id },
-    }));
-  }
-  select.append(selectFragment);
-
   const choices = [{ id: "all", name: "全部学科" }, ...DISCIPLINES];
+  const select = byId("discipline-filter");
+  if (select) {
+    const selectFragment = document.createDocumentFragment();
+    for (const discipline of choices) {
+      selectFragment.append(createElement("option", {
+        text: discipline.name,
+        attributes: { value: discipline.id },
+      }));
+    }
+    select.replaceChildren(selectFragment);
+  }
+
+  const strip = byId("discipline-strip");
+  if (!strip) return;
+
+  const stripFragment = document.createDocumentFragment();
   for (const discipline of choices) {
-    const button = createElement("button", {
+    const link = createElement("a", {
       className: "discipline-chip",
       text: discipline.name,
       attributes: {
-        type: "button",
-        "aria-pressed": discipline.id === "all" ? "true" : "false",
+        href: catalogHref({ discipline: discipline.id, page: 1 }),
+        "aria-pressed": discipline.id === state.catalog.discipline ? "true" : "false",
       },
     });
-    button.dataset.discipline = discipline.id;
-    stripFragment.append(button);
+    link.dataset.discipline = discipline.id;
+    stripFragment.append(link);
   }
   strip.replaceChildren(stripFragment);
 }
@@ -840,66 +843,147 @@ function filteredCatalogItems() {
   });
 }
 
-function renderCatalog() {
+function initializeCatalogStateFromUrl() {
+  const params = new URL(window.location.href).searchParams;
+  const disciplineIds = new Set(DISCIPLINES.map((discipline) => String(discipline.id)));
+  const requestedDiscipline = normalizeCopy(params.get("discipline") || "all");
+  const requestedStatus = normalizeCopy(params.get("status") || "all");
+  const rawPage = normalizeCopy(params.get("page"));
+  const parsedPage = rawPage && /^\d+$/.test(rawPage) ? Number(rawPage) : 1;
+
+  state.catalog.query = normalizeCopy(params.get("q"));
+  state.catalog.discipline = disciplineIds.has(requestedDiscipline) ? requestedDiscipline : "all";
+  state.catalog.status = Object.prototype.hasOwnProperty.call(STATUS_LABELS, requestedStatus)
+    ? requestedStatus
+    : "all";
+  state.catalog.page = parsedPage > 0 ? parsedPage : 1;
+}
+
+function setCatalogControlValues() {
+  const search = byId("catalog-search");
+  const discipline = byId("discipline-filter");
+  const status = byId("status-filter");
+  const page = byId("catalog-controls")?.querySelector('[name="page"]');
+  if (search) search.value = state.catalog.query;
+  if (discipline) discipline.value = state.catalog.discipline;
+  if (status) status.value = state.catalog.status;
+  if (page) page.value = String(state.catalog.page);
+}
+
+function replaceCatalogUrl() {
+  if (!window.history?.replaceState) return;
+  window.history.replaceState(
+    window.history.state,
+    "",
+    `${catalogHref()}${window.location.hash}`,
+  );
+}
+
+function configureCatalogPageLink(link, page, enabled, rel) {
+  if (!link) return;
+  if (link.tagName === "A") {
+    link.classList.toggle("is-disabled", !enabled);
+    if (enabled) {
+      link.href = catalogHref({ page });
+      link.rel = rel;
+      link.removeAttribute("aria-disabled");
+    } else {
+      link.removeAttribute("href");
+      link.removeAttribute("rel");
+      link.setAttribute("aria-disabled", "true");
+    }
+    return;
+  }
+  link.disabled = !enabled;
+}
+
+function renderCatalog({ updateUrl = false, preserveSearchInput = false } = {}) {
   const items = filteredCatalogItems();
   const totalPages = Math.max(1, Math.ceil(items.length / CATALOG_PAGE_SIZE));
-  state.catalog.page = Math.min(state.catalog.page, totalPages);
+  state.catalog.page = Math.max(1, Math.min(state.catalog.page, totalPages));
   const start = (state.catalog.page - 1) * CATALOG_PAGE_SIZE;
   const pageItems = items.slice(start, start + CATALOG_PAGE_SIZE);
+  if (!preserveSearchInput) setCatalogControlValues();
 
-  setText("catalog-result-count", `找到 ${items.length} 件物品`);
+  setText(
+    "catalog-result-count",
+    state.catalog.query
+      ? `“${state.catalog.query}”找到 ${items.length} 个条目`
+      : `找到 ${items.length} 个条目`,
+  );
   setText("catalog-page-status", items.length ? `第 ${state.catalog.page} / ${totalPages} 页` : "无结果");
 
   const body = byId("catalog-body");
   const frame = byId("catalog-table-frame");
   const empty = byId("catalog-empty");
-  frame.hidden = !pageItems.length;
-  empty.hidden = Boolean(pageItems.length);
+  if (frame) frame.hidden = !pageItems.length;
+  if (empty) empty.hidden = Boolean(pageItems.length);
 
-  const fragment = document.createDocumentFragment();
-  for (const item of pageItems) {
-    const row = createElement("tr");
+  if (body) {
+    const fragment = document.createDocumentFragment();
+    for (const item of pageItems) {
+      const row = createElement("tr");
+      const itemHref = `/items/${encodeURIComponent(item.id)}`;
 
-    const nameCell = createElement("td", { attributes: { "data-label": "物品" } });
-    nameCell.append(
-      createElement("div", { className: "cell-title", text: item.name }),
-      createElement("div", { className: "cell-code", text: item.id }),
-    );
+      const nameCell = createElement("td", { attributes: { "data-label": "物品" } });
+      nameCell.append(
+        createElement("a", {
+          className: "cell-title",
+          text: item.name,
+          attributes: { href: itemHref },
+        }),
+        createElement("span", { className: "cell-code", text: item.id }),
+      );
 
-    const disciplineCell = createElement("td", {
-      text: item.disciplineName,
-      attributes: { "data-label": "学科" },
-    });
-    const tierCell = createElement("td", {
-      text: item.tier,
-      attributes: { "data-label": "层级" },
-    });
-    const statusCell = createElement("td", { attributes: { "data-label": "状态" } });
-    statusCell.append(createElement("span", {
-      className: `status-label is-${item.status}`,
-      text: STATUS_LABELS[item.status] || item.status,
-    }));
+      const disciplineCell = createElement("td", { attributes: { "data-label": "学科" } });
+      disciplineCell.append(createElement("a", {
+        text: item.disciplineName,
+        attributes: { href: `/disciplines/${encodeURIComponent(item.disciplineId)}` },
+      }));
+      const tierCell = createElement("td", {
+        text: [item.tier, item.type].filter(Boolean).join(" · "),
+        attributes: { "data-label": "层级" },
+      });
+      const statusCell = createElement("td", { attributes: { "data-label": "状态" } });
+      statusCell.append(createElement("span", {
+        className: `status-label is-${item.status}`,
+        text: STATUS_LABELS[item.status] || item.status,
+      }));
 
-    const actionCell = createElement("td", { attributes: { "data-label": "操作" } });
-    const detailsButton = createElement("button", {
-      className: "text-button",
-      text: "查看详情",
-      attributes: { type: "button", "aria-label": `查看 ${item.name} 详情` },
-    });
-    detailsButton.dataset.itemId = item.id;
-    actionCell.append(detailsButton);
+      const actionCell = createElement("td", { attributes: { "data-label": "操作" } });
+      actionCell.append(createElement("a", {
+        className: "text-button",
+        text: "查看详情",
+        attributes: { href: itemHref, "aria-label": `查看 ${item.name} 详情` },
+      }));
 
-    row.append(nameCell, disciplineCell, tierCell, statusCell, actionCell);
-    fragment.append(row);
+      row.append(nameCell, disciplineCell, tierCell, statusCell, actionCell);
+      fragment.append(row);
+    }
+    body.replaceChildren(fragment);
   }
-  body.replaceChildren(fragment);
 
-  byId("catalog-prev").disabled = state.catalog.page <= 1 || !items.length;
-  byId("catalog-next").disabled = state.catalog.page >= totalPages || !items.length;
+  configureCatalogPageLink(
+    byId("catalog-prev"),
+    state.catalog.page - 1,
+    state.catalog.page > 1 && Boolean(items.length),
+    "prev",
+  );
+  configureCatalogPageLink(
+    byId("catalog-next"),
+    state.catalog.page + 1,
+    state.catalog.page < totalPages && Boolean(items.length),
+    "next",
+  );
 
-  for (const chip of document.querySelectorAll(".discipline-chip")) {
-    chip.setAttribute("aria-pressed", String(chip.dataset.discipline === state.catalog.discipline));
+  const strip = byId("discipline-strip");
+  for (const chip of strip?.querySelectorAll(".discipline-chip") || []) {
+    const discipline = chip.dataset.discipline || "all";
+    chip.setAttribute("aria-pressed", String(discipline === state.catalog.discipline));
+    if (chip.tagName === "A") chip.href = catalogHref({ discipline, page: 1 });
   }
+
+  if (updateUrl) replaceCatalogUrl();
 }
 
 function resetCatalogFilters() {
@@ -907,147 +991,135 @@ function resetCatalogFilters() {
   state.catalog.discipline = "all";
   state.catalog.status = "all";
   state.catalog.page = 1;
-  byId("catalog-search").value = "";
-  byId("discipline-filter").value = "all";
-  byId("status-filter").value = "all";
-  renderCatalog();
+  setCatalogControlValues();
+  renderCatalog({ updateUrl: true });
 }
 
-function openItemDialog(itemId) {
-  const item = state.catalog.itemById.get(itemId);
-  if (!item) return;
-
-  setText("item-dialog-discipline", `${item.disciplineName} / ${item.disciplineStage}`);
-  setText("item-dialog-title", item.name);
-
-  const body = byId("item-dialog-body");
-  const fragment = document.createDocumentFragment();
-  fragment.append(createElement("p", { className: "item-purpose", text: item.purpose }));
-  fragment.append(renderDefinitionRows([
-    ["id", item.id],
-    ["tier", item.tier],
-    ["type", item.type],
-    ["family", item.family],
-    ["status", STATUS_LABELS[item.status] || item.status],
-    ["stage", item.disciplineStage],
-  ]));
-
-  const family = Array.isArray(item.discipline?.families)
-    ? item.discipline.families.find((entry) => entry.id === item.family || entry.name === item.family)
-    : null;
-  if (family?.concept) {
-    const concept = createElement("section", { className: "recipe-hint" });
-    concept.append(createElement("h3", { text: `${family.name}系列` }), createElement("p", { text: family.concept }));
-    fragment.append(concept);
-  }
-
-  if (item.recipeHint) {
-    const recipe = createElement("section", { className: "recipe-hint" });
-    recipe.append(createElement("h3", { text: "配方线索" }), createElement("p", { text: item.recipeHint }));
-    fragment.append(recipe);
-  }
-
-  if (item.discipline?.overview || item.discipline?.learningGoals) {
-    const discipline = createElement("section", { className: "recipe-hint" });
-    discipline.append(createElement("h3", { text: `${item.disciplineName}学科` }));
-    if (item.discipline.overview) discipline.append(createElement("p", { text: item.discipline.overview }));
-    if (Array.isArray(item.discipline.learningGoals)) discipline.append(renderScalarList(item.discipline.learningGoals));
-    fragment.append(discipline);
-  }
-
-  body.replaceChildren(fragment);
-  const dialog = byId("item-dialog");
-  if (typeof dialog.showModal === "function") dialog.showModal();
-  else dialog.setAttribute("open", "");
+function shouldHandleCatalogLink(event) {
+  return (
+    event.button === 0
+    && !event.metaKey
+    && !event.ctrlKey
+    && !event.shiftKey
+    && !event.altKey
+  );
 }
 
 function initCatalog() {
+  const controls = byId("catalog-controls");
+  const body = byId("catalog-body");
+  if (!controls || !body) return;
+
   try {
     initializeCatalogData();
+    initializeCatalogStateFromUrl();
     renderCatalogStats();
     renderDisciplineControls();
     renderCatalog();
   } catch (error) {
-    byId("catalog-table-frame").hidden = true;
-    byId("catalog-empty").hidden = true;
-    byId("catalog-stats").replaceChildren();
-    byId("catalog-controls").setAttribute("aria-disabled", "true");
-    byId("discipline-strip").replaceChildren();
-    const message = createElement("div", {
-      className: "inline-error",
-      text: errorMessage(error, "资料库加载失败。"),
-    });
-    byId("catalog-result-count").replaceChildren(message);
+    const frame = byId("catalog-table-frame");
+    const empty = byId("catalog-empty");
+    const stats = byId("catalog-stats");
+    const strip = byId("discipline-strip");
+    const result = byId("catalog-result-count");
+    if (frame) frame.hidden = true;
+    if (empty) empty.hidden = true;
+    if (stats) stats.replaceChildren();
+    controls.setAttribute("aria-disabled", "true");
+    if (strip) strip.replaceChildren();
+    if (result) {
+      result.replaceChildren(createElement("div", {
+        className: "inline-error",
+        text: errorMessage(error, "资料库加载失败。"),
+      }));
+    }
     return;
   }
 
+  controls.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(controls);
+    const discipline = normalizeCopy(data.get("discipline") || "all");
+    const status = normalizeCopy(data.get("status") || "all");
+    state.catalog.query = normalizeCopy(data.get("q"));
+    state.catalog.discipline = DISCIPLINES.some((entry) => entry.id === discipline)
+      ? discipline
+      : "all";
+    state.catalog.status = Object.prototype.hasOwnProperty.call(STATUS_LABELS, status)
+      ? status
+      : "all";
+    state.catalog.page = 1;
+    renderCatalog({ updateUrl: true });
+  });
+
   let searchFrame = 0;
-  byId("catalog-search").addEventListener("input", (event) => {
+  byId("catalog-search")?.addEventListener("input", (event) => {
     window.cancelAnimationFrame(searchFrame);
     searchFrame = window.requestAnimationFrame(() => {
-      state.catalog.query = normalizeCopy(event.target.value);
+      state.catalog.query = event.target.value;
       state.catalog.page = 1;
-      renderCatalog();
+      renderCatalog({ updateUrl: true, preserveSearchInput: true });
     });
   });
 
-  byId("discipline-filter").addEventListener("change", (event) => {
+  byId("discipline-filter")?.addEventListener("change", (event) => {
     state.catalog.discipline = event.target.value;
     state.catalog.page = 1;
-    renderCatalog();
+    renderCatalog({ updateUrl: true });
   });
 
-  byId("status-filter").addEventListener("change", (event) => {
+  byId("status-filter")?.addEventListener("change", (event) => {
     state.catalog.status = event.target.value;
     state.catalog.page = 1;
-    renderCatalog();
+    renderCatalog({ updateUrl: true });
   });
 
-  byId("catalog-controls").addEventListener("reset", (event) => {
+  controls.addEventListener("reset", (event) => {
     event.preventDefault();
     resetCatalogFilters();
   });
-  byId("catalog-empty-reset").addEventListener("click", resetCatalogFilters);
+  for (const resetLink of [byId("catalog-reset"), byId("catalog-empty-reset")]) {
+    resetLink?.addEventListener("click", (event) => {
+      if (!shouldHandleCatalogLink(event)) return;
+      event.preventDefault();
+      resetCatalogFilters();
+    });
+  }
 
-  byId("discipline-strip").addEventListener("click", (event) => {
-    const chip = event.target.closest("button[data-discipline]");
-    if (!chip) return;
+  byId("discipline-strip")?.addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-discipline]");
+    if (!chip || !shouldHandleCatalogLink(event)) return;
+    event.preventDefault();
     state.catalog.discipline = chip.dataset.discipline;
     state.catalog.page = 1;
-    byId("discipline-filter").value = state.catalog.discipline;
-    renderCatalog();
+    renderCatalog({ updateUrl: true });
   });
 
-  byId("catalog-body").addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-item-id]");
-    if (button) openItemDialog(button.dataset.itemId);
+  byId("catalog-prev")?.addEventListener("click", (event) => {
+    if (!shouldHandleCatalogLink(event)) return;
+    event.preventDefault();
+    if (state.catalog.page <= 1) return;
+    state.catalog.page -= 1;
+    renderCatalog({ updateUrl: true });
+    byId("catalog-result-count")?.focus({ preventScroll: true });
+    byId("catalog")?.scrollIntoView({ block: "start" });
   });
 
-  byId("catalog-prev").addEventListener("click", () => {
-    if (state.catalog.page > 1) {
-      state.catalog.page -= 1;
-      renderCatalog();
-      byId("catalog-result-count").focus({ preventScroll: true });
-      byId("catalog").scrollIntoView({ block: "start" });
-    }
-  });
-
-  byId("catalog-next").addEventListener("click", () => {
+  byId("catalog-next")?.addEventListener("click", (event) => {
+    if (!shouldHandleCatalogLink(event)) return;
+    event.preventDefault();
+    if (state.catalog.page * CATALOG_PAGE_SIZE >= filteredCatalogItems().length) return;
     state.catalog.page += 1;
-    renderCatalog();
-    byId("catalog").scrollIntoView({ block: "start" });
-  });
-
-  const dialog = byId("item-dialog");
-  byId("item-dialog-close").addEventListener("click", () => dialog.close());
-  dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    renderCatalog({ updateUrl: true });
+    byId("catalog-result-count")?.focus({ preventScroll: true });
+    byId("catalog")?.scrollIntoView({ block: "start" });
   });
 }
 
 function initAuthTabs() {
   const tabs = [byId("login-tab"), byId("register-tab")];
   const panels = [byId("login-panel"), byId("register-panel")];
+  if (tabs.some((tab) => !tab) || panels.some((panel) => !panel)) return;
 
   const activate = (index, focus = false) => {
     tabs.forEach((tab, tabIndex) => {
@@ -1085,6 +1157,66 @@ function isAbortError(error) {
   return error?.name === "AbortError";
 }
 
+let submissionSequence = 0;
+const buttonSubmissionTokens = new WeakMap();
+const privateMutationSubmissions = new Map();
+
+function beginButtonSubmission(button) {
+  const token = ++submissionSequence;
+  buttonSubmissionTokens.set(button, token);
+  return token;
+}
+
+function buttonSubmissionMatches(button, token) {
+  return buttonSubmissionTokens.get(button) === token;
+}
+
+function releaseButtonSubmission(button, token) {
+  if (!buttonSubmissionMatches(button, token)) return false;
+  buttonSubmissionTokens.delete(button);
+  setButtonBusy(button, false);
+  return true;
+}
+
+function beginPrivateMutation(operation, button, serverId = state.selectedServerId) {
+  const authContext = captureAuthContext(serverId);
+  if (!authContextMatches(authContext)) return null;
+
+  const previous = privateMutationSubmissions.get(operation);
+  if (previous) releaseButtonSubmission(previous.button, previous.submissionToken);
+
+  const context = {
+    ...authContext,
+    operation,
+    button,
+    submissionToken: beginButtonSubmission(button),
+  };
+  privateMutationSubmissions.set(operation, context);
+  return context;
+}
+
+function privateMutationMatches(context) {
+  return (
+    privateMutationSubmissions.get(context.operation) === context
+    && buttonSubmissionMatches(context.button, context.submissionToken)
+    && authContextMatches(context)
+  );
+}
+
+function finishPrivateMutation(context) {
+  if (!privateMutationMatches(context)) return false;
+  privateMutationSubmissions.delete(context.operation);
+  return releaseButtonSubmission(context.button, context.submissionToken);
+}
+
+function invalidatePrivateMutations() {
+  for (const context of privateMutationSubmissions.values()) {
+    releaseButtonSubmission(context.button, context.submissionToken);
+  }
+  privateMutationSubmissions.clear();
+  state.extensions.mutation = false;
+}
+
 function clearPrivateConsoleViews() {
   state.servers = [];
   state.serversStatus = "idle";
@@ -1095,6 +1227,7 @@ function clearPrivateConsoleViews() {
 
 function beginAuthTransition() {
   state.auth.controller.abort();
+  invalidatePrivateMutations();
   state.auth.generation += 1;
   state.auth.controller = new AbortController();
   state.serversRequest += 1;
@@ -1190,11 +1323,12 @@ async function loadAuth() {
 
 async function submitCredentials(form, endpoint, busyLabel) {
   if (!form.reportValidity()) return;
-  const context = beginAuthTransition();
   const button = form.querySelector("button[type='submit']");
   const data = new FormData(form);
   const username = normalizeCopy(data.get("username"));
   const password = String(data.get("password") || "");
+  const submissionToken = beginButtonSubmission(button);
+  const context = beginAuthTransition();
   hideMessage(byId("auth-error"));
   setButtonBusy(button, true, busyLabel);
 
@@ -1219,7 +1353,7 @@ async function submitCredentials(form, endpoint, busyLabel) {
     renderAuthState();
     setInlineMessage(byId("auth-error"), errorMessage(error, "账号操作未完成，请重试。"));
   } finally {
-    if (authTransitionMatches(context)) setButtonBusy(button, false);
+    releaseButtonSubmission(button, submissionToken);
   }
 }
 
@@ -1286,6 +1420,7 @@ function renderServers() {
 }
 
 function resetSelectedServer() {
+  invalidatePrivateMutations();
   state.selectedServerId = null;
   state.selectedServer = null;
   state.snapshot = null;
@@ -1360,6 +1495,11 @@ function renderServerDetailLoading(server) {
 async function selectServer(serverId) {
   const listServer = state.servers.find((server) => server.id === serverId);
   if (!listServer) return;
+
+  if (state.selectedServerId !== serverId) {
+    invalidatePrivateMutations();
+    extensionResetState();
+  }
 
   const requestNumber = ++state.detailRequest;
   const context = captureAuthContext(serverId, requestNumber);
@@ -1476,6 +1616,9 @@ async function createServer(event) {
   const form = event.currentTarget;
   if (!form.reportValidity()) return;
   const button = form.querySelector("button[type='submit']");
+  const context = beginPrivateMutation("server-create", button, state.selectedServerId);
+  if (!context) return;
+
   const name = normalizeCopy(new FormData(form).get("name"));
   hideMessage(byId("console-error"));
   setButtonBusy(button, true, "创建中...");
@@ -1484,14 +1627,18 @@ async function createServer(event) {
     const payload = await requestApi("/api/servers", {
       method: "POST",
       body: { name },
+      signal: context.signal,
     });
+    if (!privateMutationMatches(context)) return;
+
     form.reset();
     showToast(`服务器“${payload.server.name}”已创建。`);
     await loadServers(payload.server.id);
   } catch (error) {
+    if (isAbortError(error) || !privateMutationMatches(context)) return;
     setInlineMessage(byId("console-error"), errorMessage(error, "服务器创建失败。"));
   } finally {
-    setButtonBusy(button, false);
+    finishPrivateMutation(context);
   }
 }
 
@@ -1499,6 +1646,9 @@ async function generatePairingCode() {
   const serverId = state.selectedServerId;
   if (!serverId) return;
   const button = byId("pairing-button");
+  const context = beginPrivateMutation("server-pairing", button, serverId);
+  if (!context) return;
+
   setButtonBusy(button, true, "生成中...");
   hideMessage(byId("console-error"));
 
@@ -1506,17 +1656,20 @@ async function generatePairingCode() {
     const payload = await requestApi(`/api/servers/${encodeURIComponent(serverId)}/pairing`, {
       method: "POST",
       json: true,
+      signal: context.signal,
     });
-    if (state.selectedServerId !== serverId) return;
+    if (!privateMutationMatches(context)) return;
+
     state.pairing = payload;
     setText("pairing-code", payload.code);
     setText("pairing-expiry", `有效期至 ${formatDate(payload.expiresAt, "十分钟后")}`);
     byId("pairing-result").hidden = false;
     showToast("一次性配对码已生成。");
   } catch (error) {
+    if (isAbortError(error) || !privateMutationMatches(context)) return;
     setInlineMessage(byId("console-error"), errorMessage(error, "配对码生成失败。"));
   } finally {
-    setButtonBusy(button, false);
+    finishPrivateMutation(context);
   }
 }
 
@@ -1545,9 +1698,9 @@ async function copyPairingCode() {
 }
 
 async function logout() {
-  const previousUser = state.auth.user;
-  const context = beginAuthTransition();
   const button = byId("logout-button");
+  const submissionToken = beginButtonSubmission(button);
+  const context = beginAuthTransition();
   setButtonBusy(button, true, "退出中...");
   hideMessage(byId("console-error"));
 
@@ -1566,36 +1719,41 @@ async function logout() {
     showToast("已安全退出。资料库仍可继续浏览。");
   } catch (error) {
     if (isAbortError(error) || !authTransitionMatches(context)) return;
-    state.auth.user = previousUser;
-    state.auth.status = previousUser ? "authenticated" : "anonymous";
-    renderAuthState();
-    dispatchConsoleEvent("soultech:auth-changed", { user: state.auth.user });
-    setInlineMessage(byId("console-error"), errorMessage(error, "退出失败，请重试。"));
+    await loadAuth();
   } finally {
-    if (authTransitionMatches(context)) setButtonBusy(button, false);
+    releaseButtonSubmission(button, submissionToken);
   }
 }
 
 function initConsole() {
+  const loading = byId("console-loading");
+  const gate = byId("auth-gate");
+  const consolePanel = byId("server-console");
+  const loginPanel = byId("login-panel");
+  const registerPanel = byId("register-panel");
+  const serverForm = byId("server-create-form");
+  const serverList = byId("server-list-body");
+  if (!loading || !gate || !consolePanel || !loginPanel || !registerPanel || !serverForm || !serverList) return;
+
   initAuthTabs();
-  byId("login-panel").addEventListener("submit", (event) => {
+  loginPanel.addEventListener("submit", (event) => {
     event.preventDefault();
     submitCredentials(event.currentTarget, "/api/auth/login", "登录中...");
   });
-  byId("register-panel").addEventListener("submit", (event) => {
+  registerPanel.addEventListener("submit", (event) => {
     event.preventDefault();
     submitCredentials(event.currentTarget, "/api/auth/register", "创建中...");
   });
-  byId("server-create-form").addEventListener("submit", createServer);
-  byId("server-list-body").addEventListener("click", (event) => {
+  serverForm.addEventListener("submit", createServer);
+  serverList.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-server-id]");
     if (button) selectServer(button.dataset.serverId);
   });
-  byId("reload-servers").addEventListener("click", () => loadServers(state.selectedServerId));
-  byId("pairing-button").addEventListener("click", generatePairingCode);
-  byId("copy-pairing-code").addEventListener("click", copyPairingCode);
-  byId("refresh-snapshot").addEventListener("click", () => loadSnapshot());
-  byId("logout-button").addEventListener("click", logout);
+  byId("reload-servers")?.addEventListener("click", () => loadServers(state.selectedServerId));
+  byId("pairing-button")?.addEventListener("click", generatePairingCode);
+  byId("copy-pairing-code")?.addEventListener("click", copyPairingCode);
+  byId("refresh-snapshot")?.addEventListener("click", () => loadSnapshot());
+  byId("logout-button")?.addEventListener("click", logout);
   loadAuth();
 }
 
@@ -1629,70 +1787,84 @@ const EXTENSION_TEXT_ENCODER = new TextEncoder();
 const EXTENSION_NUMBER_FORMAT = new Intl.NumberFormat("zh-CN");
 
 function extensionRenderArchitecture() {
-  const content = SAAS_ARCHITECTURE.extensions;
+  const runtimeFlow = byId("extension-runtime-flow");
+  const securityList = byId("extension-security-list");
+  const updateSteps = byId("extension-update-steps");
+  const hasPublicArchitecture = Boolean(
+    byId("extensions-title") || runtimeFlow || securityList || updateSteps,
+  );
+  if (!hasPublicArchitecture) return;
+
+  const content = SAAS_ARCHITECTURE?.extensions;
   if (!content) return;
 
   setText("extension-public-status", content.status);
   setText("extensions-title", content.title);
   setText("extension-public-lead", content.lead);
 
-  const lifecycle = [content.context, content.dependencyTopology, content.disposal].filter(Boolean);
-  const lifecycleFragment = document.createDocumentFragment();
-  lifecycle.forEach((phase, index) => {
-    const item = createElement("li");
-    const copy = createElement("div");
-    copy.append(
-      createElement("h3", { text: phase.title }),
-      createElement("p", { text: phase.detail }),
-    );
-    item.append(
-      createElement("span", {
-        className: "extension-step-index",
-        text: String(index + 1).padStart(2, "0"),
-        attributes: { "aria-hidden": "true" },
-      }),
-      copy,
-    );
-    lifecycleFragment.append(item);
-  });
-  byId("extension-runtime-flow").replaceChildren(lifecycleFragment);
+  if (runtimeFlow) {
+    const lifecycle = [content.context, content.dependencyTopology, content.disposal].filter(Boolean);
+    const lifecycleFragment = document.createDocumentFragment();
+    lifecycle.forEach((phase, index) => {
+      const item = createElement("li");
+      const copy = createElement("div");
+      copy.append(
+        createElement("h3", { text: phase.title }),
+        createElement("p", { text: phase.detail }),
+      );
+      item.append(
+        createElement("span", {
+          className: "extension-step-index",
+          text: String(index + 1).padStart(2, "0"),
+          attributes: { "aria-hidden": "true" },
+        }),
+        copy,
+      );
+      lifecycleFragment.append(item);
+    });
+    runtimeFlow.replaceChildren(lifecycleFragment);
+  }
 
   setText("extension-security-title", content.capabilities?.title || "安全边界");
-  const securityFragment = document.createDocumentFragment();
-  for (const sandbox of content.sandboxes || []) {
-    const row = createElement("div");
-    row.append(
-      createElement("dt", { text: sandbox.runtime }),
-      createElement("dd", { text: sandbox.detail }),
-    );
-    securityFragment.append(row);
-  }
+  if (securityList) {
+    const securityFragment = document.createDocumentFragment();
+    for (const sandbox of content.sandboxes || []) {
+      const row = createElement("div");
+      row.append(
+        createElement("dt", { text: sandbox.runtime }),
+        createElement("dd", { text: sandbox.detail }),
+      );
+      securityFragment.append(row);
+    }
 
-  if (content.capabilities) {
-    const row = createElement("div");
-    const detail = createElement("dd");
-    detail.append(createElement("p", { text: content.capabilities.detail }));
-    detail.append(extensionCreateTags(EXTENSION_PERMISSIONS, "cap", EXTENSION_PERMISSIONS.length));
-    const rules = createElement("ul", { className: "extension-security-rules" });
-    for (const rule of content.capabilities.rules || []) rules.append(createElement("li", { text: rule }));
-    if (rules.childElementCount) detail.append(rules);
-    row.append(createElement("dt", { text: "能力白名单" }), detail);
-    securityFragment.append(row);
+    if (content.capabilities) {
+      const row = createElement("div");
+      const detail = createElement("dd");
+      detail.append(createElement("p", { text: content.capabilities.detail }));
+      detail.append(extensionCreateTags(EXTENSION_PERMISSIONS, "cap", EXTENSION_PERMISSIONS.length));
+      const rules = createElement("ul", { className: "extension-security-rules" });
+      for (const rule of content.capabilities.rules || []) rules.append(createElement("li", { text: rule }));
+      if (rules.childElementCount) detail.append(rules);
+      row.append(createElement("dt", { text: "能力白名单" }), detail);
+      securityFragment.append(row);
+    }
+    securityList.replaceChildren(securityFragment);
   }
-  byId("extension-security-list").replaceChildren(securityFragment);
 
   setText("extension-update-title", content.hotUpdate?.title);
   setText("extension-update-detail", content.hotUpdate?.detail);
-  const updateFragment = document.createDocumentFragment();
-  for (const [index, step] of (content.hotUpdate?.flow || []).entries()) {
-    const item = createElement("li");
-    item.append(
-      createElement("strong", { text: String(index + 1).padStart(2, "0") }),
-      createElement("span", { text: step }),
-    );
-    updateFragment.append(item);
+  if (updateSteps) {
+    const updateFragment = document.createDocumentFragment();
+    for (const [index, step] of (content.hotUpdate?.flow || []).entries()) {
+      const item = createElement("li");
+      item.append(
+        createElement("strong", { text: String(index + 1).padStart(2, "0"), }),
+        createElement("span", { text: step }),
+      );
+      updateFragment.append(item);
+    }
+    updateSteps.replaceChildren(updateFragment);
   }
-  byId("extension-update-steps").replaceChildren(updateFragment);
 }
 
 function extensionServerId() {
@@ -1716,6 +1888,7 @@ function extensionErrorMessage(error, fallback) {
 
 function extensionSetFeedback(message, isError = false) {
   const feedback = byId("extension-feedback");
+  if (!feedback) return;
   feedback.textContent = normalizeCopy(message);
   feedback.classList.toggle("form-message-error", isError);
   feedback.setAttribute("role", isError ? "alert" : "status");
@@ -1724,6 +1897,7 @@ function extensionSetFeedback(message, isError = false) {
 
 function extensionHideFeedback() {
   const feedback = byId("extension-feedback");
+  if (!feedback) return;
   feedback.hidden = true;
   feedback.replaceChildren();
   feedback.classList.remove("form-message-error");
@@ -1731,6 +1905,7 @@ function extensionHideFeedback() {
 }
 
 function extensionOpenNativeDialog(dialog, focusTarget) {
+  if (!dialog) return;
   if (!dialog.open) {
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
@@ -1745,12 +1920,17 @@ function extensionCloseNativeDialog(dialog) {
 }
 
 function extensionShowView(viewId) {
-  for (const id of EXTENSION_VIEW_IDS) byId(id).hidden = id !== viewId;
+  for (const id of EXTENSION_VIEW_IDS) {
+    const view = byId(id);
+    if (view) view.hidden = id !== viewId;
+  }
 }
 
 function extensionSetToolbarAvailability({ reload = true, create = true } = {}) {
-  byId("extension-reload-button").disabled = !reload;
-  byId("extension-create-button").disabled = !create;
+  const reloadButton = byId("extension-reload-button");
+  const createButton = byId("extension-create-button");
+  if (reloadButton) reloadButton.disabled = !reload;
+  if (createButton) createButton.disabled = !create;
 }
 
 function extensionResetState() {
@@ -1763,9 +1943,10 @@ function extensionResetState() {
   state.extensions.mutation = false;
 
   const manager = byId("extension-manager");
+  if (!manager) return;
   manager.hidden = true;
   manager.setAttribute("aria-busy", "false");
-  byId("extension-list-body").replaceChildren();
+  byId("extension-list-body")?.replaceChildren();
   extensionHideFeedback();
   extensionShowView("");
   extensionSetToolbarAvailability({ reload: false, create: false });
@@ -1949,6 +2130,8 @@ async function extensionLoad(serverId = state.selectedServerId) {
 
 function extensionUpdateSourceCount() {
   const source = byId("extension-source");
+  if (!source) return 0;
+
   const bytes = EXTENSION_TEXT_ENCODER.encode(source.value).byteLength;
   setText("extension-source-count", EXTENSION_NUMBER_FORMAT.format(bytes));
   source.toggleAttribute("aria-invalid", bytes > EXTENSION_SOURCE_MAX_BYTES);
@@ -2087,6 +2270,9 @@ async function extensionSubmitEditor(event) {
   const draft = extensionReadDraft();
   if (!draft) return;
   const saveButton = byId("extension-save-button");
+  const context = beginPrivateMutation("extension-upsert", saveButton, serverId);
+  if (!context) return;
+
   state.extensions.mutation = true;
   setButtonBusy(saveButton, true, "保存中...");
 
@@ -2094,19 +2280,21 @@ async function extensionSubmitEditor(event) {
     await requestApi(`/api/servers/${encodeURIComponent(serverId)}/extensions`, {
       method: "POST",
       body: draft,
+      signal: context.signal,
     });
-    state.extensions.mutation = false;
-    setButtonBusy(saveButton, false);
+    if (!privateMutationMatches(context)) return;
+
     extensionCloseEditor(true);
-    if (state.auth.status === "authenticated") {
-      showToast(`扩展 ${draft.manifest.name} 已保存${draft.enabled ? "并启用" : "为停用状态"}。`);
-    }
-    if (extensionServerId() === serverId) await extensionLoad(serverId);
+    showToast(`扩展 ${draft.manifest.name} 已保存${draft.enabled ? "并启用" : "为停用状态"}。`);
+    await extensionLoad(serverId);
   } catch (error) {
+    if (isAbortError(error) || !privateMutationMatches(context)) return;
     extensionShowFormError(extensionErrorMessage(error, "扩展保存失败。"), saveButton);
   } finally {
-    state.extensions.mutation = false;
-    setButtonBusy(saveButton, false);
+    if (privateMutationMatches(context)) {
+      state.extensions.mutation = false;
+      finishPrivateMutation(context);
+    }
   }
 }
 
@@ -2120,21 +2308,29 @@ async function extensionSetEnabled(item, button) {
   );
   if (!confirmed) return;
 
+  const context = beginPrivateMutation("extension-state", button, serverId);
+  if (!context) return;
+
   extensionHideFeedback();
   state.extensions.mutation = true;
   setButtonBusy(button, true, `${action}中...`);
   try {
     await requestApi(
       `/api/servers/${encodeURIComponent(serverId)}/extensions/${encodeURIComponent(item.manifest.id)}/state`,
-      { method: "POST", body: { enabled: nextEnabled } },
+      { method: "POST", body: { enabled: nextEnabled }, signal: context.signal },
     );
-    if (state.auth.status === "authenticated") showToast(`扩展 ${item.manifest.name} 已${action}。`);
-    if (extensionServerId() === serverId) await extensionLoad(serverId);
+    if (!privateMutationMatches(context)) return;
+
+    showToast(`扩展 ${item.manifest.name} 已${action}。`);
+    await extensionLoad(serverId);
   } catch (error) {
+    if (isAbortError(error) || !privateMutationMatches(context)) return;
     extensionSetFeedback(extensionErrorMessage(error, `扩展${action}失败。`), true);
   } finally {
-    state.extensions.mutation = false;
-    setButtonBusy(button, false);
+    if (privateMutationMatches(context)) {
+      state.extensions.mutation = false;
+      finishPrivateMutation(context);
+    }
   }
 }
 
@@ -2173,30 +2369,35 @@ async function extensionSubmitDelete(event) {
   const item = state.extensions.deleting;
   if (!serverId || !item || state.extensions.mutation) return;
   if (byId("extension-delete-confirmation").value !== item.manifest.id) {
-    setInlineMessage(byId("extension-delete-error"), "输入的扩展 ID 不匹配，未执行删除。 ");
+    setInlineMessage(byId("extension-delete-error"), "输入的扩展 ID 不匹配，未执行删除。 " );
     extensionUpdateDeleteConfirmation();
     return;
   }
 
   const deleteButton = byId("extension-delete-button");
+  const context = beginPrivateMutation("extension-delete", deleteButton, serverId);
+  if (!context) return;
+
   state.extensions.mutation = true;
   setButtonBusy(deleteButton, true, "删除中...");
   try {
     await requestApi(
       `/api/servers/${encodeURIComponent(serverId)}/extensions/${encodeURIComponent(item.manifest.id)}`,
-      { method: "DELETE", json: true },
+      { method: "DELETE", json: true, signal: context.signal },
     );
-    state.extensions.mutation = false;
-    setButtonBusy(deleteButton, false);
+    if (!privateMutationMatches(context)) return;
+
     extensionCloseDeleteDialog(true);
-    if (state.auth.status === "authenticated") showToast(`扩展 ${item.manifest.name} 已删除。`);
-    if (extensionServerId() === serverId) await extensionLoad(serverId);
+    showToast(`扩展 ${item.manifest.name} 已删除。`);
+    await extensionLoad(serverId);
   } catch (error) {
+    if (isAbortError(error) || !privateMutationMatches(context)) return;
     setInlineMessage(byId("extension-delete-error"), extensionErrorMessage(error, "扩展删除失败。"));
   } finally {
-    state.extensions.mutation = false;
-    setButtonBusy(deleteButton, false);
-    extensionUpdateDeleteConfirmation();
+    if (privateMutationMatches(context)) {
+      state.extensions.mutation = false;
+      if (finishPrivateMutation(context)) extensionUpdateDeleteConfirmation();
+    }
   }
 }
 
@@ -2225,40 +2426,40 @@ function initExtensions() {
   extensionRenderArchitecture();
   if (!byId("extension-manager")) return;
 
-  byId("extension-create-button").addEventListener("click", () => extensionOpenEditor());
-  byId("extension-empty-create-button").addEventListener("click", () => extensionOpenEditor());
-  byId("extension-reload-button").addEventListener("click", () => extensionLoad());
-  byId("extension-retry-button").addEventListener("click", () => extensionLoad());
-  byId("extension-list-body").addEventListener("click", (event) => {
+  byId("extension-create-button")?.addEventListener("click", () => extensionOpenEditor());
+  byId("extension-empty-create-button")?.addEventListener("click", () => extensionOpenEditor());
+  byId("extension-reload-button")?.addEventListener("click", () => extensionLoad());
+  byId("extension-retry-button")?.addEventListener("click", () => extensionLoad());
+  byId("extension-list-body")?.addEventListener("click", (event) => {
     extensionHandleListAction(event);
   });
 
-  byId("extension-engine").addEventListener("change", extensionUpdateEntryForEngine);
-  byId("extension-source").addEventListener("input", extensionUpdateSourceCount);
-  byId("extension-form").addEventListener("submit", extensionSubmitEditor);
-  byId("extension-dialog-close").addEventListener("click", () => extensionCloseEditor());
-  byId("extension-dialog-cancel").addEventListener("click", () => extensionCloseEditor());
+  byId("extension-engine")?.addEventListener("change", extensionUpdateEntryForEngine);
+  byId("extension-source")?.addEventListener("input", extensionUpdateSourceCount);
+  byId("extension-form")?.addEventListener("submit", extensionSubmitEditor);
+  byId("extension-dialog-close")?.addEventListener("click", () => extensionCloseEditor());
+  byId("extension-dialog-cancel")?.addEventListener("click", () => extensionCloseEditor());
 
   const editorDialog = byId("extension-dialog");
-  editorDialog.addEventListener("cancel", (event) => {
+  editorDialog?.addEventListener("cancel", (event) => {
     event.preventDefault();
     extensionCloseEditor();
   });
-  editorDialog.addEventListener("click", (event) => {
+  editorDialog?.addEventListener("click", (event) => {
     if (event.target === editorDialog) extensionCloseEditor();
   });
 
-  byId("extension-delete-confirmation").addEventListener("input", extensionUpdateDeleteConfirmation);
-  byId("extension-delete-form").addEventListener("submit", extensionSubmitDelete);
-  byId("extension-delete-close").addEventListener("click", () => extensionCloseDeleteDialog());
-  byId("extension-delete-cancel").addEventListener("click", () => extensionCloseDeleteDialog());
+  byId("extension-delete-confirmation")?.addEventListener("input", extensionUpdateDeleteConfirmation);
+  byId("extension-delete-form")?.addEventListener("submit", extensionSubmitDelete);
+  byId("extension-delete-close")?.addEventListener("click", () => extensionCloseDeleteDialog());
+  byId("extension-delete-cancel")?.addEventListener("click", () => extensionCloseDeleteDialog());
 
   const deleteDialog = byId("extension-delete-dialog");
-  deleteDialog.addEventListener("cancel", (event) => {
+  deleteDialog?.addEventListener("cancel", (event) => {
     event.preventDefault();
     extensionCloseDeleteDialog();
   });
-  deleteDialog.addEventListener("click", (event) => {
+  deleteDialog?.addEventListener("click", (event) => {
     if (event.target === deleteDialog) extensionCloseDeleteDialog();
   });
 
@@ -2276,37 +2477,69 @@ function initExtensions() {
 }
 
 function initializeSite() {
-  initNavigation();
-
-  try {
-    renderSharedContent();
-  } catch (error) {
-    byId("overview-content").replaceChildren(
-      createElement("div", { className: "inline-error", text: errorMessage(error, "站点内容加载失败。") }),
-    );
+  const sharedTargets = [
+    byId("overview-content"),
+    byId("compatibility-content"),
+    byId("quick-install-content"),
+    byId("mysql-content"),
+    byId("download-description"),
+  ];
+  const sharedErrorTarget = sharedTargets.find(Boolean);
+  if (sharedErrorTarget) {
+    try {
+      renderSharedContent();
+    } catch (error) {
+      sharedErrorTarget.replaceChildren(
+        createElement("div", { className: "inline-error", text: errorMessage(error, "站点内容加载失败。") }),
+      );
+    }
   }
 
-  try {
-    initTutorials();
-  } catch (error) {
-    byId("tutorial-reader").replaceChildren(
-      createElement("div", { className: "inline-error", text: errorMessage(error, "教程加载失败。") }),
-    );
+  if (byId("tutorial-index") && byId("tutorial-reader")) {
+    try {
+      initTutorials();
+    } catch (error) {
+      byId("tutorial-reader")?.replaceChildren(
+        createElement("div", { className: "inline-error", text: errorMessage(error, "教程加载失败。") }),
+      );
+    }
   }
 
-  try {
-    renderPlanning();
-    initArchitecture();
-  } catch (error) {
-    byId("architecture-plugin").replaceChildren(
-      createElement("div", { className: "inline-error", text: errorMessage(error, "架构内容加载失败。") }),
-    );
+  if (byId("planning-content")) {
+    try {
+      renderPlanning();
+    } catch (error) {
+      byId("planning-content")?.replaceChildren(
+        createElement("div", { className: "inline-error", text: errorMessage(error, "策划内容加载失败。") }),
+      );
+    }
   }
 
-  initCatalog();
-  initConsole();
-  initExtensions();
-  loadArtifactManifest();
+  if (byId("architecture-plugin") || byId("architecture-saas")) {
+    try {
+      initArchitecture();
+    } catch (error) {
+      const panel = byId("architecture-plugin") || byId("architecture-saas");
+      panel?.replaceChildren(
+        createElement("div", { className: "inline-error", text: errorMessage(error, "架构内容加载失败。") }),
+      );
+    }
+  }
+
+  if (byId("catalog-controls") && byId("catalog-body")) initCatalog();
+
+  if (byId("console-loading") && byId("auth-gate") && byId("server-console")) {
+    initConsole();
+  }
+
+  if (
+    byId("extensions-title")
+    || byId("extension-runtime-flow")
+    || byId("extension-security-list")
+    || byId("extension-update-steps")
+    || byId("extension-manager")
+  ) initExtensions();
+  if (byId("artifact-meta")) loadArtifactManifest();
 }
 
 initializeSite();

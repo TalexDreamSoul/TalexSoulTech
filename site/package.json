@@ -5,7 +5,9 @@
   "scripts": {
     "prepare": "node scripts/prepare-assets.mjs",
     "dev": "wrangler dev --config wrangler.jsonc",
-    "deploy": "npm run prepare && wrangler deploy --config wrangler.jsonc",
-    "test:api": "node --test test/api-contract.mjs"
+    "deploy": "npm run prepare && wrangler d1 migrations apply soultech --remote --config wrangler.jsonc && wrangler deploy --config wrangler.jsonc",
+    "init:admin": "node scripts/init-admin.mjs",
+    "test:api": "node --test test/api-contract.mjs",
+    "test:ssr": "node --test test/ssr-contract.mjs"
   }
 }

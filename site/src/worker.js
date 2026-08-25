@@ -1,3 +1,5 @@
+import { renderSsrRequest } from "./ssr.js";
+
 const TEXT_ENCODER = new TextEncoder();
 const TEXT_DECODER = new TextDecoder("utf-8", { fatal: true });
 
@@ -5,7 +7,7 @@ const API_PREFIX = "/api/";
 const SESSION_COOKIE = "soultech_session";
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 const PAIRING_TTL_MS = 10 * 60 * 1000;
-const PBKDF2_ITERATIONS = 600_000;
+const PBKDF2_ITERATIONS = 100_000;
 const AUTH_RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const AUTH_RATE_LIMIT_MAX_ATTEMPTS = 10;
 
@@ -121,7 +123,8 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname !== "/api" && !url.pathname.startsWith(API_PREFIX)) {
-      return env.ASSETS.fetch(request);
+      const ssrResponse = await renderSsrRequest(request, env, url);
+      return ssrResponse ?? env.ASSETS.fetch(request);
     }
 
     try {
@@ -397,6 +400,16 @@ async function handleApiRequest(request, env, url) {
     return jsonResponse({ ok: true, serverTime: nowIso() });
   }
 
+  if (pathname === "/api/admin/status") {
+    requireMethod(request, "GET");
+    return getAdminStatus(env);
+  }
+
+  if (pathname === "/api/admin/summary") {
+    requireMethod(request, "GET");
+    return getAdminSummary(request, env);
+  }
+
   if (pathname === "/api/auth/register") {
     requireMethod(request, "POST");
     return register(request, env);
@@ -501,6 +514,46 @@ async function handleApiRequest(request, env, url) {
   throw new ApiError(404, "not_found", "接口不存在");
 }
 
+async function getAdminStatus(env) {
+  const status = await env.DB.prepare(
+    `SELECT COUNT(*) AS admin_count
+     FROM users
+     WHERE role = ?`,
+  )
+    .bind("admin")
+    .first();
+
+  return jsonResponse({ initialized: Number(status?.admin_count ?? 0) > 0 });
+}
+
+async function getAdminSummary(request, env) {
+  const user = await requireAuthenticatedUser(request, env);
+  if (user.role !== "admin") {
+    throw new ApiError(403, "admin_required", "需要管理员权限");
+  }
+
+  const counts = await env.DB.prepare(
+    `SELECT
+       (SELECT COUNT(*) FROM users) AS users,
+       (SELECT COUNT(*) FROM servers) AS servers,
+       (SELECT COUNT(*) FROM servers WHERE paired_at IS NOT NULL) AS paired_servers,
+       (SELECT COUNT(*) FROM server_snapshots) AS snapshots,
+       (SELECT COUNT(*) FROM server_extensions) AS extensions,
+       (SELECT COUNT(*) FROM server_extensions WHERE enabled = 1) AS enabled_extensions`,
+  ).first();
+
+  return jsonResponse({
+    summary: {
+      users: Number(counts?.users ?? 0),
+      servers: Number(counts?.servers ?? 0),
+      pairedServers: Number(counts?.paired_servers ?? 0),
+      snapshots: Number(counts?.snapshots ?? 0),
+      extensions: Number(counts?.extensions ?? 0),
+      enabledExtensions: Number(counts?.enabled_extensions ?? 0),
+    },
+  });
+}
+
 async function register(request, env) {
   const payload = await readMutationJson(request, MAX_AUTH_BODY_BYTES);
   assertKeys(payload, ["username", "password"]);
@@ -517,8 +570,8 @@ async function register(request, env) {
     await env.DB.batch([
       env.DB.prepare(
         `INSERT INTO users (
-          id, username, password_hash, password_salt, password_iterations, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          id, username, password_hash, password_salt, password_iterations, role, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, 'owner', ?, ?)`,
       ).bind(
         userId,
         username,
@@ -545,6 +598,7 @@ async function register(request, env) {
       user: {
         id: userId,
         username,
+        role: "owner",
         createdAt: now,
       },
     },
@@ -561,7 +615,7 @@ async function login(request, env) {
   const password = validatePassword(payload.password);
   await enforceAuthRateLimit(request, env);
   const user = await env.DB.prepare(
-    `SELECT id, username, password_hash, password_salt, password_iterations, created_at
+    `SELECT id, username, password_hash, password_salt, password_iterations, role, created_at
      FROM users
      WHERE username = ?
      LIMIT 1`,
@@ -925,7 +979,7 @@ async function requireAuthenticatedUser(request, env) {
 
   const tokenHash = await sha256Hex(`session:${token}`);
   const user = await env.DB.prepare(
-    `SELECT u.id, u.username, u.created_at
+    `SELECT u.id, u.username, u.role, u.created_at
      FROM sessions s
      INNER JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > ?
@@ -1004,6 +1058,7 @@ function publicUser(user) {
   return {
     id: user.id,
     username: user.username,
+    role: user.role,
     createdAt: user.created_at,
   };
 }
@@ -2068,10 +2123,10 @@ async function hashPassword(password) {
 }
 
 async function verifyPassword(password, user) {
-  const salt = user?.password_salt || DUMMY_PASSWORD_SALT;
-  const iterations = Number(user?.password_iterations) || PBKDF2_ITERATIONS;
-  const candidate = await derivePasswordHash(password, salt, iterations);
-  return Boolean(user) && constantTimeEqual(candidate, user.password_hash);
+  const supportedUser = Boolean(user) && Number(user.password_iterations) === PBKDF2_ITERATIONS;
+  const salt = supportedUser ? user.password_salt : DUMMY_PASSWORD_SALT;
+  const candidate = await derivePasswordHash(password, salt, PBKDF2_ITERATIONS);
+  return supportedUser && constantTimeEqual(candidate, user.password_hash);
 }
 
 async function derivePasswordHash(password, salt, iterations) {
