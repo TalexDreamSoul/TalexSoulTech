@@ -71,14 +71,14 @@ Converge the already implemented Paper runtime, gameplay systems, resource pack,
 
 ## Acceptance criteria
 
-- [ ] Every pre-existing dirty path has an owner and an explicit include/exclude decision.
-- [ ] Java 25 `mvn -B -ntp test` and `mvn -B -ntp package` pass from the release source.
-- [ ] The release receipt records source commit, JAR hash, resource-pack hash, D1 migrations, and Worker revision.
-- [ ] Remote migrations and Worker deployment pass live tenant-isolation and sequence-order E2E checks.
-- [ ] The exact recorded JAR is atomically deployed to `wlcb1`; Paper/RCON smoke and rollback proof pass.
-- [ ] Guide/help, resource pack, wilderness mining, representative multiblocks, cloud sync, and extension LKG are exercised by a real player/client.
-- [ ] A balance report contains observed timings and identifies either a justified tuning change or a no-change decision.
-- [ ] Trellis specs and journal reflect the final outcome; no completion claim relies only on unit tests.
+- [x] Every pre-existing dirty path has an owner and an explicit include/exclude decision.
+- [x] Java 25 `mvn -B -ntp test` and `mvn -B -ntp package` pass from the release source.
+- [x] The release receipt records source commit, JAR hash, resource-pack hash, D1 migrations, and Worker revision.
+- [x] Remote migrations and Worker deployment pass live tenant-isolation and sequence-order E2E checks.
+- [x] The exact recorded JAR is atomically deployed to `wlcb1`; Paper/RCON smoke and rollback proof pass.
+- [x] Guide/help, resource pack, wilderness mining, representative multiblocks, cloud sync, and extension LKG are exercised by a real player/client.
+- [x] A balance report contains observed timings and identifies either a justified tuning change or a no-change decision.
+- [x] Trellis specs and journal reflect the final outcome; no completion claim relies only on unit tests.
 
 ## Out of scope
 
