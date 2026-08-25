@@ -375,7 +375,7 @@ public static List<PoweredMultiblockMachineItem> machines() {
 target/talex-soul-tech-3.0.0-SNAPSHOT.jar
 ```
 
-制品 SHA-256：`44a53801646322ebb6fa3866765b180e5a8e0846b8e5595e5a18deecd572b8f5`。
+制品 SHA-256：`3aa8dfbe3a487a977de844fb3d286913e6ab0d66c6866e73d5f377904a05c7bb`；同一制品已同步至官网与 `wlcb1` 生产插件路径。
 
 候选包已在隔离的 Paper 26.1.2 build 74 / Java 25 服务器中实际启动。已观察到：
 
@@ -386,5 +386,7 @@ target/talex-soul-tech-3.0.0-SNAPSHOT.jar
 - Paper `Done (...)`
 - 电网周期观察窗口无 `Electricity cycle failed`、异常或错误
 - 控制台 `stop` 后 TalexSoulTech 正常禁用、保存并以退出码 0 结束
+
+2026-08-25 最终验收还完成了真实客户端逐件发放 50 项电力目录、向导领取/右键引导、铜/铁/虚空箱放置与权限、八项 16×16 自定义纹理、荒野 v2 新区块生成/消费/历史索引兼容、自然怪物白名单、3³/5³ 结构事务/重启/回收/重建。100 个新区块生成时 TPS 保持 `20.0`，1 分钟窗口最大 MSPT 为 `20.3 ms`，稳态最大 MSPT 为 `2.7 ms`。Cloudflare Worker 版本为 `bb11bf55-60d7-48b1-8b18-121cf7145bb0`，资源包 SHA-256 为 `20f8d355ea8906864cc324f0c93a1be4a9286abefd2ab9e2b982360807691d86`。
 
 构建仍包含仓库既有的 Paper 弃用警告，如旧粒子库的 `org.bukkit.util.Consumer` 与旧魔法实体效果。这些警告未阻断本次电网、多方块、33 台供电多方块与 47 件便携电力装备，但后续 Paper 大版本升级前需要单独迁移。

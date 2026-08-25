@@ -148,3 +148,35 @@ The task remains `planning`. Production deployment must not begin until the owne
 - 明确当前 `site/` 与 `extensions/` 未提交改动的归属和发布范围
 - 确认生产发布窗口、允许的回滚中断及早期玩法目标
 - 审阅并激活 `08-23-soultech-production-convergence` 后，按 cloud → Paper → 真人验收顺序执行
+
+## Session 3: Electrical equipment, real-client acceptance, Mac Work handoff, and production convergence
+
+### Scope and ownership
+
+The 54-path dirty workspace was fully attributed and split into three commits: runtime `36389e6`, Cloudflare SSR/admin `64f8229`, and Trellis workflow `e6c4940`. Mac Work received the complete TalexSoulTech working tree, HMCL 3.13.2, Java 25, Minecraft 26.1.2 client data, the Paper acceptance runtime, and every other project source snapshot; generated dependency/build caches were intentionally excluded.
+
+### Immutable release receipt
+
+- Source revision used for the clean build: `e6c4940`.
+- Java 25 Maven: 56 tests passed; shaded JAR `3aa8dfbe3a487a977de844fb3d286913e6ab0d66c6866e73d5f377904a05c7bb`, 7,220,589 bytes.
+- Resource pack: `20f8d355ea8906864cc324f0c93a1be4a9286abefd2ab9e2b982360807691d86`, 12,379 bytes, eight distinct 16×16 RGBA textures.
+- Site contracts: API 1/1 and SSR 23/23 passed.
+- D1: no unapplied migration; `0004_admin.sql` was already present remotely.
+- Worker: `bb11bf55-60d7-48b1-8b18-121cf7145bb0` on `soultech.tagzxia.com`.
+- Paper production: the exact JAR was atomically installed at `/opt/minecraft/data/plugins/TalexSoulTech-3.0.0-SNAPSHOT.jar`; rollback JAR is `/opt/minecraft/rollback/TalexSoulTech-3.0.0-SNAPSHOT-22895eb9-pre-3aa8dfbe.jar`.
+
+### Runtime and client evidence
+
+- Production container healthy; RCON lists TalexSoulTech and reports 47 portable, 3 wireless, 24 active tools, and 38 total machines. Cloud status was paired/idle with a post-restart successful sync; no TalexSoulTech cycle error occurred in the observation window.
+- Real Minecraft 26.1.2 client received every one of the 50 electrical entries. The final 10-entry batch occupied exactly 10 inventory slots.
+- Guide command delivered the book and the remapped use key opened `Talexs > 引导`; clickable help rendered run/suggest hover contracts.
+- Copper, iron, and void boxes placed with stable PDC identity. Iron/void owner denial, illegal double-box rejection, void 9+18 slot layout, hopper cancellation, piston immobility, and explosion protection were observed.
+- All eight resource-pack models rendered as distinct non-missing client textures; the earlier no-pack client view proved vanilla fallback.
+- Wilderness v2 produced bounded deterministic carriers in new chunks. A real client broke indexed carriers into exactly one gold nugget and zero raw-gold blocks before and after generation/world-list configuration changes. A remote disabled-generation chunk had no candidates.
+- Natural zombies/skeletons held the v1 marker and exact single multipliers; creepers/spiders and a command-spawned zombie did not. Four hostile-type counts changed from 96 to 104 over 104 seconds rather than growing exponentially.
+- New-chunk baseline was TPS 20.0 with 1-minute max MSPT 7.2 ms. Generating 100 chunks kept TPS 20.0 and max MSPT 20.3 ms; steady state was TPS 20.0/19.8/19.8 with max MSPT 2.7 ms.
+- A 3×3×3 crusher and 5×5×5 electric furnace both persisted `claimed=true`. Injected finite buffers processed real PDC inputs to `industry_crushed_ore ×2` and `industry_refined_ingot ×1`; furnace energy moved from 500,000 to 212,000 milli-SE exactly. Crusher survival recovery dropped both output and controller, removed one endpoint, and same-position rebuild restored it.
+
+### Remaining product decision
+
+No balance number was changed from synthetic acceptance alone. The next tuning decision requires observed survival acquisition time, charge cadence, and tool-use telemetry from normal players; the current evidence only proves correctness and bounded performance.
