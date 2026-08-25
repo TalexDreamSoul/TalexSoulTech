@@ -1,0 +1,28 @@
+{
+  "id": "electrical-equipment-progression",
+  "name": "electrical-equipment-progression",
+  "title": "Electrical equipment progression",
+  "description": "Add exactly 50 rechargeable electrical tools, chargers, energy packs, mobility gear, and advanced utility devices with a coherent low-to-high progression.",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "TalexDreamSoul",
+  "assignee": "TalexDreamSoul",
+  "createdAt": "2026-08-24",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "08-24-powered-item-core"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

@@ -296,27 +296,95 @@ public static List<PoweredMultiblockMachineItem> machines() {
 - 区块未加载不会触发同步强载，也不会释放已有结构占用。
 - 保存失败仍在 `finally` 清空静态电网和结构注册表。
 
-## 14. 验证结果
+## 14. 便携电力装备与无线充电
+
+新装备不建立第二套电网。47 件便携物品把电量保存在自身 ItemStack typed PDC 中；已有 `industry_energy_cell` 也接入同一契约并兼容迁移旧 `chargeMilliSe`。3 台无线充电设备仍是普通 `PowerGrid` 消费端点，每次只分配已经从机器缓冲扣除的有限预算。
+
+所有便携装备强制单堆叠。电量使用 `long` milli-SE，`PortableEnergyStorage.receive/extract(..., simulate)` 与 `EnergyBuffer` 保持同一语义。实际修改返回 clone，调用方只在模拟成功后回填所属槽位，因此不会让一叠物品共享电量，也不会在双向转移中复制能量。
+
+运行时只有一个 `PoweredEquipmentService` 主线程任务。周期工作只检查在线玩家的主手、副手和四个护甲槽；范围工具、实体目标、连锁方块和无线玩家数都有上限，且不强制加载区块。
+
+| # | 阶段 | 装备 | ID | 主要作用 |
+|---:|---:|---|---|---|
+| 1 | T1 | 动力扳手 | `powered_wrench` | 旋转可定向方块并查看电力端点状态 |
+| 2 | T1 | 电动钻机 | `electric_drill` | 单块无耐久电力采掘 |
+| 3 | T1 | 电动链锯 | `electric_saw` | 连锁处理最多 8 个原木 |
+| 4 | T1 | 电动铲 | `electric_shovel` | 直线处理最多 3 个松软方块 |
+| 5 | T1 | 电动锄 | `electric_hoe` | 3×3 有界耕地 |
+| 6 | T1 | 电动剪 | `electric_shears` | 3×3 树叶、蛛网和羊毛处理 |
+| 7 | T1 | 矿物扫描仪 | `ore_scanner` | 扫描已加载范围并报告最近矿物 |
+| 8 | T1 | 电动树脂采集器 | `resin_tapper` | 从原木提取现有工业树脂，带 UUID 冷却 |
+| 9 | T1 | 袖珍电池 | `pocket_battery` | 第一阶便携储能 |
+| 10 | T1 | 个人充电器 | `personal_charger` | 输入/输出双模式，在主副手之间转移电量 |
+| 11 | T2 | 精密钻机 | `precision_drill` | 沿视线打通最多 3 个有效方块 |
+| 12 | T2 | 电动开掘锤 | `excavation_hammer` | 按视面执行 3×3 开掘 |
+| 13 | T2 | 伐木动力斧 | `lumber_axe` | 连锁砍伐最多 32 个原木 |
+| 14 | T2 | 电动收割器 | `crop_harvester` | 3×3 成熟作物收割并原位补种 |
+| 15 | T2 | 矿脉采掘器 | `vein_miner` | 最多 16 个相连同类矿石 |
+| 16 | T2 | 磁力收集器 | `magnetic_collector` | 拉近最多 16 个物品实体 |
+| 17 | T2 | 维修焊枪 | `repair_welder` | 修复副手物品，单次最多 64 耐久 |
+| 18 | T2 | 场域照明器 | `field_flashlight` | 开关模式；持有时提供有耗能夜视 |
+| 19 | T2 | 压缩电池 | `compact_battery` | 袖珍电池容量与传输升级 |
+| 20 | T2 | 能量背包 | `energy_backpack` | 胸甲槽中给固定装备槽供能 |
+| 21 | T3 | 采矿激光 | `mining_laser` | 视线方向采掘最多 8 个方块 |
+| 22 | T3 | 等离子切割器 | `plasma_cutter` | 精确切割并提供非玩家目标电浆伤害 |
+| 23 | T3 | 电弧焊机 | `arc_welder` | 依次维修副手与四件护甲 |
+| 24 | T3 | 地形压实器 | `terrain_compactor` | 5×5 表面松软方块处理 |
+| 25 | T3 | 地质分析仪 | `geological_analyzer` | 报告目标方块与有界矿物组成 |
+| 26 | T3 | 生物电击器 | `mob_stunner` | 使一个非玩家目标减速并虚弱 |
+| 27 | T3 | 震荡警棍 | `shock_baton` | 近战追加电伤害、击退与冷却 |
+| 28 | T3 | 全能物质工具 | `universal_matter_tool` | 镐/斧/铲/锄/剪五模式 3×3 工作 |
+| 29 | T3 | 高级电池 | `advanced_battery` | 压缩电池的高容量升级 |
+| 30 | T3 | 电容背包 | `capacitor_backpack` | 能量背包的高速升级 |
+| 31 | T1 | 动力靴 | `powered_boots` | 移动时提供速度与跳跃 |
+| 32 | T2 | 磁稳靴 | `magnetic_boots` | 缓降并以电量抵消摔落伤害 |
+| 33 | T2 | 伺服护腿 | `servo_leggings` | 移动时提供速度 |
+| 34 | T3 | 动能护腿 | `kinetic_leggings` | 冲刺时提供更高速度与跳跃 |
+| 35 | T2 | 动力胸甲 | `powered_chestplate` | 按实际减伤量扣能 |
+| 36 | T3 | 护盾胸甲 | `shield_chestplate` | 更高比例减伤并削弱后续击退 |
+| 37 | T1 | 侦察头盔 | `scout_helmet` | 有耗能夜视与电量提示 |
+| 38 | T2 | 采矿头盔 | `mining_helmet` | 有耗能夜视与急迫 |
+| 39 | T3 | 喷气背包 | `jetpack` | 双击飞行键产生一次受控推进 |
+| 40 | T4 | 高级喷气背包 | `advanced_jetpack` | 推进/悬停双模式，不提供免费持续飞行 |
+| 41 | T5 | 引力飞行背带 | `gravitic_harness` | 服务拥有且逐周期扣能的持续飞行 |
+| 42 | T4 | 精英电池 | `elite_battery` | 高级电池终阶升级 |
+| 43 | T4 | 感应能量背包 | `induction_backpack` | 按固定优先级高速供能 |
+| 44 | T5 | 量子能量背包 | `quantum_energy_backpack` | 大容量终阶背包，仍受周期传输上限约束 |
+| 45 | T3 | 无线充电接收器 | `wireless_charge_receiver` | 副手携带时接收远距站点能量并转发 |
+| 46 | T4 | 个人力场发生器 | `field_generator` | 开关模式；按实际减伤量扣能 |
+| 47 | T5 | 相位召回器 | `phase_recall_device` | 召回到已加载且可站立的出生点 |
+| 48 | T2 | 感应充电台 | `wireless_charge_pad` | 3×3×3、半径 2、最多服务 1 名玩家 |
+| 49 | T4 | 范围充电信标 | `area_charge_beacon` | 5×5×5、半径 12、最多 4 名接收器玩家 |
+| 50 | T5 | 量子充电塔 | `quantum_charge_pylon` | 5×5×5、半径 32、最多 8 名接收器玩家 |
+
+附加安全语义：方块工具先让原始 `BlockBreakEvent` 完成取消/保护判定，再在 `MONITOR` 观察到成功后扣除主块能量；附属方块通过 `Player.breakBlock` 重新进入正常破坏链，并用 UUID 递归守卫禁止再次展开范围。喷气背包只提供推进，引力背带才持有持续飞行；服务只撤销自己授予的 `allowFlight`，不会关闭创造/旁路插件已有的飞行权限。
+
+## 15. 验证结果
 
 领域测试位于：
 
 - `src/test/java/pubsher/talexsoultech/domain/PowerGridDomainTest.java`
 - `src/test/java/pubsher/talexsoultech/domain/MultiblockDomainTest.java`
+- `src/test/java/pubsher/talexsoultech/domain/ElectricalEquipmentCatalogTest.java`
 
-电网测试覆盖有界缓冲、负量拒绝、模拟不变、无损守恒、逐段损耗、共享通量、公平轮转、拓扑重建后公平、多源与储能优先级、同周期不充放、拓扑拆分、超限停机、重复坐标、并行线路、零净交付残量绕行和 999‰ 高损耗最小扣量。多方块测试覆盖 3³/5³ 完整体积、原子占用冲突与释放重领。
+电网测试覆盖有界缓冲、负量拒绝、模拟不变、无损守恒、逐段损耗、共享通量、公平轮转、拓扑重建后公平、多源与储能优先级、同周期不充放、拓扑拆分、超限停机、重复坐标、并行线路、零净交付残量绕行和 999‰ 高损耗最小扣量。多方块测试覆盖 3³/5³ 完整体积、原子占用冲突与释放重领。电力装备测试覆盖 47/3/50 目录形状、24 个主动工具、唯一 ID、升级拓扑、五级覆盖、规格 fail-fast、无线预算整除/守恒、便携 receive/extract/transfer、20 SE 等离子攻击、8/32 耐久维修粒度、最终伤害计费与加载前置守卫。
 
-最终 Java 25 Maven 验证结果：38 项测试全部通过。`mvn package` 生成：
+最终 Java 25 Maven 验证结果：56 项测试全部通过。`mvn package` 生成：
 
 ```text
 target/talex-soul-tech-3.0.0-SNAPSHOT.jar
 ```
 
+制品 SHA-256：`44a53801646322ebb6fa3866765b180e5a8e0846b8e5595e5a18deecd572b8f5`。
+
 候选包已在隔离的 Paper 26.1.2 build 74 / Java 25 服务器中实际启动。已观察到：
 
 - `[TST] Loading server plugin TalexSoulTech`
 - `[TST] Enabling TalexSoulTech`
+- `[TST] Electrical equipment catalog ready: 47 portable, 3 wireless, 24 active tools.`
+- `[TST] Machine catalog ready: 38 total (legacy=5, powered-multiblock=33); electricity grid active.`
 - Paper `Done (...)`
 - 电网周期观察窗口无 `Electricity cycle failed`、异常或错误
 - 控制台 `stop` 后 TalexSoulTech 正常禁用、保存并以退出码 0 结束
 
-构建仍包含仓库既有的 Paper 弃用警告，如旧粒子库的 `org.bukkit.util.Consumer` 与旧魔法实体效果。这些警告未阻断本次电网、多方块和 30 台机器功能，但后续 Paper 大版本升级前需要单独迁移。
+构建仍包含仓库既有的 Paper 弃用警告，如旧粒子库的 `org.bukkit.util.Consumer` 与旧魔法实体效果。这些警告未阻断本次电网、多方块、33 台供电多方块与 47 件便携电力装备，但后续 Paper 大版本升级前需要单独迁移。
