@@ -11,12 +11,18 @@ import pubsher.talexsoultech.inventory.guider.BaseGuider;
 import pubsher.talexsoultech.inventory.guider.GuiderBook;
 import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.talex.machine.BaseMachine;
+import pubsher.talexsoultech.talex.guider.category.CategoryObject;
+import pubsher.talexsoultech.talex.managers.CategoryManager;
 import pubsher.talexsoultech.utils.inventory.InventoryUI;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
+import pubsher.talexsoultech.utils.item.TalexItem;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class MachineList extends BaseGuider {
+
 
     private final int start;
 
@@ -49,95 +55,135 @@ public class MachineList extends BaseGuider {
 
         new InventoryPainter(this).drawFull().drawBorder();
 
-        int startSlot = 10, i = -1;
+        List<MachineEntry> entries = buildEntries(playerData);
+        int legacyCount = BaseTalex.getInstance().getMachineManager().getMachinesClone().size();
+        int poweredCount = BaseTalex.getInstance().getCategoryManager().getPoweredMachines().size();
 
-        for ( Map.Entry<String, BaseMachine> entry : BaseTalex.getInstance().getMachineManager().getMachinesClone() ) {
+        inventoryUI.setItem(4, new InventoryUI.EmptyClickableItem(
+                new ItemBuilder(Material.COMPARATOR)
+                        .setName("§e机器目录")
+                        .setLore(
+                                "",
+                                "§7旧式机器: §f" + legacyCount,
+                                "§7多方块机器: §d" + poweredCount,
+                                "§7总计: §e" + entries.size(),
+                                "§8使用 /tst power 查看电网状态",
+                                ""
+                        )
+                        .toItemStack()
+        ));
 
-            ++i;
-            if ( i < start ) {
-                continue;
-            }
-
+        int startSlot = 10;
+        int end = Math.min(start + 21, entries.size());
+        for (int index = start; index < end; index++) {
+            MachineEntry entry = entries.get(index);
             inventoryUI.setItem(startSlot, new InventoryUI.AbstractSuperClickableItem() {
-
                 @Override
                 public ItemStack getItemStack() {
-
-                    return entry.getValue().getDisplayItem();
+                    return entry.displayItem();
                 }
 
                 @Override
-                public boolean onClick(InventoryClickEvent e) {
-
-                    entry.getValue().onOpenMachineInfoViewer(playerData);
-
+                public boolean onClick(InventoryClickEvent event) {
+                    entry.open().run();
                     return true;
-
                 }
             });
 
             startSlot++;
-
-            if ( ( startSlot + 1 ) % 9 == 0 ) {
-
+            if ((startSlot + 1) % 9 == 0) {
                 startSlot += 2;
-
             }
-
-            if ( startSlot >= 36 ) {
-                break;
-            }
-
         }
 
-        int size = BaseTalex.getInstance().getMachineManager().getMachinesClone().size();
-
-        int maxPage = size / 21;
-
-        if ( size % 21 != 0 ) {
-            maxPage++;
-        }
-
-        int nowPage = start / 21;
-
-        if ( startSlot % 21 != 0 ) {
-            nowPage++;
-        }
-
-        if ( nowPage == 1 && maxPage != 1 ) {
-
+        int maxPage = Math.max(1, (entries.size() + 20) / 21);
+        int nowPage = Math.min(maxPage, start / 21 + 1);
+        if (nowPage < maxPage) {
             placeNextPage(playerData, nowPage, maxPage);
-
-        } else if ( nowPage == maxPage ) {
-
+        }
+        if (nowPage > 1) {
             placePreviousPage(playerData, nowPage, maxPage);
-
-        } else if ( maxPage != 1 ) {
-
-            placeNextPage(playerData, nowPage, maxPage);
-
-            placePreviousPage(playerData, nowPage, maxPage);
-
         }
 
         inventoryUI.setItem(0, new InventoryUI.AbstractSuperClickableItem() {
-
             @Override
             public ItemStack getItemStack() {
-
-                return new ItemBuilder(Material.BOOK).setName("§e一览").setLore("", "§8> §e快速返回主菜单.", "").toItemStack();
+                return new ItemBuilder(Material.BOOK)
+                        .setName("§e一览")
+                        .setLore("", "§8> §e快速返回主菜单.", "")
+                        .toItemStack();
             }
 
             @Override
-            public boolean onClick(InventoryClickEvent e) {
-
-                new GuiderBook(playerData, 0, BaseTalex.getInstance().getCategoryManager().getRootCategory(), null).open();
-
+            public boolean onClick(InventoryClickEvent event) {
+                new GuiderBook(
+                        playerData,
+                        0,
+                        BaseTalex.getInstance().getCategoryManager().getRootCategory(),
+                        null
+                ).open();
                 return true;
-
             }
         });
+    }
 
+    private List<MachineEntry> buildEntries(PlayerData playerData) {
+        List<MachineEntry> entries = new ArrayList<>();
+        List<Map.Entry<String, BaseMachine>> legacyMachines = new ArrayList<>(
+                BaseTalex.getInstance().getMachineManager().getMachinesClone()
+        );
+        legacyMachines.sort(Map.Entry.comparingByKey());
+
+        for (Map.Entry<String, BaseMachine> entry : legacyMachines) {
+            BaseMachine machine = entry.getValue();
+            ItemStack display = new ItemBuilder(machine.getDisplayItem().clone())
+                    .addLoreLine("§7--------------------------------")
+                    .addLoreLine("§7旧式机器")
+                    .addLoreLine("§e点击查看机器说明")
+                    .toItemStack();
+            entries.add(new MachineEntry(display, () -> machine.onOpenMachineInfoViewer(playerData)));
+        }
+
+        for (CategoryManager.PoweredMachineEntry entry
+                : BaseTalex.getInstance().getCategoryManager().getPoweredMachines()) {
+            CategoryObject recipeCategory = entry.recipeCategory();
+            CategoryObject discipline = recipeCategory.getFatherCategory();
+            boolean unlocked = entry.machine().isUnlockedFor(playerData);
+            String disciplineName = discipline == null
+                    ? "未知学科"
+                    : new ItemBuilder(TalexItem.reSerialize(discipline.getDisplayStack().clone()))
+                            .getDisplayNameOrDefaultName();
+
+            ItemStack display = unlocked
+                    ? new ItemBuilder(TalexItem.reSerialize(recipeCategory.getDisplayStack().clone()))
+                            .addLoreLine("§7--------------------------------")
+                            .addLoreLine("§d多方块机器 §8· §7" + disciplineName)
+                            .addLoreLine("§e点击查看控制器配方")
+                            .toItemStack()
+                    : new ItemBuilder(Material.RED_STAINED_GLASS_PANE)
+                            .setName("§c未解锁机器")
+                            .setLore(
+                                    "",
+                                    "§7所属学科: " + disciplineName,
+                                    "§c解锁学科后才能查看、制作和使用",
+                                    ""
+                            )
+                            .toItemStack();
+
+            entries.add(new MachineEntry(display, () -> {
+                if (!entry.machine().isUnlockedFor(playerData)) {
+                    playerData.actionBar("§c请先在向导书中解锁 " + disciplineName + " §c!");
+                    return;
+                }
+                GuiderBook parent = new GuiderBook(playerData, 0, discipline, null);
+                new GuiderBook(playerData, 0, recipeCategory, parent).open();
+            }));
+        }
+
+        return entries;
+    }
+
+    private record MachineEntry(ItemStack displayItem, Runnable open) {
     }
 
     private void placeNextPage(PlayerData playerData, int now, int max) {

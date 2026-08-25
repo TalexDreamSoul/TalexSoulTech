@@ -11,6 +11,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Properties;
 import java.util.UUID;
@@ -43,6 +44,33 @@ final class ExtensionKvStore implements AutoCloseable {
         staged = true;
     }
 
+    synchronized void prepare(Snapshot snapshot) {
+        Objects.requireNonNull(snapshot, "snapshot");
+        if (staged || opened) {
+            return;
+        }
+        replaceValues(snapshot.values());
+        staged = true;
+    }
+
+    synchronized void activatePrepared() {
+        if (opened) {
+            return;
+        }
+        if (!staged) {
+            throw new IllegalStateException("Extension KV is not prepared");
+        }
+        opened = true;
+        staged = false;
+        stagedWrites.clear();
+        stagedRemovals.clear();
+    }
+
+    synchronized Snapshot snapshot() {
+        requireOpen();
+        return new Snapshot(values);
+    }
+
     synchronized void open() throws IOException {
         if (opened) {
             return;
@@ -50,12 +78,6 @@ final class ExtensionKvStore implements AutoCloseable {
         replaceValues(readFromDisk());
         applyStagedMutations();
         opened = true;
-    }
-
-    synchronized void reload() throws IOException {
-        requireOpen();
-        replaceValues(readFromDisk());
-        applyStagedMutations();
     }
 
     synchronized String get(String key) {
@@ -206,6 +228,13 @@ final class ExtensionKvStore implements AutoCloseable {
     private void requireOpen() {
         if (!opened) {
             throw new IllegalStateException("Extension KV is unavailable");
+        }
+    }
+
+
+    record Snapshot(Map<String, String> values) {
+        Snapshot {
+            values = Map.copyOf(values);
         }
     }
 }

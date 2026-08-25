@@ -22,4 +22,12 @@ public final class ProtectorManager {
     public boolean checkProtect(PlayerData playerData, PlayerInteractEvent event) {
         return true;
     }
+
+    /**
+     * Shared boundary for bounded tool actions that modify adjacent blocks
+     * without an existing Bukkit interaction event.
+     */
+    public boolean canModify(PlayerData playerData, org.bukkit.block.Block block) {
+        return playerData != null && block != null;
+    }
 }

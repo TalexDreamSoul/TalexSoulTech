@@ -16,6 +16,7 @@ import pubsher.talexsoultech.talex.items.compress.wood.CompressWood1;
 import pubsher.talexsoultech.talex.items.compress.wood.CompressWood2;
 import pubsher.talexsoultech.talex.items.compress.wood.CompressWood3;
 import pubsher.talexsoultech.talex.items.electricity.*;
+import pubsher.talexsoultech.talex.items.electricity.fire_generator.BurntCinder;
 import pubsher.talexsoultech.talex.items.electricity.fire_generator.FireBaseGenerator;
 import pubsher.talexsoultech.talex.items.electricity.storage.NormalStorage;
 import pubsher.talexsoultech.talex.items.food.SuperBone;
@@ -27,6 +28,9 @@ import pubsher.talexsoultech.talex.items.material.ingots.FireIngot;
 import pubsher.talexsoultech.talex.items.material.mesh.NormalMesh;
 import pubsher.talexsoultech.talex.items.material.mesh.NormalMeshPlus;
 import pubsher.talexsoultech.talex.items.material.others.SuperString;
+import pubsher.talexsoultech.talex.items.equipment.ElectricalEquipmentCatalog;
+import pubsher.talexsoultech.talex.items.equipment.PoweredItem;
+import pubsher.talexsoultech.talex.items.equipment.WirelessChargingMachines;
 import pubsher.talexsoultech.talex.items.multiblock.gravity.GravityCatalog;
 import pubsher.talexsoultech.talex.items.multiblock.industry.IndustrialMachines;
 import pubsher.talexsoultech.talex.items.multiblock.magic.MagicCatalog;
@@ -47,6 +51,7 @@ import pubsher.talexsoultech.utils.item.MineCraftItem;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 import pubsher.talexsoultech.utils.item.TalexItem;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +69,11 @@ public class CategoryManager {
     private final CategoryObject rootCategory = new CategoryObject(-1, "talex_soul_tech_root", null, null, CategoryObject.CategoryType.MENU, null, null);
 
     private final HashMap<String, CategoryObject> categories = new HashMap<>(16);
+    private final List<PoweredMachineEntry> poweredMachines = new ArrayList<>(36);
+
+    public List<PoweredMachineEntry> getPoweredMachines() {
+        return List.copyOf(poweredMachines);
+    }
 
     public CategoryManager(BaseTalex baseTalex) {
 
@@ -97,28 +107,28 @@ public class CategoryManager {
 
     public void enable() {
 
-        CategoryObject base = new CategoryObject(0, "st_base", new ItemBuilder(Material.FURNACE).setLore("", "§8> §f世界创造了我们 我们创造了世界", "").setName("§f基础学").toItemStack());
+        CategoryObject base = withUnlockCost(new CategoryObject(0, "st_base", new ItemBuilder(Material.FURNACE).setLore("", "§8> §f世界创造了我们 我们创造了世界", "").setName("§f基础学").toItemStack()), 1);
 
         this.categories.put("talex_soul_tech_root", rootCategory);
 
-        CategoryObject material = new CategoryObject(0, "st_material", new ItemBuilder(Material.NETHER_BRICK).setLore("", "§8> §f奇特的材料赋予你更多的选择..", "").setName("§c材料学").toItemStack());
-        CategoryObject sapling = new CategoryObject(0, "st_sapling", new ItemBuilder(Material.OAK_SAPLING).setLore("", "§8> §f万物万灵之启..", "").setName("§a植物学").toItemStack());
-        CategoryObject chestplates = new CategoryObject(0, "st_chestplates", new ItemBuilder(Material.LEATHER_CHESTPLATE).setLore("", "§8> §f防御，强壮自我.", "").setName("§f§l防御学").toItemStack());
+        CategoryObject material = withUnlockCost(new CategoryObject(0, "st_material", new ItemBuilder(Material.NETHER_BRICK).setLore("", "§8> §f奇特的材料赋予你更多的选择..", "").setName("§c材料学").toItemStack()), 3);
+        CategoryObject sapling = withUnlockCost(new CategoryObject(0, "st_sapling", new ItemBuilder(Material.OAK_SAPLING).setLore("", "§8> §f万物万灵之启..", "").setName("§a植物学").toItemStack()), 3);
+        CategoryObject chestplates = withUnlockCost(new CategoryObject(0, "st_chestplates", new ItemBuilder(Material.LEATHER_CHESTPLATE).setLore("", "§8> §f防御，强壮自我.", "").setName("§f§l防御学").toItemStack()), 5);
 
-        CategoryObject industry = new CategoryObject(1, "st_industry", new ItemBuilder(Material.FURNACE_MINECART).setLore("", "§8> §b科技成就梦想", "").setName("§f科技学").toItemStack());
+        CategoryObject industry = withUnlockCost(new CategoryObject(1, "st_industry", new ItemBuilder(Material.FURNACE_MINECART).setLore("", "§8> §b科技成就梦想", "").setName("§f科技学").toItemStack()), 8);
 
         industry.addPreposition(base);
 
-        CategoryObject magic = new CategoryObject(1, "st_magic", new ItemBuilder(Material.FLOWER_POT).setLore("", "§8> §b光明与黑暗 本就该共存", "").setName("§f魔法学").toItemStack());
+        CategoryObject magic = withUnlockCost(new CategoryObject(1, "st_magic", new ItemBuilder(Material.FLOWER_POT).setLore("", "§8> §b光明与黑暗 本就该共存", "").setName("§f魔法学").toItemStack()), 8);
 
         magic.addPreposition(base);
 
-        CategoryObject space = new CategoryObject(2, "st_space", new ItemBuilder(Material.GLOWSTONE).setLore("", "§8> §e奥妙, 无尽", "").setName("§f空间学").toItemStack());
+        CategoryObject space = withUnlockCost(new CategoryObject(2, "st_space", new ItemBuilder(Material.GLOWSTONE).setLore("", "§8> §e奥妙, 无尽", "").setName("§f空间学").toItemStack()), 16);
 
         space.addPreposition(industry);
         space.addPreposition(magic);
 
-        CategoryObject gravitation = new CategoryObject(3, "st_gravitation", new ItemBuilder(Material.IRON_BLOCK).setLore("", "§8> §f§l引力, 万有引力", "").setName("§f引力学").toItemStack());
+        CategoryObject gravitation = withUnlockCost(new CategoryObject(3, "st_gravitation", new ItemBuilder(Material.IRON_BLOCK).setLore("", "§8> §f§l引力, 万有引力", "").setName("§f引力学").toItemStack()), 24);
 
         gravitation.addPreposition(space);
 
@@ -216,7 +226,38 @@ public class CategoryManager {
             CategoryObject space,
             CategoryObject gravitation
     ) {
-        registerContent(industry, 3, IndustrialMachines.items(), IndustrialMachines.machines());
+        List<SoulTechItem> industrialItems = IndustrialMachines.items();
+        List<PoweredMultiblockMachineItem> industrialMachines = IndustrialMachines.machines();
+        List<PoweredItem> portableEquipment = ElectricalEquipmentCatalog.createPortableItems(
+                baseTalex.getPlugin().getPoweredEquipmentService()
+        );
+        baseTalex.getPlugin().getPoweredEquipmentService().validatePortableDefinitions(
+                portableEquipment,
+                industrialItems.stream()
+                        .filter(item -> "industry_energy_cell".equals(item.getID()))
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException("missing industry energy cell"))
+        );
+        List<PoweredMultiblockMachineItem> wirelessChargers = WirelessChargingMachines.create();
+
+        registerContent(industry, 3, industrialItems, industrialMachines);
+        for (int tier = 1; tier <= 5; tier++) {
+            final int contentTier = tier;
+            List<SoulTechItem> tierItems = portableEquipment.stream()
+                    .filter(item -> item.spec().tier() == contentTier)
+                    .map(SoulTechItem.class::cast)
+                    .toList();
+            List<PoweredMultiblockMachineItem> tierMachines = wirelessChargers.stream()
+                    .filter(machine -> ElectricalEquipmentCatalog.chargerSpec(machine.getID()).tier() == contentTier)
+                    .toList();
+            registerContent(industry, contentTier, tierItems, tierMachines);
+        }
+        baseTalex.getPlugin().getLogger().info(
+                "Electrical equipment catalog ready: "
+                        + ElectricalEquipmentCatalog.PORTABLE_ITEM_COUNT + " portable, "
+                        + ElectricalEquipmentCatalog.WIRELESS_MACHINE_COUNT + " wireless, "
+                        + ElectricalEquipmentCatalog.ACTIVE_TOOL_COUNT + " active tools."
+        );
         registerContent(magic, 3, MagicCatalog.items(), MagicCatalog.machines());
         registerContent(space, 4, SpaceMultiblockCatalog.items(), SpaceMultiblockCatalog.machines());
         registerContent(gravitation, 5, GravityCatalog.items(), GravityCatalog.machines());
@@ -235,7 +276,13 @@ public class CategoryManager {
             }
         }
         for (PoweredMultiblockMachineItem machine : machines) {
-            category.addChild(new CategoryObject(tier, "st_machine_" + machine.getID(), machine.getRecipe()));
+            CategoryObject recipeCategory = new CategoryObject(
+                    tier,
+                    "st_machine_" + machine.getID(),
+                    machine.getRecipe()
+            );
+            category.addChild(recipeCategory);
+            poweredMachines.add(new PoweredMachineEntry(machine, recipeCategory));
         }
     }
 
@@ -248,6 +295,7 @@ public class CategoryManager {
 
         new StickyResin();
         new Resin();
+        new BurntCinder();
 
         industry.addChild(new CategoryObject(1, "st_wire_iron_wire", new IronWire().getRecipe()));
         industry.addChild(new CategoryObject(1, "st_pbc_circuit_board", new CircuitBoard().getRecipe()));
@@ -347,6 +395,12 @@ public class CategoryManager {
 
     }
 
+    private CategoryObject withUnlockCost(CategoryObject category, int defaultCost) {
+        String path = "Features.progression.category-unlock-levels." + category.getID();
+        int configuredCost = baseTalex.getPlugin().getConfig().getInt(path, defaultCost);
+        return category.setUnlockLevelCost(configuredCost);
+    }
+
     @Deprecated
     public void addToCategoryMap(CategoryObject categoryObject) {
 
@@ -368,6 +422,12 @@ public class CategoryManager {
 
         return categories.getOrDefault(ID, defaultValue);
 
+    }
+
+    public record PoweredMachineEntry(
+            PoweredMultiblockMachineItem machine,
+            CategoryObject recipeCategory
+    ) {
     }
 
 }

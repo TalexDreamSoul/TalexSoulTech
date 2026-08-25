@@ -68,16 +68,8 @@ public class MachineCore extends SoulTechItem {
 
     @Override
     public void onCrafted(PlayerData playerData) {
-
-        if ( !playerData.isCategoryUnLock("st_industry") ) {
-
-            playerData.addCategoryUnlock("st_industry").addCategoryUnlock("st_magic")
-                    .playSound(Sound.ENTITY_PLAYER_LEVELUP, 1.3F, 1.3F).title("§a✔", "§e新的学科已解锁!", 5, 25, 15);
-
-
-        }
-
     }
+
 
     @Override
     public void onItemHeld(PlayerData playerData, PlayerItemHeldEvent event) {

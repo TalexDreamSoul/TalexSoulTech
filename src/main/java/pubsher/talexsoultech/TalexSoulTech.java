@@ -12,6 +12,7 @@ import pubsher.talexsoultech.listener.BlockListener;
 import pubsher.talexsoultech.listener.Listeners;
 import pubsher.talexsoultech.listener.MultiblockProtectionListener;
 import pubsher.talexsoultech.talex.BaseTalex;
+import pubsher.talexsoultech.talex.items.equipment.PoweredEquipmentService;
 import pubsher.talexsoultech.talex.storage.StorageBoxManager;
 import pubsher.talexsoultech.talex.world.WildernessListener;
 import pubsher.talexsoultech.talex.world.WildernessManager;
@@ -49,7 +50,11 @@ public final class TalexSoulTech extends JavaPlugin {
     @Getter
     private ExtensionManager extensionManager;
 
+    @Getter
+    private PoweredEquipmentService poweredEquipmentService;
+
     private WildernessManager wildernessManager;
+    @Getter
     private StorageBoxManager storageBoxManager;
 
     @SneakyThrows
@@ -65,6 +70,7 @@ public final class TalexSoulTech extends JavaPlugin {
         BaseTalex.init(this);
 
         this.baseTalex = BaseTalex.getInstance();
+        this.poweredEquipmentService = new PoweredEquipmentService(this);
         this.baseTalex.enable();
         this.cloudSyncService = new CloudSyncService(this);
         this.extensionManager = new ExtensionManager(this);
@@ -80,6 +86,7 @@ public final class TalexSoulTech extends JavaPlugin {
         this.wildernessManager = new WildernessManager(this);
         wildernessManager.install();
         getServer().getPluginManager().registerEvents(new WildernessListener(wildernessManager), this);
+        this.poweredEquipmentService.start();
 
         Commands commands = new Commands();
         var pluginCommand = getServer().getPluginCommand("talexsoultech");
@@ -130,6 +137,11 @@ public final class TalexSoulTech extends JavaPlugin {
 
         if (baseTalex != null) {
             baseTalex.beginPlayerShutdown();
+        }
+
+        if (poweredEquipmentService != null) {
+            poweredEquipmentService.close();
+            poweredEquipmentService = null;
         }
 
         if (wildernessManager != null) {

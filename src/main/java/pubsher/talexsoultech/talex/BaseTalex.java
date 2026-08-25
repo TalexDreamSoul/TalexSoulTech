@@ -20,6 +20,7 @@ import pubsher.talexsoultech.talex.machine.griddle.GriddleMachine;
 import pubsher.talexsoultech.talex.managers.*;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.item.MachineBlockItem;
+import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -108,6 +109,14 @@ public class BaseTalex {
         new GriddleMachine();
 
         initBase();
+        int legacyMachineCount = machineManager.getMachinesClone().size();
+        int poweredMachineCount = categoryManager.getPoweredMachines().size();
+        plugin.getLogger().info(
+                "Machine catalog ready: " + (legacyMachineCount + poweredMachineCount)
+                        + " total (legacy=" + legacyMachineCount
+                        + ", powered-multiblock=" + poweredMachineCount
+                        + "); electricity grid active."
+        );
         startPlayerPersistenceDispatcher();
 
     }
@@ -238,6 +247,17 @@ public class BaseTalex {
                 for (String key : new HashSet<>(yaml.getConfigurationSection("MachineBlockItems").getKeys(false))) {
                     String id = yaml.getString("MachineBlockItems." + key + ".ID");
                     String className = yaml.getString("MachineBlockItems." + key + ".class");
+                    SoulTechItem registeredItem = SoulTechItem.get(id);
+                    if (registeredItem instanceof MachineBlockItem registeredMachine
+                            && registeredMachine.getClass().getName().equals(className)) {
+                        String serialized = NBTsUtil.Base64_Decode(
+                                yaml.getString("MachineBlockItems." + id + ".save", "")
+                        );
+                        registeredMachine.onLoad(serialized);
+                        blockManager.rebindItem(registeredMachine);
+                        continue;
+                    }
+
 
                     try {
                         Class<?> itemClass = Class.forName(className);

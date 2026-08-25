@@ -18,6 +18,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -35,6 +36,12 @@ final class ExtensionRuntime implements AutoCloseable {
     private static final int MAX_REGISTRATIONS_PER_EXECUTION = 64;
     private static final int MAX_QUEUED_CALLBACKS = 32;
 
+    private enum CallbackSubmission {
+        QUEUED,
+        TEMPORARILY_QUIESCED,
+        CLOSED
+    }
+
     private final ExtensionManager manager;
     private final ExtensionDescriptor descriptor;
     private final ExtensionSettings settings;
@@ -49,6 +56,7 @@ final class ExtensionRuntime implements AutoCloseable {
     private final Deque<Long> callbackFailures = new ArrayDeque<>();
     private final AtomicBoolean accepting = new AtomicBoolean();
     private final AtomicBoolean stopped = new AtomicBoolean();
+    private final AtomicBoolean kvTransitionInFlight = new AtomicBoolean();
     private final ThreadLocal<Integer> registrationsInExecution = new ThreadLocal<>();
 
     private volatile ExtensionStatus.State state = ExtensionStatus.State.STAGED;
@@ -82,7 +90,8 @@ final class ExtensionRuntime implements AutoCloseable {
             ExtensionDescriptor descriptor,
             String source,
             ExtensionSettings settings,
-            Path kvFile
+            Path kvFile,
+            ExtensionKvStore.Snapshot kvSnapshot
     ) throws Exception {
         ScriptExtensionEngine engine = switch (descriptor.manifest().engine()) {
             case LUA -> new LuaScriptEngine(descriptor.manifest(), source);
@@ -92,7 +101,11 @@ final class ExtensionRuntime implements AutoCloseable {
         try {
             runtime.runDuringStage(() -> {
                 if (descriptor.manifest().permissions().contains(ExtensionManifest.Capability.KV)) {
-                    runtime.kvStore.prepare();
+                    if (kvSnapshot == null) {
+                        runtime.kvStore.prepare();
+                    } else {
+                        runtime.kvStore.prepare(kvSnapshot);
+                    }
                 }
                 engine.initialize(runtime.bridge());
                 return null;
@@ -120,13 +133,13 @@ final class ExtensionRuntime implements AutoCloseable {
         return state;
     }
 
-    void activate() throws Exception {
+    void activate() {
         synchronized (lock) {
             if (state != ExtensionStatus.State.STAGED) {
                 throw new IllegalStateException("Extension is not staged");
             }
             if (descriptor.manifest().permissions().contains(ExtensionManifest.Capability.KV)) {
-                kvStore.open();
+                kvStore.activatePrepared();
             }
             accepting.set(true);
             state = ExtensionStatus.State.ACTIVE;
@@ -148,15 +161,59 @@ final class ExtensionRuntime implements AutoCloseable {
         }
     }
 
-    void refreshKvFromDisk() {
+    KvTransition quiesceKv() throws Exception {
         if (!descriptor.manifest().permissions().contains(ExtensionManifest.Capability.KV)) {
-            return;
+            throw new IllegalStateException("Extension KV is unavailable");
         }
+        synchronized (lock) {
+            if (!isActive() || !kvTransitionInFlight.compareAndSet(false, true)) {
+                throw new IllegalStateException("Extension is not available for replacement");
+            }
+            accepting.set(false);
+        }
+
+        Future<?> barrier = null;
         try {
-            kvStore.reload();
-        } catch (java.io.IOException exception) {
-            manager.noteCleanupFailure(id());
+            barrier = executor.submit(() -> null);
+            long timeoutMillis = Math.max(100L, settings.callbackBudgetMillis() * 4L);
+            barrier.get(timeoutMillis, TimeUnit.MILLISECONDS);
+            synchronized (lock) {
+                if (stopped.get() || state != ExtensionStatus.State.ACTIVE) {
+                    throw new IllegalStateException("Extension stopped during replacement");
+                }
+                return new KvTransition(this, kvStore.snapshot());
+            }
+        } catch (Exception | Error failure) {
+            if (failure instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            if (barrier != null) {
+                barrier.cancel(true);
+            }
+            resumeKvTransition();
+            throw failure;
         }
+    }
+
+    private void resumeKvTransition() {
+        boolean resumed = false;
+        synchronized (lock) {
+            if (!kvTransitionInFlight.compareAndSet(true, false)) {
+                return;
+            }
+            if (!stopped.get() && state == ExtensionStatus.State.ACTIVE) {
+                accepting.set(true);
+                resumed = true;
+            }
+        }
+        if (resumed) {
+            manager.runOnPrimaryThread(this::activateSchedules);
+        }
+    }
+
+    private void retireKvTransition() {
+        kvTransitionInFlight.set(false);
+        stop();
     }
 
     void dispatchEvent(ExtensionInvocation invocation) {
@@ -198,8 +255,11 @@ final class ExtensionRuntime implements AutoCloseable {
     void failClosed(String reason) {
         boolean shouldStop;
         synchronized (lock) {
-            shouldStop = accepting.getAndSet(false);
+            shouldStop = !stopped.get()
+                    && state != ExtensionStatus.State.FAILED
+                    && state != ExtensionStatus.State.DISABLED;
             if (shouldStop) {
+                accepting.set(false);
                 state = ExtensionStatus.State.FAILED;
             }
         }
@@ -218,6 +278,7 @@ final class ExtensionRuntime implements AutoCloseable {
         if (!stopped.compareAndSet(false, true)) {
             return;
         }
+        kvTransitionInFlight.set(false);
         synchronized (lock) {
             if (state != ExtensionStatus.State.FAILED) {
                 state = ExtensionStatus.State.DISABLED;
@@ -358,6 +419,7 @@ final class ExtensionRuntime implements AutoCloseable {
                             }
                         }
                     });
+                    registration.attach(disposer);
                 }
                 if (isActive()) {
                     manager.runOnPrimaryThread(() -> installSchedule(registration));
@@ -408,54 +470,70 @@ final class ExtensionRuntime implements AutoCloseable {
         }
     }
 
-    private void submitCallback(ExtensionCallback callback, ExtensionInvocation invocation, Consumer<String> reply) {
-        if (!isActive()) {
-            return;
-        }
+    private CallbackSubmission submitCallback(
+            ExtensionCallback callback,
+            ExtensionInvocation invocation,
+            Consumer<String> reply
+    ) {
+        boolean rejected;
+        synchronized (lock) {
+            if (stopped.get() || state != ExtensionStatus.State.ACTIVE || !accepting.get()) {
+                return !stopped.get()
+                        && state == ExtensionStatus.State.ACTIVE
+                        && kvTransitionInFlight.get()
+                        ? CallbackSubmission.TEMPORARILY_QUIESCED
+                        : CallbackSubmission.CLOSED;
+            }
 
-        FutureTask<Void> task = new FutureTask<>(() -> {
-            if (!isActive()) {
-                return;
-            }
-            try {
-                runWithBudget(() -> {
-                    String result = callback.invoke(invocation);
-                    if (result != null && reply != null && isActive()) {
-                        manager.deliverCommandReply(reply, result);
-                    }
-                    return null;
-                });
-            } catch (ScriptExecutionBudget.ScriptBudgetExceededException | ScriptSandboxViolation violation) {
-                failClosed("runtime safety limit reached");
-            } catch (Throwable failure) {
-                recordCallbackFailure();
-            }
-        }, null) {
-            @Override
-            public void run() {
-                if (!isActive()) {
-                    cancel(false);
+            FutureTask<Void> task = new FutureTask<>(() -> {
+                if (stopped.get() || state != ExtensionStatus.State.ACTIVE) {
                     return;
                 }
-                org.bukkit.scheduler.BukkitTask watchdog = manager.watchCallback(
-                        ExtensionRuntime.this, this, settings.callbackBudgetMillis()
-                );
                 try {
-                    super.run();
-                } finally {
-                    manager.cancelTask(watchdog);
+                    runWithBudget(() -> {
+                        String result = callback.invoke(invocation);
+                        if (result != null && reply != null && isActive()) {
+                            manager.deliverCommandReply(reply, result);
+                        }
+                        return null;
+                    });
+                } catch (ScriptExecutionBudget.ScriptBudgetExceededException | ScriptSandboxViolation violation) {
+                    failClosed("runtime safety limit reached");
+                } catch (Throwable failure) {
+                    recordCallbackFailure();
                 }
-            }
-        };
+            }, null) {
+                @Override
+                public void run() {
+                    if (stopped.get() || state != ExtensionStatus.State.ACTIVE) {
+                        cancel(false);
+                        return;
+                    }
+                    org.bukkit.scheduler.BukkitTask watchdog = manager.watchCallback(
+                            ExtensionRuntime.this, this, settings.callbackBudgetMillis()
+                    );
+                    try {
+                        super.run();
+                    } finally {
+                        manager.cancelTask(watchdog);
+                    }
+                }
+            };
 
-        try {
-            executor.execute(task);
-        } catch (RejectedExecutionException rejected) {
-            task.cancel(false);
-            if (isActive()) {
-                failClosed("callback queue capacity exceeded");
+            try {
+                executor.execute(task);
+                rejected = false;
+            } catch (RejectedExecutionException rejection) {
+                task.cancel(false);
+                rejected = true;
             }
         }
+
+        if (rejected) {
+            failClosed("callback queue capacity exceeded");
+            return CallbackSubmission.CLOSED;
+        }
+        return CallbackSubmission.QUEUED;
     }
 
     private void recordCallbackFailure() {
@@ -500,7 +578,9 @@ final class ExtensionRuntime implements AutoCloseable {
     private void requireNotStopped() {
         if (state == ExtensionStatus.State.DISABLED
                 || state == ExtensionStatus.State.FAILED
-                || (state != ExtensionStatus.State.STAGED && !accepting.get())) {
+                || (state != ExtensionStatus.State.STAGED
+                && !accepting.get()
+                && !kvTransitionInFlight.get())) {
             throw new ScriptSandboxViolation();
         }
     }
@@ -521,11 +601,53 @@ final class ExtensionRuntime implements AutoCloseable {
         return normalized;
     }
 
+    static final class KvTransition implements AutoCloseable {
+        private enum State {
+            OWNED,
+            RETIRED,
+            RELEASED
+        }
+
+        private final ExtensionRuntime runtime;
+        private final ExtensionKvStore.Snapshot snapshot;
+        private final AtomicReference<State> state = new AtomicReference<>(State.OWNED);
+
+        private KvTransition(ExtensionRuntime runtime, ExtensionKvStore.Snapshot snapshot) {
+            this.runtime = runtime;
+            this.snapshot = snapshot;
+        }
+
+        ExtensionKvStore.Snapshot snapshot() {
+            return snapshot;
+        }
+
+        void retire() {
+            if (!state.compareAndSet(State.OWNED, State.RETIRED)) {
+                throw new IllegalStateException("Extension KV transition is no longer owned");
+            }
+            runtime.retireKvTransition();
+        }
+
+        @Override
+        public void close() {
+            if (state.compareAndSet(State.OWNED, State.RELEASED)) {
+                runtime.resumeKvTransition();
+            }
+        }
+    }
+
     static final class ScheduleRegistration {
+        private enum State {
+            PENDING,
+            FIRING,
+            CLOSED
+        }
+
         private final long delayTicks;
         private final boolean repeating;
         private final ExtensionCallback callback;
-        private final AtomicBoolean cancelled = new AtomicBoolean();
+        private final AtomicReference<State> state = new AtomicReference<>(State.PENDING);
+        private volatile ExtensionDisposer disposer;
         private volatile org.bukkit.scheduler.BukkitTask task;
 
         private ScheduleRegistration(long delayTicks, boolean repeating, ExtensionCallback callback) {
@@ -534,38 +656,84 @@ final class ExtensionRuntime implements AutoCloseable {
             this.callback = callback;
         }
 
-        private void install(ExtensionManager manager, ExtensionRuntime runtime) {
-            synchronized (this) {
-                if (cancelled.get() || task != null || !runtime.isActive()) {
-                    return;
-                }
-                Runnable invoke = () -> runtime.submitCallback(
+        private synchronized void attach(ExtensionDisposer owner) {
+            if (disposer != null) {
+                throw new IllegalStateException("Extension schedule already has an owner");
+            }
+            disposer = Objects.requireNonNull(owner, "owner");
+        }
+
+        private synchronized void install(ExtensionManager manager, ExtensionRuntime runtime) {
+            if (state.get() != State.PENDING || task != null || !runtime.isActive()) {
+                return;
+            }
+            Runnable invoke = repeating
+                    ? () -> {
+                        if (state.get() == State.PENDING) {
+                            runtime.submitCallback(
+                                    callback,
+                                    new ExtensionInvocation("scheduled", Map.of("repeating", true)),
+                                    null
+                            );
+                        }
+                    }
+                    : () -> fireOnce(runtime);
+            task = repeating
+                    ? manager.scheduleRepeating(invoke, delayTicks)
+                    : manager.scheduleLater(invoke, delayTicks);
+            if (state.get() != State.PENDING && task != null) {
+                task.cancel();
+                task = null;
+            }
+        }
+
+        private void fireOnce(ExtensionRuntime runtime) {
+            if (!state.compareAndSet(State.PENDING, State.FIRING)) {
+                return;
+            }
+            CallbackSubmission submission = CallbackSubmission.CLOSED;
+            try {
+                submission = runtime.submitCallback(
                         callback,
-                        new ExtensionInvocation("scheduled", Map.of("repeating", repeating)),
+                        new ExtensionInvocation("scheduled", Map.of("repeating", false)),
                         null
                 );
-                task = repeating
-                        ? manager.scheduleRepeating(invoke, delayTicks)
-                        : manager.scheduleLater(invoke, delayTicks);
-                if (cancelled.get() && task != null) {
-                    task.cancel();
-                    task = null;
+            } finally {
+                if (submission == CallbackSubmission.TEMPORARILY_QUIESCED) {
+                    synchronized (this) {
+                        task = null;
+                        state.compareAndSet(State.FIRING, State.PENDING);
+                    }
+                } else {
+                    state.compareAndSet(State.FIRING, State.CLOSED);
+                    synchronized (this) {
+                        task = null;
+                    }
+                    ExtensionDisposer owner = disposer;
+                    if (owner != null) {
+                        owner.close();
+                    }
                 }
             }
         }
 
         private void cancel(ExtensionManager manager) {
-            if (!cancelled.compareAndSet(false, true)) {
+            State previous = state.getAndSet(State.CLOSED);
+            if (previous == State.CLOSED) {
                 return;
             }
-            org.bukkit.scheduler.BukkitTask current = task;
+            org.bukkit.scheduler.BukkitTask current;
+            synchronized (this) {
+                current = task;
+                task = null;
+            }
             if (current != null) {
                 manager.cancelTask(current);
             }
         }
 
         boolean isCancelled() {
-            return cancelled.get();
+            return state.get() == State.CLOSED;
         }
     }
 }

@@ -51,14 +51,17 @@ public class UIListener implements Listener {
             return;
         }
 
+        InventoryUI ui = inventoryUIHolder.getInventoryUI();
+        boolean clickedTop = event.getClickedInventory() == topInventory;
+
         if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
                 || event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
             event.setCancelled(true);
-            return;
+            if (!clickedTop || event.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
+                return;
+            }
         }
 
-        InventoryUI ui = inventoryUIHolder.getInventoryUI();
-        boolean clickedTop = event.getClickedInventory() == topInventory;
         boolean protectedTransfer = !ui.allowPutItem() && clickedTop;
 
         if (event.isCancelled() && !protectedTransfer) {

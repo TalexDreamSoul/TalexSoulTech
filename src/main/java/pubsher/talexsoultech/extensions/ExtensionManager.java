@@ -36,6 +36,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -49,8 +50,13 @@ public final class ExtensionManager implements Listener {
 
     private final TalexSoulTech plugin;
     private final ExtensionStorage storage;
+    private final Object lifecycleHandoffLock = new Object();
     private final AtomicBoolean started = new AtomicBoolean();
+    private final AtomicBoolean startupRestoreComplete = new AtomicBoolean();
     private final AtomicBoolean refreshInFlight = new AtomicBoolean();
+    private final AtomicLong activeGeneration = new AtomicLong();
+    private final AtomicLong lifecycleEpoch = new AtomicLong();
+    private final AtomicReference<RefreshOperation> pendingRefresh = new AtomicReference<>();
     private final AtomicReference<PreparedPlan> pendingPreparedPlan = new AtomicReference<>();
     private final Map<String, ExtensionRuntime> active = new LinkedHashMap<>();
     private final Map<String, ExtensionStatus> statuses = new LinkedHashMap<>();
@@ -59,7 +65,6 @@ public final class ExtensionManager implements Listener {
     private volatile List<String> catalogIds = List.of();
     private volatile BukkitTask refreshTask;
     private volatile BukkitTask cloudStatusTask;
-    private volatile CompletableFuture<?> pendingRefresh;
     private volatile String manifestEtag;
     private volatile Instant observedSyncCompletedAt;
 
@@ -71,8 +76,13 @@ public final class ExtensionManager implements Listener {
 
     /** Starts only after the plugin has already created CloudSyncService with shared credentials. */
     public void startIfConfigured() {
-        if (!started.compareAndSet(false, true)) {
-            return;
+        long lifecycle;
+        synchronized (lifecycleHandoffLock) {
+            if (!started.compareAndSet(false, true)) {
+                return;
+            }
+            startupRestoreComplete.set(false);
+            lifecycle = lifecycleEpoch.incrementAndGet();
         }
         ensureConfigDefaults();
         settings = ExtensionSettings.read(plugin.getConfig());
@@ -87,21 +97,27 @@ public final class ExtensionManager implements Listener {
             return;
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        restoreLocalKnownGoodAsync();
+        restoreLocalKnownGoodAsync(lifecycle);
     }
 
     /** Releases every extension resource before CloudSyncService itself is shut down. */
     public void stop() {
-        if (!started.compareAndSet(true, false)) {
-            return;
+        PreparedPlan preparedPlan;
+        synchronized (lifecycleHandoffLock) {
+            if (!started.compareAndSet(true, false)) {
+                return;
+            }
+            startupRestoreComplete.set(false);
+            lifecycleEpoch.incrementAndGet();
+            preparedPlan = pendingPreparedPlan.getAndSet(null);
         }
+        activeGeneration.incrementAndGet();
         cancelTask(refreshTask);
         cancelTask(cloudStatusTask);
-        CompletableFuture<?> refresh = pendingRefresh;
+        RefreshOperation refresh = pendingRefresh.getAndSet(null);
         if (refresh != null) {
-            refresh.cancel(true);
+            refresh.cancel();
         }
-        PreparedPlan preparedPlan = pendingPreparedPlan.getAndSet(null);
         if (preparedPlan != null) {
             try {
                 preparedPlan.close(storage);
@@ -124,7 +140,10 @@ public final class ExtensionManager implements Listener {
 
     /** Forces a manifest refresh without changing or exposing cloud credentials. */
     public boolean reload() {
-        if (!started.get() || settings == null || !settings.enabled()) {
+        if (!started.get()
+                || settings == null
+                || !settings.enabled()
+                || !startupRestoreComplete.get()) {
             return false;
         }
         return triggerRefresh(true);
@@ -211,6 +230,7 @@ public final class ExtensionManager implements Listener {
         runOnPrimaryThread(() -> {
             if (active.get(runtime.id()) == runtime) {
                 active.remove(runtime.id());
+                activeGeneration.incrementAndGet();
                 runtime.stop();
                 statuses.put(runtime.id(), status(runtime, ExtensionStatus.State.FAILED, reason));
             }
@@ -290,7 +310,8 @@ public final class ExtensionManager implements Listener {
         dispatch(new ExtensionInvocation("player_interact", data));
     }
 
-    private void restoreLocalKnownGoodAsync() {
+    private void restoreLocalKnownGoodAsync(long lifecycle) {
+        long baseGeneration = activeGeneration.get();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             PreparedPlan plan;
             try {
@@ -301,16 +322,24 @@ public final class ExtensionManager implements Listener {
                     descriptors.put(extension.descriptor().manifest().id(), extension.descriptor());
                     sources.put(extension.descriptor().manifest().id(), extension.source());
                 }
-                plan = preparePlan(descriptors, sources, Map.of(), false);
+                plan = preparePlan(descriptors, sources, Map.of(), Map.of(), false, baseGeneration);
             } catch (Exception | Error failure) {
-                plan = PreparedPlan.failed("local state unavailable");
+                plan = PreparedPlan.failed("local state unavailable", Map.of(), baseGeneration);
             }
-            handoffPreparedPlan(plan, false, null, this::beginCloudPolling);
+            handoffPreparedPlan(plan, lifecycle, false, null, () -> {
+                if (started.get() && lifecycleEpoch.get() == lifecycle) {
+                    startupRestoreComplete.set(true);
+                    beginCloudPolling();
+                }
+            });
         });
     }
 
     private void beginCloudPolling() {
-        if (!started.get() || settings == null || !settings.enabled()) {
+        if (!started.get()
+                || settings == null
+                || !settings.enabled()
+                || !startupRestoreComplete.get()) {
             return;
         }
         long intervalTicks = Math.multiplyExact(settings.refreshIntervalSeconds(), 20L);
@@ -319,29 +348,63 @@ public final class ExtensionManager implements Listener {
     }
 
     private boolean triggerRefresh(boolean force) {
-        if (!started.get() || !refreshInFlight.compareAndSet(false, true)) {
+        if (!started.get()
+                || !startupRestoreComplete.get()
+                || !refreshInFlight.compareAndSet(false, true)) {
             return false;
         }
+
+        long lifecycle = lifecycleEpoch.get();
+        long baseGeneration = activeGeneration.get();
+        Map<String, ExtensionRuntime> activeRuntimeSnapshot = Map.copyOf(active);
         Map<String, ExtensionDescriptor> activeSnapshot = activeDescriptors();
         String etag = force ? null : manifestEtag;
+        RefreshOperation operation = new RefreshOperation();
+        if (!pendingRefresh.compareAndSet(null, operation)) {
+            refreshInFlight.set(false);
+            return false;
+        }
+
         CompletableFuture<PreparedPlan> request;
         try {
             request = plugin.getCloudSyncService().fetchExtensionManifest(etag)
-                    .thenCompose(response -> fetchCloudPlan(response, activeSnapshot));
+                    .thenCompose(response -> fetchCloudPlan(
+                            response,
+                            activeSnapshot,
+                            activeRuntimeSnapshot,
+                            baseGeneration
+                    ));
         } catch (RuntimeException failure) {
+            operation.finish();
+            pendingRefresh.compareAndSet(operation, null);
             finishRefreshFailure("cloud unavailable");
             return false;
         }
-        pendingRefresh = request;
+
         request.whenComplete((plan, failure) -> {
             if (failure != null) {
-                runOnPrimaryThread(() -> finishRefreshFailure("cloud refresh failed"));
-                if (!started.get()) {
+                boolean owned = operation.finish();
+                pendingRefresh.compareAndSet(operation, null);
+                if (owned) {
+                    runOnPrimaryThread(() -> finishRefreshFailure("cloud refresh failed"));
+                    if (!started.get()) {
+                        refreshInFlight.set(false);
+                    }
+                }
+                return;
+            }
+
+            if (!operation.handoff()) {
+                pendingRefresh.compareAndSet(operation, null);
+                try {
+                    plan.close(storage);
+                } finally {
                     refreshInFlight.set(false);
                 }
                 return;
             }
-            if (!handoffPreparedPlan(plan, true, plan.etag(), () -> refreshInFlight.set(false))) {
+            pendingRefresh.compareAndSet(operation, null);
+            if (!handoffPreparedPlan(plan, lifecycle, true, plan.etag(), () -> refreshInFlight.set(false))) {
                 refreshInFlight.set(false);
             }
         });
@@ -350,17 +413,21 @@ public final class ExtensionManager implements Listener {
 
     private boolean handoffPreparedPlan(
             PreparedPlan plan,
+            long lifecycle,
             boolean authoritative,
             String etag,
             Runnable afterApply
     ) {
         Objects.requireNonNull(plan, "plan");
         Objects.requireNonNull(afterApply, "afterApply");
-        if (!started.get()) {
-            plan.close(storage);
-            return false;
+
+        boolean ownsSlot;
+        synchronized (lifecycleHandoffLock) {
+            ownsSlot = started.get()
+                    && lifecycleEpoch.get() == lifecycle
+                    && pendingPreparedPlan.compareAndSet(null, plan);
         }
-        if (!pendingPreparedPlan.compareAndSet(null, plan)) {
+        if (!ownsSlot) {
             plan.close(storage);
             return false;
         }
@@ -369,7 +436,7 @@ public final class ExtensionManager implements Listener {
             if (!pendingPreparedPlan.compareAndSet(plan, null)) {
                 return;
             }
-            if (!started.get()) {
+            if (!started.get() || lifecycleEpoch.get() != lifecycle) {
                 plan.close(storage);
                 return;
             }
@@ -408,10 +475,12 @@ public final class ExtensionManager implements Listener {
 
     private CompletableFuture<PreparedPlan> fetchCloudPlan(
             CloudSyncService.ExtensionResponse manifestResponse,
-            Map<String, ExtensionDescriptor> activeSnapshot
+            Map<String, ExtensionDescriptor> activeSnapshot,
+            Map<String, ExtensionRuntime> activeRuntimeSnapshot,
+            long baseGeneration
     ) {
         if (manifestResponse.statusCode() == 304) {
-            return CompletableFuture.completedFuture(PreparedPlan.unchanged());
+            return CompletableFuture.completedFuture(PreparedPlan.unchanged(activeSnapshot, baseGeneration));
         }
         if (manifestResponse.statusCode() != 200) {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Extension cloud response is invalid"));
@@ -441,7 +510,14 @@ public final class ExtensionManager implements Listener {
                     sources.put(result.id(), result.source().source());
                 }
             }
-            PreparedPlan plan = preparePlan(descriptors, sources, activeSnapshot, true);
+            PreparedPlan plan = preparePlan(
+                    descriptors,
+                    sources,
+                    activeSnapshot,
+                    activeRuntimeSnapshot,
+                    true,
+                    baseGeneration
+            );
             return plan.withEtag(manifestResponse.etag());
         });
     }
@@ -484,7 +560,9 @@ public final class ExtensionManager implements Listener {
             Map<String, ExtensionDescriptor> descriptors,
             Map<String, String> downloadedSources,
             Map<String, ExtensionDescriptor> activeSnapshot,
-            boolean authoritative
+            Map<String, ExtensionRuntime> activeRuntimeSnapshot,
+            boolean authoritative,
+            long baseGeneration
     ) {
         DependencyGraph graph = dependencyGraph(descriptors);
         Map<String, PreparedExtension> prepared = new LinkedHashMap<>();
@@ -505,6 +583,8 @@ public final class ExtensionManager implements Listener {
             }
             ExtensionStorage.PendingInstall pending = null;
             ExtensionRuntime runtime = null;
+            ExtensionRuntime currentRuntime = activeRuntimeSnapshot.get(id);
+            ExtensionRuntime.KvTransition kvTransition = null;
             try {
                 String source = downloadedSources.get(id);
                 if (source == null) {
@@ -515,8 +595,21 @@ public final class ExtensionManager implements Listener {
                     source = local.source();
                 }
                 pending = storage.stage(descriptor, source, settings.maxSourceBytes());
-                runtime = ExtensionRuntime.stage(managerForStage(), descriptor, source, settings, storage.kvFile(id));
-                prepared.put(id, new PreparedExtension(descriptor, runtime, pending));
+                boolean transfersLiveKv = currentRuntime != null
+                        && currentRuntime.descriptor().manifest().permissions().contains(ExtensionManifest.Capability.KV)
+                        && descriptor.manifest().permissions().contains(ExtensionManifest.Capability.KV);
+                if (transfersLiveKv) {
+                    kvTransition = currentRuntime.quiesceKv();
+                }
+                runtime = ExtensionRuntime.stage(
+                        managerForStage(),
+                        descriptor,
+                        source,
+                        settings,
+                        storage.kvFile(id),
+                        kvTransition == null ? null : kvTransition.snapshot()
+                );
+                prepared.put(id, new PreparedExtension(descriptor, runtime, pending, currentRuntime, kvTransition));
             } catch (Exception | Error failure) {
                 if (runtime != null) {
                     runtime.stop();
@@ -524,11 +617,25 @@ public final class ExtensionManager implements Listener {
                 if (pending != null) {
                     storage.discard(pending);
                 }
+                if (kvTransition != null) {
+                    kvTransition.close();
+                }
                 failures.put(id, "source validation failed");
                 failedTargets.add(id);
             }
         }
-        return new PreparedPlan(descriptors, graph, prepared, failures, authoritative, false, null);
+        return new PreparedPlan(
+                descriptors,
+                graph,
+                prepared,
+                failures,
+                activeSnapshot,
+                baseGeneration,
+                authoritative,
+                false,
+                null,
+                null
+        );
     }
 
     private ExtensionManager managerForStage() {
@@ -538,6 +645,12 @@ public final class ExtensionManager implements Listener {
     private void applyPreparedPlan(PreparedPlan plan, boolean authoritative, String etag) {
         if (!started.get()) {
             plan.close(storage);
+            return;
+        }
+        if (plan.baseGeneration() != activeGeneration.get()
+                || !plan.baseDescriptors().equals(activeDescriptors())) {
+            plan.close(storage);
+            refreshInFlight.set(false);
             return;
         }
         if (plan.notModified()) {
@@ -570,16 +683,34 @@ public final class ExtensionManager implements Listener {
                 activationFailures.add(id);
                 continue;
             }
+
             ExtensionRuntime previous = active.get(id);
+            ExtensionDescriptor expectedPrevious = plan.baseDescriptors().get(id);
+            boolean descriptorIsCurrent = expectedPrevious == null
+                    ? previous == null
+                    : previous != null && expectedPrevious.matches(previous.descriptor());
+            if (previous != candidate.previous() || !descriptorIsCurrent) {
+                candidate.close(storage);
+                activationFailures.add(id);
+                if (previous == null) {
+                    statuses.put(id, status(candidate.descriptor(), ExtensionStatus.State.FAILED, "stale activation rejected"));
+                } else {
+                    statuses.put(id, status(previous, ExtensionStatus.State.ACTIVE, "last known good retained"));
+                }
+                continue;
+            }
+
             ExtensionStorage.InstallToken token = null;
             try {
                 token = storage.commit(candidate.pending());
                 candidate.runtime().activate();
-                if (previous != null) {
+                if (candidate.kvTransition() != null) {
+                    candidate.kvTransition().retire();
+                } else if (previous != null) {
                     previous.stop();
-                    candidate.runtime().refreshKvFromDisk();
                 }
                 active.put(id, candidate.runtime());
+                candidate.markApplied();
                 candidate.runtime().activateSchedules();
                 statuses.put(id, status(candidate.runtime(), ExtensionStatus.State.ACTIVE, "running"));
                 candidate.runtime().dispatchEvent(serverStartedInvocation());
@@ -588,12 +719,17 @@ public final class ExtensionManager implements Listener {
                     try {
                         storage.rollback(token);
                     } catch (IOException ignored) {
-                        // The prior active runtime remains authoritative even if a filesystem rollback is unavailable.
+                        // The prior active runtime remains authoritative if activation has not transferred ownership.
                     }
                 } else {
                     storage.discard(candidate.pending());
                 }
-                candidate.runtime().stop();
+                try {
+                    candidate.close(storage);
+                } catch (RuntimeException | Error cleanupFailure) {
+                    failure.addSuppressed(cleanupFailure);
+                    noteCleanupFailure(id);
+                }
                 activationFailures.add(id);
                 if (previous == null) {
                     statuses.put(id, status(candidate.descriptor(), ExtensionStatus.State.FAILED, "activation rejected"));
@@ -611,6 +747,7 @@ public final class ExtensionManager implements Listener {
                 }
             }
         }
+        activeGeneration.incrementAndGet();
         plan.closeUnapplied(storage, active.values());
         if (authoritative) {
             manifestEtag = plan.failures().isEmpty() && activationFailures.isEmpty() ? etag : null;
@@ -848,6 +985,29 @@ public final class ExtensionManager implements Listener {
         return new ExtensionStatus(id, version, revision, state, bounded(detail, 128));
     }
 
+    private static final class RefreshOperation {
+        private enum State {
+            RUNNING,
+            HANDED_OFF,
+            FINISHED,
+            CANCELLED
+        }
+
+        private final AtomicReference<State> state = new AtomicReference<>(State.RUNNING);
+
+        private boolean handoff() {
+            return state.compareAndSet(State.RUNNING, State.HANDED_OFF);
+        }
+
+        private boolean finish() {
+            return state.compareAndSet(State.RUNNING, State.FINISHED);
+        }
+
+        private void cancel() {
+            state.compareAndSet(State.RUNNING, State.CANCELLED);
+        }
+    }
+
     private record SourceEnvelope(ExtensionDescriptor descriptor, String source) {
     }
 
@@ -855,16 +1015,74 @@ public final class ExtensionManager implements Listener {
     private record DownloadResult(String id, SourceEnvelope source) {
     }
 
-    private record PreparedExtension(
-            ExtensionDescriptor descriptor,
-            ExtensionRuntime runtime,
-            ExtensionStorage.PendingInstall pending
-    ) {
+    private static final class PreparedExtension {
+        private enum State {
+            PREPARED,
+            APPLIED,
+            CLOSED
+        }
+
+        private final ExtensionDescriptor descriptor;
+        private final ExtensionRuntime runtime;
+        private final ExtensionStorage.PendingInstall pending;
+        private final ExtensionRuntime previous;
+        private final ExtensionRuntime.KvTransition kvTransition;
+        private final AtomicReference<State> state = new AtomicReference<>(State.PREPARED);
+
+        private PreparedExtension(
+                ExtensionDescriptor descriptor,
+                ExtensionRuntime runtime,
+                ExtensionStorage.PendingInstall pending,
+                ExtensionRuntime previous,
+                ExtensionRuntime.KvTransition kvTransition
+        ) {
+            this.descriptor = descriptor;
+            this.runtime = runtime;
+            this.pending = pending;
+            this.previous = previous;
+            this.kvTransition = kvTransition;
+        }
+
+        private ExtensionDescriptor descriptor() {
+            return descriptor;
+        }
+
+        private ExtensionRuntime runtime() {
+            return runtime;
+        }
+
+        private ExtensionStorage.PendingInstall pending() {
+            return pending;
+        }
+
+        private ExtensionRuntime previous() {
+            return previous;
+        }
+
+        private ExtensionRuntime.KvTransition kvTransition() {
+            return kvTransition;
+        }
+
+        private void markApplied() {
+            if (!state.compareAndSet(State.PREPARED, State.APPLIED)) {
+                throw new IllegalStateException("Prepared extension ownership was already released");
+            }
+        }
+
         private void close(ExtensionStorage storage) {
+            if (!state.compareAndSet(State.PREPARED, State.CLOSED)) {
+                return;
+            }
             try {
                 runtime.stop();
             } finally {
-                storage.discard(pending);
+                try {
+                    storage.discard(pending);
+                } finally {
+                    if (kvTransition != null) {
+                        kvTransition.close();
+                    }
+                }
             }
         }
     }
@@ -881,33 +1099,70 @@ public final class ExtensionManager implements Listener {
             DependencyGraph graph,
             Map<String, PreparedExtension> prepared,
             Map<String, String> failures,
+            Map<String, ExtensionDescriptor> baseDescriptors,
+            long baseGeneration,
             boolean authoritative,
             boolean notModified,
             String etag,
             String failureMessage
     ) {
-        private PreparedPlan(
-                Map<String, ExtensionDescriptor> descriptors,
-                DependencyGraph graph,
-                Map<String, PreparedExtension> prepared,
-                Map<String, String> failures,
-                boolean authoritative,
-                boolean notModified,
-                String etag
+        private PreparedPlan {
+            descriptors = Map.copyOf(descriptors);
+            prepared = Map.copyOf(prepared);
+            failures = Map.copyOf(failures);
+            baseDescriptors = Map.copyOf(baseDescriptors);
+        }
+
+        private static PreparedPlan unchanged(
+                Map<String, ExtensionDescriptor> baseDescriptors,
+                long baseGeneration
         ) {
-            this(Map.copyOf(descriptors), graph, Map.copyOf(prepared), Map.copyOf(failures), authoritative, notModified, etag, null);
+            return new PreparedPlan(
+                    Map.of(),
+                    new DependencyGraph(List.of(), Set.of(), Map.of()),
+                    Map.of(),
+                    Map.of(),
+                    baseDescriptors,
+                    baseGeneration,
+                    true,
+                    true,
+                    null,
+                    null
+            );
         }
 
-        private static PreparedPlan unchanged() {
-            return new PreparedPlan(Map.of(), new DependencyGraph(List.of(), Set.of(), Map.of()), Map.of(), Map.of(), true, true, null, null);
-        }
-
-        private static PreparedPlan failed(String detail) {
-            return new PreparedPlan(Map.of(), new DependencyGraph(List.of(), Set.of(), Map.of()), Map.of(), Map.of(), false, false, null, detail);
+        private static PreparedPlan failed(
+                String detail,
+                Map<String, ExtensionDescriptor> baseDescriptors,
+                long baseGeneration
+        ) {
+            return new PreparedPlan(
+                    Map.of(),
+                    new DependencyGraph(List.of(), Set.of(), Map.of()),
+                    Map.of(),
+                    Map.of(),
+                    baseDescriptors,
+                    baseGeneration,
+                    false,
+                    false,
+                    null,
+                    detail
+            );
         }
 
         private PreparedPlan withEtag(String responseEtag) {
-            return new PreparedPlan(descriptors, graph, prepared, failures, authoritative, notModified, responseEtag, failureMessage);
+            return new PreparedPlan(
+                    descriptors,
+                    graph,
+                    prepared,
+                    failures,
+                    baseDescriptors,
+                    baseGeneration,
+                    authoritative,
+                    notModified,
+                    responseEtag,
+                    failureMessage
+            );
         }
 
         private void close(ExtensionStorage storage) {

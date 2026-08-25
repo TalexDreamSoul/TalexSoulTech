@@ -119,6 +119,11 @@ public class BlockManager {
                 continue;
             }
 
+            ItemStack savedStack = stack.getStack();
+            if (savedStack == null || savedStack.getType().isAir() || savedStack.getAmount() <= 0) {
+                continue;
+            }
+
             Location loc = NBTsUtil.String2Location(str);
 
             if ( loc == null ) {
@@ -136,7 +141,7 @@ public class BlockManager {
             String path = "Blocks." + randomStr;
 
             yaml.set(path + ".loc", str);
-            yaml.set(path + ".data", NBTsUtil.ItemData(stack.getStack()));
+            yaml.set(path + ".data", NBTsUtil.ItemData(savedStack));
             whole++;
 
         }

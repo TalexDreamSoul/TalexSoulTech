@@ -153,12 +153,24 @@ public class GuiderBook extends BaseGuider {
             }
         });
 
+        int legacyMachineCount = BaseTalex.getInstance().getMachineManager().getMachinesClone().size();
+        int poweredMachineCount = BaseTalex.getInstance().getCategoryManager().getPoweredMachines().size();
+
         inventoryUI.setItem(36, new InventoryUI.AbstractSuperClickableItem() {
 
             @Override
             public ItemStack getItemStack() {
 
-                return new ItemBuilder(Material.DROPPER).setName("§e机器列表").setLore("", "§8> §e查看已注册的机器列表.", "").toItemStack();
+                return new ItemBuilder(Material.DROPPER)
+                        .setName("§e机器与多方块")
+                        .setLore(
+                                "",
+                                "§8> §e查看全部 " + (legacyMachineCount + poweredMachineCount) + " 台机器.",
+                                "§7旧式机器 §f" + legacyMachineCount + " §8· §d多方块机器 §f" + poweredMachineCount,
+                                "§7电网状态可使用 §b/tst power",
+                                ""
+                        )
+                        .toItemStack();
             }
 
             @Override
@@ -188,119 +200,123 @@ public class GuiderBook extends BaseGuider {
                 continue;
             }
 
-            final boolean[] lock = { playerData.isCategoryUnLock(categoryObject.getID()) };
+            final boolean[] unlocked = { categoryObject.isUnlockedBy(playerData) };
+            final String categoryName = new ItemBuilder(TalexItem.reSerialize(categoryObject.getDisplayStack().clone()))
+                    .getDisplayNameOrDefaultName();
 
             inventoryUI.setItem(startSlot, new InventoryUI.AbstractSuperClickableItem() {
 
                 @Override
-                public boolean onClick(InventoryClickEvent e) {
+                public boolean onClick(InventoryClickEvent event) {
+                    boolean adminBypass = event.isShiftClick() && player.hasPermission("talex.soultech.admin");
 
-                    if ( e.isShiftClick() && e.isRightClick() && categoryObject.getCategoryType() == CategoryObject.CategoryType.OBJECT && player.hasPermission("talex.soultech.admin") ) {
-
+                    if (adminBypass && categoryObject.getCategoryType() == CategoryObject.CategoryType.OBJECT) {
                         categoryObject.getRecipeObject().getDisplayItem().addToPlayer(player);
-
-                        playerData.actionBar("§a§l你获得了: §r" + categoryObject.getRecipeObject().getRecipeID()).playSound(Sound.ENTITY_VILLAGER_YES, 1.0F, 1.0F);
-
+                        playerData.actionBar("§a§l你获得了: §r" + categoryObject.getRecipeObject().getRecipeID())
+                                .playSound(Sound.ENTITY_VILLAGER_YES, 1.0F, 1.0F);
                         return true;
-
                     }
 
-                    if ( !lock[0] && !( e.isShiftClick() && e.isRightClick() && player.hasPermission("talex.soultech.admin") ) ) {
+                    if (!unlocked[0]) {
+                        if (adminBypass) {
+                            new GuiderBook(playerData, 0, categoryObject, instance).open();
+                            return true;
+                        }
+                        if (!categoryObject.arePrepositionsUnlockedBy(playerData)) {
+                            playerData.actionBar("§c请先解锁全部前置学科!")
+                                    .playSound(Sound.BLOCK_ANVIL_LAND, 1.1F, 1.1F);
+                            return true;
+                        }
 
-                        playerData.actionBar("&c&l抱歉,这个类别你还未解锁!").playSound(Sound.BLOCK_ANVIL_LAND, 1.1F, 1.1F);
+                        int levelCost = categoryObject.getUnlockLevelCost();
+                        if (levelCost > 0 && player.getLevel() < levelCost) {
+                            playerData.actionBar("§c解锁 " + categoryName + " §c需要 §e" + levelCost
+                                            + " §c级经验，你当前只有 §e" + player.getLevel() + " §c级.")
+                                    .playSound(Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                            return true;
+                        }
 
-                    } else {
-
-                        new GuiderBook(playerData, 0, categoryObject, instance).open();
-
+                        if (levelCost > 0) {
+                            player.giveExpLevels(-levelCost);
+                            playerData.addPaidCategoryUnlock(categoryObject.getID());
+                        }
+                        playerData.addCategoryUnlock(categoryObject.getID());
+                        unlocked[0] = true;
+                        playerData.playSound(Sound.ENTITY_PLAYER_LEVELUP, 1.2F, 1.1F)
+                                .title("§a✔", "§e已解锁 " + categoryName, 5, 25, 15);
                     }
 
+                    new GuiderBook(playerData, 0, categoryObject, instance).open();
                     return true;
-
                 }
 
                 @Override
                 public ItemStack getItemStack() {
-
                     ItemStack stack = categoryObject.getDisplayStack();
-
-                    if ( stack.getType() == Material.AIR ) {
-
-                        TalexSoulTech.getInstance().getLogger().warning("--> CategoryObject: " + categoryObject.getID() + " # 触发了异常 | Display的物品类型不可以为 AIR !");
+                    if (stack.getType() == Material.AIR) {
+                        TalexSoulTech.getInstance().getLogger().warning(
+                                "--> CategoryObject: " + categoryObject.getID()
+                                        + " # 触发了异常 | Display的物品类型不可以为 AIR !"
+                        );
                         return null;
-
                     }
 
-                    ItemBuilder ib = new ItemBuilder(TalexItem.reSerialize(categoryObject.getDisplayStack().clone()));
+                    ItemBuilder itemBuilder = new ItemBuilder(TalexItem.reSerialize(stack.clone()));
+                    itemBuilder.addLoreLine("§7--------------------------------");
 
-                    ib.addLoreLine("§7--------------------------------");
-
-                    if ( categoryObject.getPreposition() != null && categoryObject.getPreposition().size() > 0 ) {
-
-                        ib.addLoreLine("§f前置学科: ");
-
-                        int i = 0;
-
-                        for ( CategoryObject preposition : new HashSet<>(categoryObject.getPreposition()) ) {
-
-                            i++;
-
-                            boolean unlock = playerData.isCategoryUnLock(preposition.getID());
-
-                            ib.addLoreLine(( unlock ? "  §a✦ §7" : "  §8✧ §7" ) + preposition.getDisplayStack().getItemMeta().getDisplayName());
-
-                            if ( i >= 3 ) {
-
-                                break;
-
-                            }
-
+                    if (categoryObject.getPreposition() != null && !categoryObject.getPreposition().isEmpty()) {
+                        itemBuilder.addLoreLine("§f前置学科: ");
+                        int shown = 0;
+                        for (CategoryObject preposition : new HashSet<>(categoryObject.getPreposition())) {
+                            shown++;
+                            boolean prerequisiteUnlocked = preposition.isUnlockedBy(playerData);
+                            String prerequisiteName = new ItemBuilder(
+                                    TalexItem.reSerialize(preposition.getDisplayStack().clone())
+                            ).getDisplayNameOrDefaultName();
+                            itemBuilder.addLoreLine(
+                                    (prerequisiteUnlocked ? "  §a✦ §7" : "  §8✧ §7") + prerequisiteName
+                            );
+                            if (shown >= 3) break;
                         }
-
-                        if ( categoryObject.getPreposition().size() > 3 ) {
-
-                            ib.addLoreLine("§7  等更多 " + ( categoryObject.getPreposition().size() - 3 ) + " 项...");
-
+                        if (categoryObject.getPreposition().size() > 3) {
+                            itemBuilder.addLoreLine(
+                                    "§7  等更多 " + (categoryObject.getPreposition().size() - 3) + " 项..."
+                            );
                         }
-
-                    } else {
-
+                    } else if (!categoryObject.requiresLevelPayment()) {
                         playerData.addCategoryUnlock(categoryObject.getID());
-                        lock[0] = true;
-
+                        unlocked[0] = true;
                     }
 
-                    ib.addLoreLine("");
-                    ib.addLoreLine(lock[0] ? "§a✔ 已解锁" : "§c✘ 未解锁");
+                    itemBuilder.addLoreLine("");
+                    itemBuilder.addLoreLine(unlocked[0] ? "§a✔ 已解锁" : "§c✘ 未解锁");
 
-                    if ( lock[0] ) {
-
-                        ib.addLoreLine("");
-                        ib.addLoreLine("§7§k|§a 点击打开...");
-
+                    if (unlocked[0]) {
+                        itemBuilder.addLoreLine("");
+                        itemBuilder.addLoreLine("§a点击打开...");
+                    } else if (categoryObject.arePrepositionsUnlockedBy(playerData)
+                            && categoryObject.requiresLevelPayment()) {
+                        int levelCost = categoryObject.getUnlockLevelCost();
+                        itemBuilder.addLoreLine("");
+                        itemBuilder.addLoreLine("§e点击消耗 §a" + levelCost + " §e级经验解锁");
+                        itemBuilder.addLoreLine("§7当前等级: §f" + player.getLevel());
                     }
 
-                    if ( categoryObject.getCategoryType() == CategoryObject.CategoryType.OBJECT && player.hasPermission("talex.soultech.admin") ) {
-
-                        ib.addLoreLine("");
-                        ib.addLoreLine("§eSHIFT + 右键 §7来获得这个物品!");
-
+                    if (categoryObject.getCategoryType() == CategoryObject.CategoryType.OBJECT
+                            && player.hasPermission("talex.soultech.admin")) {
+                        itemBuilder.addLoreLine("");
+                        itemBuilder.addLoreLine("§eSHIFT + 点击 §7获得这个物品");
+                    }
+                    if (categoryObject.getCategoryType() == CategoryObject.CategoryType.MENU
+                            && player.hasPermission("talex.soultech.admin")) {
+                        itemBuilder.addLoreLine("");
+                        itemBuilder.addLoreLine("§eSHIFT + 点击 §a强制进入类别");
                     }
 
-                    if ( categoryObject.getCategoryType() == CategoryObject.CategoryType.MENU && player.hasPermission("talex.soultech.admin") ) {
-
-                        ib.addLoreLine("");
-                        ib.addLoreLine("§eSHIFT + 右键 §a强制进入类别.");
-
-                    }
-
-                    ib.isTrueAccessEnchant(lock[0], Enchantment.UNBREAKING, 1);
-                    ib.addFlag(ItemFlag.HIDE_ENCHANTS);
-
-                    return ib.toItemStack();
-
+                    itemBuilder.isTrueAccessEnchant(unlocked[0], Enchantment.UNBREAKING, 1);
+                    itemBuilder.addFlag(ItemFlag.HIDE_ENCHANTS);
+                    return itemBuilder.toItemStack();
                 }
-
             });
 
             startSlot++;

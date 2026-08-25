@@ -3,6 +3,7 @@ package pubsher.talexsoultech.talex.guider.category;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.inventory.ItemStack;
+import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.talex.guider.BaseGuider;
 
@@ -34,6 +35,27 @@ public class CategoryObject extends BaseGuider {
     @Getter
     @Setter
     private RecipeObject recipeObject;
+    @Getter
+    private int unlockLevelCost;
+
+    public CategoryObject setUnlockLevelCost(int unlockLevelCost) {
+        if (unlockLevelCost < 0) {
+            throw new IllegalArgumentException("unlockLevelCost must not be negative");
+        }
+        this.unlockLevelCost = unlockLevelCost;
+        return this;
+    }
+
+    public boolean isUnlockedBy(PlayerData playerData) {
+        return unlockLevelCost > 0
+                ? playerData.isPaidCategoryUnlock(ID)
+                : playerData.isCategoryUnLock(ID);
+    }
+
+    public boolean arePrepositionsUnlockedBy(PlayerData playerData) {
+        return preposition == null || preposition.stream().allMatch(category -> category.isUnlockedBy(playerData));
+    }
+
 
     public CategoryObject(int priority, String ID, CategoryObject fatherCategory, Set<CategoryObject> preposition, CategoryType categoryType, ItemStack displayStack, RecipeObject recipeObject) {
 
@@ -214,6 +236,10 @@ public class CategoryObject extends BaseGuider {
 
         return false;
 
+    }
+
+    public boolean requiresLevelPayment() {
+        return unlockLevelCost > 0;
     }
 
     public enum CategoryType {

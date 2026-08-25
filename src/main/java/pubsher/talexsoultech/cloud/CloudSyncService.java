@@ -54,6 +54,7 @@ public final class CloudSyncService {
     private static final String CLOUD_API_KEY = "Settings.cloud.api-key";
     private static final String CLOUD_INTERVAL_SECONDS = "Settings.cloud.sync-interval-seconds";
     private static final String CLOUD_SEQUENCE = "Settings.cloud.sequence";
+    private static final String DEFAULT_CLOUD_API_BASE = "https://soultech.tagzxia.com";
 
     private static final Pattern PAIRING_CODE_PATTERN = Pattern.compile(
             "^ST-(?:[A-HJ-NP-Z2-9]{4}-){3}[A-HJ-NP-Z2-9]{4}$"
@@ -700,7 +701,7 @@ public final class CloudSyncService {
     private CloudSettings readSettings() {
         FileConfiguration config = plugin.getConfig();
         boolean enabled = config.getBoolean(CLOUD_ENABLED, false);
-        URI apiBase = parseAllowedApiBase(config.getString(CLOUD_API_BASE, ""));
+        URI apiBase = parseAllowedApiBase(config.getString(CLOUD_API_BASE, DEFAULT_CLOUD_API_BASE));
         String serverId = trim(config.getString(CLOUD_SERVER_ID, ""));
         String apiKey = trim(config.getString(CLOUD_API_KEY, ""));
         boolean linked = apiBase != null
@@ -714,7 +715,7 @@ public final class CloudSyncService {
         FileConfiguration config = plugin.getConfig();
         boolean changed = false;
         changed |= setIfAbsent(config, CLOUD_ENABLED, false);
-        changed |= setIfAbsent(config, CLOUD_API_BASE, "");
+        changed |= setIfBlank(config, CLOUD_API_BASE, DEFAULT_CLOUD_API_BASE);
         changed |= setIfAbsent(config, CLOUD_SERVER_ID, "");
         changed |= setIfAbsent(config, CLOUD_API_KEY, "");
         changed |= setIfAbsent(config, CLOUD_INTERVAL_SECONDS, 300L);
@@ -731,6 +732,15 @@ public final class CloudSyncService {
         config.set(path, value);
         return true;
     }
+    private static boolean setIfBlank(FileConfiguration config, String path, String value) {
+        String current = trim(config.getString(path, ""));
+        if (!current.isEmpty()) {
+            return false;
+        }
+        config.set(path, value);
+        return true;
+    }
+
 
     private Status idleStatus(CloudSettings settings) {
         if (!settings.enabled()) {

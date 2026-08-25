@@ -1,5 +1,7 @@
 package pubsher.talexsoultech.talex.items.multiblock.industry;
 
+import pubsher.talexsoultech.TalexSoulTech;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -12,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import pubsher.talexsoultech.talex.items.equipment.RechargeableItem;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
 import pubsher.talexsoultech.talex.machine.multiblock.MachineInventoryOps;
 import pubsher.talexsoultech.talex.machine.multiblock.PoweredMachineSpec;
@@ -312,13 +315,6 @@ public final class IndustrialMachines {
         );
     }
 
-    private static long chargeOf(ItemStack stack) {
-        try {
-            return Math.max(0L, Long.parseLong(NBTsUtil.getTag(stack, "chargeMilliSe")));
-        } catch (NumberFormatException ignored) {
-            return 0L;
-        }
-    }
 
     private record ItemSpec(Material material, String itemId, int amount) {
 
@@ -619,40 +615,22 @@ public final class IndustrialMachines {
 
     public static final class ChargingStation extends IndustrialMachine {
 
-        private static final long MAX_CHARGE_MILLI_SE = 100_000L;
         private static final long CHARGE_PER_OPERATION_MILLI_SE = 2_500L;
 
         public ChargingStation() {
             super(spec(
                     "industry_charging_station", "§e充能站", MultiblockTemplates.compact3x3x3(), "3×3×3",
-                    400, 50, 12, 10, Particle.ELECTRIC_SPARK, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE
+                    400, 50, 0.25, 10, Particle.ELECTRIC_SPARK, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE
             ));
         }
 
         @Override
         protected boolean process(RuntimeMachine machine, boolean simulate) {
             Inventory inventory = machine.inventory();
-            SoulTechItem energyCell = SoulTechItem.get(ENERGY_CELL);
-            if (inventory == null || energyCell == null) return false;
-
-            for (int slot = 0; slot < inventory.getSize(); slot++) {
-                ItemStack stack = inventory.getItem(slot);
-                if (stack == null || stack.getAmount() != 1 || !energyCell.checkID(stack)) continue;
-
-                long stored = chargeOf(stack);
-                if (stored >= MAX_CHARGE_MILLI_SE) continue;
-                if (!simulate) {
-                    ItemStack charged = stack.clone();
-                    NBTsUtil.addTag(
-                            charged,
-                            "chargeMilliSe",
-                            Long.toString(Math.min(MAX_CHARGE_MILLI_SE, stored + CHARGE_PER_OPERATION_MILLI_SE))
-                    );
-                    inventory.setItem(slot, charged);
-                }
-                return true;
-            }
-            return false;
+            TalexSoulTech plugin = TalexSoulTech.getInstance();
+            if (inventory == null || plugin == null || plugin.getPoweredEquipmentService() == null) return false;
+            return plugin.getPoweredEquipmentService()
+                    .chargeInventory(inventory, CHARGE_PER_OPERATION_MILLI_SE, simulate) > 0L;
         }
     }
 
@@ -771,7 +749,9 @@ public final class IndustrialMachines {
         }
     }
 
-    public static final class EnergyCell extends IndustrialItem {
+    public static final class EnergyCell extends IndustrialItem implements RechargeableItem {
+
+        private static final long CAPACITY_MILLI_SE = 100_000L;
 
         public EnergyCell() {
             super(
@@ -779,11 +759,20 @@ public final class IndustrialMachines {
                     Material.REDSTONE,
                     "§e便携能量单元",
                     "",
-                    "§8> §7可由充能站补充电量",
-                    "§7电量 NBT: §fchargeMilliSe",
+                    "§8> §7可由任意兼容充能设备补充电量",
+                    "§7电量: §e0 §7/ §e100 §bSE",
                     ""
             );
-            addNbtTag("chargeMilliSe", "0");
+            ItemStack stack = getItemBuilder().toItemStack();
+            var meta = stack.getItemMeta();
+            meta.setMaxStackSize(1);
+            stack.setItemMeta(meta);
+            this.itemBuilder = new ItemBuilder(stack);
+        }
+
+        @Override
+        public long energyCapacityMilliSe() {
+            return CAPACITY_MILLI_SE;
         }
 
         @Override

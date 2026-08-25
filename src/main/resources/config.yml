@@ -11,9 +11,9 @@ Settings:
     db: "soul_tech"
 
   cloud:
-    # Disabled by default. HTTPS is required, except loopback HTTP during local development.
+    # Pairing targets the official HTTPS control plane by default; sync remains disabled until pairing succeeds.
     enabled: false
-    api-base: ""
+    api-base: "https://soultech.tagzxia.com"
     server-id: ""
     api-key: ""
     sync-interval-seconds: 300
@@ -25,6 +25,17 @@ Settings:
     max-source-bytes: 131072
     callback-budget-millis: 50
 Features:
+  progression:
+    # 学科解锁消耗玩家当前经验等级；高级学科仍需先解锁其前置学科。
+    category-unlock-levels:
+      st_base: 1
+      st_material: 3
+      st_sapling: 3
+      st_chestplates: 5
+      st_industry: 8
+      st_magic: 8
+      st_space: 16
+      st_gravitation: 24
   wilderness:
     # 关闭时仅停止新矿脉与怪物强化；已有 v2 索引的矿脉继续保持交互。
     enabled: false

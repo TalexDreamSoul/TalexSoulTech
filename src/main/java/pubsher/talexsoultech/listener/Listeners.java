@@ -10,6 +10,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
@@ -19,6 +22,7 @@ import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.inventory.guider.FirstGuider;
 import pubsher.talexsoultech.inventory.guider.GuiderBook;
 import pubsher.talexsoultech.talex.BaseTalex;
+import pubsher.talexsoultech.talex.items.electricity.fire_generator.FireBaseGenerator;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.block.TalexBlock;
 import pubsher.talexsoultech.utils.item.MachineItem;
@@ -42,6 +46,14 @@ public class Listeners implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
+        Inventory topInventory = event.getView().getTopInventory();
+        if (topInventory.getType() == InventoryType.FURNACE
+                && FireBaseGenerator.isStatusItem(topInventory.getItem(2))
+                && (event.getRawSlot() == 2 || event.getAction() == InventoryAction.COLLECT_TO_CURSOR)) {
+            event.setCancelled(true);
+            return;
+        }
+
 
         Inventory inventory = event.getClickedInventory();
 
@@ -80,6 +92,23 @@ public class Listeners implements Listener {
         return item == null || !item.canUseAsOrigin();
 
     }
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onGeneratorStatusDrag(InventoryDragEvent event) {
+        Inventory topInventory = event.getView().getTopInventory();
+        if (topInventory.getType() == InventoryType.FURNACE
+                && FireBaseGenerator.isStatusItem(topInventory.getItem(2))
+                && event.getRawSlots().contains(2)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onGeneratorStatusMove(InventoryMoveItemEvent event) {
+        if (FireBaseGenerator.isStatusItem(event.getItem())) {
+            event.setCancelled(true);
+        }
+    }
+
 
     @EventHandler
     public void onItemHold(PlayerItemHeldEvent event) {
@@ -242,14 +271,16 @@ public class Listeners implements Listener {
 
         BaseTalex.getInstance().getMachineManager().onEvent(event);
 
+        MachineItem dispatchedMachine = null;
         Block clickedBlock = event.getClickedBlock();
-        if ( clickedBlock != null ) {
+        if (clickedBlock != null) {
             TalexBlock talexBlock = BaseTalex.getInstance().getBlockManager().getBlock(clickedBlock);
-            if ( talexBlock != null && talexBlock.getItem() instanceof MachineItem machineItem ) {
+            if (talexBlock != null && talexBlock.getItem() instanceof MachineItem machineItem) {
+                dispatchedMachine = machineItem;
                 machineItem.onClickedMachineItemBlock(playerData, event);
             }
         }
-        SoulTechItem.dispatchGlobalInteractionObservers(playerData, event);
+        SoulTechItem.dispatchGlobalInteractionObservers(playerData, event, dispatchedMachine);
 
         ItemStack stack = event.getItem();
         if ( !TalexItem.checkItem(stack) ) {

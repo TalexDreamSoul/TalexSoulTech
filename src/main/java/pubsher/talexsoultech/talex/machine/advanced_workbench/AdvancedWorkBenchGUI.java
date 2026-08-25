@@ -12,6 +12,7 @@ import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.talex.guider.category.CategoryObject;
 import pubsher.talexsoultech.talex.guider.category.RecipeObject;
 import pubsher.talexsoultech.talex.machine.MachineGUI;
+import pubsher.talexsoultech.talex.machine.multiblock.PoweredMultiblockMachineItem;
 import pubsher.talexsoultech.utils.inventory.InventoryUI;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
@@ -117,6 +118,17 @@ public class AdvancedWorkBenchGUI extends MachineGUI {
                     }
 
                     if ( accessAmount >= 9 ) {
+                        TalexItem exportItem = wbr.getExport();
+                        if (exportItem == null || exportItem.getItemBuilder().toItemStack().getType() == Material.AIR) {
+                            return true;
+                        }
+                        if (exportItem instanceof PoweredMultiblockMachineItem machine
+                                && !machine.isUnlockedFor(playerData)) {
+                            playerData.actionBar("§c请先解锁 " + machine.requiredDisciplineName() + " §c后再制作这台机器!")
+                                    .playSound(Sound.ENTITY_VILLAGER_NO, 1.1F, 1.0F);
+                            return true;
+                        }
+
 
                         for ( int i = 0; i < empties.length; ++i ) {
 
@@ -137,13 +149,7 @@ public class AdvancedWorkBenchGUI extends MachineGUI {
 
                         }
 
-                        if ( wbr.getExport() == null || wbr.getExport().getItemBuilder().toItemStack().getType() == Material.AIR ) {
-
-                            return true;
-
-                        }
-
-                        TalexItem item = wbr.getExport();
+                        TalexItem item = exportItem;
 
                         if ( item instanceof SoulTechItem ) {
 

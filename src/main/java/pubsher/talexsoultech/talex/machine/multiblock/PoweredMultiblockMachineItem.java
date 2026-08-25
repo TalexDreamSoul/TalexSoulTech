@@ -5,6 +5,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,14 +26,14 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import pubsher.talexsoultech.entity.PlayerData;
-import pubsher.talexsoultech.talex.BaseTalex;
-import pubsher.talexsoultech.talex.electricity.BlockKey;
 import pubsher.talexsoultech.talex.electricity.EnergyUnits;
+import pubsher.talexsoultech.talex.guider.category.CategoryObject;
 import pubsher.talexsoultech.talex.items.machine.ConsumerMachine;
 import pubsher.talexsoultech.talex.items.machine.MachineCore;
 import pubsher.talexsoultech.talex.items.machine.MachineInfo;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
 import pubsher.talexsoultech.talex.managers.ElectricityManager;
+import pubsher.talexsoultech.platform.TextHologram;
 import pubsher.talexsoultech.talex.multiblock.MultiblockDetector;
 import pubsher.talexsoultech.talex.multiblock.MultiblockMatch;
 import pubsher.talexsoultech.talex.multiblock.MultiblockStructureRegistry;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -60,6 +65,23 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
         super(spec.id(), createControllerItem(spec));
         this.spec = spec;
     }
+    public boolean isUnlockedFor(PlayerData playerData) {
+        CategoryObject discipline = requiredDiscipline();
+        return discipline == null || discipline.isUnlockedBy(playerData);
+    }
+
+    public String requiredDisciplineName() {
+        CategoryObject discipline = requiredDiscipline();
+        return discipline == null
+                ? "对应学科"
+                : new ItemBuilder(discipline.getDisplayStack().clone()).getDisplayNameOrDefaultName();
+    }
+
+    private CategoryObject requiredDiscipline() {
+        CategoryObject recipeCategory = getOwnCategoryObject();
+        return recipeCategory == null ? null : recipeCategory.getFatherCategory();
+    }
+
 
     protected abstract boolean process(RuntimeMachine machine, boolean simulate);
 
@@ -73,7 +95,7 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
     public WorkBenchRecipe getRecipe() {
         Material core = spec.template().size() == 5 ? Material.LODESTONE : Material.REDSTONE_BLOCK;
         return new WorkBenchRecipe(spec.id(), this)
-                .addRequired(new MineCraftItem(Material.IRON_BLOCK))
+                .addRequired(new MineCraftItem(spec.displayMaterial()))
                 .addRequired("circuit_board")
                 .addRequired(new MineCraftItem(Material.IRON_BLOCK))
                 .addRequired(new MineCraftItem(Material.COPPER_BLOCK))
@@ -87,6 +109,11 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
     @Override
     public void onClickedMachineItemBlock(PlayerData playerData, PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null) return;
+        if (!isUnlockedFor(playerData)) {
+            event.setCancelled(true);
+            playerData.actionBar("§c请先解锁 " + requiredDisciplineName() + " §c后再使用这台机器!");
+            return;
+        }
         RuntimeMachine machine = machines.get(NBTsUtil.Location2String(event.getClickedBlock().getLocation()));
         if (machine == null) return;
 
@@ -99,24 +126,31 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
         }
 
         if (playerData.getPlayer().isSneaking()) {
-            validateStructure(machine, true);
+            validateStructure(machine, playerData.getPlayer());
         }
         playerData.actionBar(machine.statusLine());
     }
 
     @Override
     public boolean onPlaceItem(PlayerData playerData, BlockPlaceEvent event) {
+        if (!isUnlockedFor(playerData)) {
+            event.setCancelled(true);
+            playerData.actionBar("§c请先解锁 " + requiredDisciplineName() + " §c后再放置这台机器!");
+            return true;
+        }
         Block block = event.getBlock();
-        if (block.getType() != spec.controllerMaterial()) return false;
+        if (block.getType() != spec.displayMaterial()) return false;
+        block.setType(spec.controllerMaterial(), false);
 
         BlockFace facing = MultiblockDetector.cardinal(playerData.getPlayer().getFacing().getOppositeFace());
         RuntimeMachine machine = new RuntimeMachine(this, block.getLocation(), facing, 0L);
         machine.getMeta().put("owner", playerData.getName());
         machine.getMeta().put("ownerUuid", playerData.getPlayer().getUniqueId().toString());
-        machine.registerHolograms(block.getLocation().clone().add(0.5, 1.65, 0.5));
+        machine.cleanupLegacyVisuals();
         machines.put(NBTsUtil.Location2String(block.getLocation()), machine);
         ElectricityManager.INSTANCE.registerEndpoint(machine);
-        validateStructure(machine, true);
+        validateStructure(machine, playerData.getPlayer());
+        playerData.actionBar(machine.statusLine());
         return false;
     }
 
@@ -206,8 +240,9 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
             }
 
             if (chunkLoaded) {
-                machine.ensureVisuals();
-                if (wasClaimed) validateStructure(machine, false);
+                restoreTrackedBlock(location);
+                machine.cleanupLegacyVisuals();
+                if (wasClaimed) validateStructure(machine, null);
                 else machine.setStructureState(false, 1);
             } else {
                 machine.setStructureState(false, 0);
@@ -236,23 +271,29 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
     public void onItemHeld(PlayerData playerData, PlayerItemHeldEvent event) {
     }
 
-    private void validateStructure(RuntimeMachine machine, boolean showFeedback) {
+    private void validateStructure(RuntimeMachine machine, Player feedbackPlayer) {
         Location location = machine.location();
         if (location.getWorld() == null
                 || !location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
             machine.setStructureState(false, 0);
+            if (feedbackPlayer != null) {
+                sendStructureStatus(feedbackPlayer, "结构所在世界或区块尚未加载，请靠近控制器后重试。", NamedTextColor.YELLOW);
+            }
             return;
         }
         if (location.getBlock().getType() != spec.controllerMaterial()) {
             MultiblockStructureRegistry.INSTANCE.release(machine.key());
             machine.setStructureState(false, 1);
+            if (feedbackPlayer != null) {
+                sendStructureStatus(feedbackPlayer, "控制器方块已不存在，结构无法成型。", NamedTextColor.RED);
+            }
             return;
         }
 
         MultiblockMatch match = detector.detect(location, machine.facing(), spec.template());
         if (match.deferredByUnloadedChunk()) {
             machine.setStructureState(false, match.mismatches().size());
-            if (showFeedback) showStructureFeedback(machine, match);
+            if (feedbackPlayer != null) showStructureFeedback(machine, match, feedbackPlayer);
             return;
         }
 
@@ -270,11 +311,20 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
         }
 
         machine.setStructureState(formed, mismatchCount);
-        if (showFeedback) showStructureFeedback(machine, match);
+        if (feedbackPlayer != null) showStructureFeedback(machine, match, feedbackPlayer);
     }
 
-    private void showStructureFeedback(RuntimeMachine machine, MultiblockMatch match) {
-        if (machine.formed()) return;
+    private void showStructureFeedback(RuntimeMachine machine, MultiblockMatch match, Player player) {
+        if (machine.formed()) {
+            sendStructureStatus(
+                    player,
+                    "结构完整：" + spec.template().size() + "×" + spec.template().size() + "×" + spec.template().size()
+                            + "，电力端点已接入。",
+                    NamedTextColor.GREEN
+            );
+            return;
+        }
+
         int shown = 0;
         for (MultiblockMatch.Mismatch mismatch : match.mismatches()) {
             if (shown++ >= 8) break;
@@ -292,6 +342,41 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
                     0.01
             );
         }
+
+        if (match.deferredByUnloadedChunk()) {
+            sendStructureStatus(player, "部分结构区块未加载，请靠近整座结构后重试。", NamedTextColor.YELLOW);
+        } else if (match.mismatches().isEmpty()) {
+            sendStructureStatus(player, "结构与另一台控制器占用范围冲突。", NamedTextColor.RED);
+        } else {
+            sendStructureStatus(
+                    player,
+                    "结构未成型：" + machine.mismatchCount + " 处不匹配，粒子已标出前 8 处。",
+                    NamedTextColor.RED
+            );
+            for (MultiblockMatch.Mismatch mismatch : match.mismatches().stream().limit(3).toList()) {
+                String offset = String.format(
+                        Locale.ROOT,
+                        "%+d, %+d, %+d",
+                        mismatch.location().x() - machine.key().x(),
+                        mismatch.location().y() - machine.key().y(),
+                        mismatch.location().z() - machine.key().z()
+                );
+                player.sendMessage(Component.text("  • [" + offset + "] ", NamedTextColor.DARK_GRAY)
+                        .append(Component.text("需要 " + mismatch.expected(), NamedTextColor.YELLOW))
+                        .append(Component.text("，当前 " + mismatch.actual(), NamedTextColor.GRAY)));
+            }
+        }
+
+        player.sendMessage(Component.text("› ", NamedTextColor.DARK_GRAY)
+                .append(Component.text("/tst multiblock", NamedTextColor.AQUA)
+                        .clickEvent(ClickEvent.runCommand("/tst multiblock"))
+                        .hoverEvent(HoverEvent.showText(Component.text("点击查看完整材料与朝向", NamedTextColor.YELLOW))))
+                .append(Component.text("  查看结构材料与建造方向", NamedTextColor.GRAY)));
+    }
+
+    private void sendStructureStatus(Player player, String message, NamedTextColor color) {
+        player.sendMessage(Component.text("灵魂科技", NamedTextColor.LIGHT_PURPLE)
+                .append(Component.text("  " + message, color)));
     }
 
     private static ItemStack createControllerItem(PoweredMachineSpec spec) {
@@ -303,7 +388,7 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
         lore.add("§f周期耗能: §e" + EnergyUnits.format(spec.energyPerWorkCycle(), 3) + " SE");
         lore.add("§8控制器正面为玩家放置时朝向，SHIFT 右键检查结构");
         lore.add("");
-        return new ItemBuilder(spec.controllerMaterial())
+        return new ItemBuilder(spec.displayMaterial())
                 .setName(spec.displayName())
                 .setLore(lore.toArray(String[]::new))
                 .toItemStack();
@@ -350,9 +435,10 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
 
         @Override
         public void beforePowerCycle() {
-            if (controllerChunkLoaded()) ensureVisuals();
+            if (controllerChunkLoaded()) owner.restoreTrackedBlock(location);
+            if (controllerChunkLoaded()) cleanupLegacyVisuals();
             if (structureCheckCountdown-- <= 0) {
-                owner.validateStructure(this, false);
+                owner.validateStructure(this, null);
                 structureCheckCountdown = STRUCTURE_CHECK_INTERVAL;
             }
             if (!formed) {
@@ -382,16 +468,6 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
 
         @Override
         public void updateHologram() {
-            if (hologram == null || hologram.isDeleted()) return;
-            hologram.clearLines();
-            hologram.appendTextLine(owner.spec.displayName());
-            hologram.appendTextLine(formed ? "§a结构完整" : "§c结构缺失: " + mismatchCount);
-            hologram.appendTextLine("§f状态: §r" + getMachineStatus().getDisplayName());
-            hologram.appendTextLine(
-                    "§f电量: §e" + EnergyUnits.format(buffer().stored(), 3)
-                            + "§7/§e" + EnergyUnits.format(buffer().capacity(), 3) + " SE"
-            );
-            hologram.appendTextLine("§f进度: §b" + progress + "§7/§b" + owner.spec.operationCycles());
         }
 
         public Inventory inventory() {
@@ -451,10 +527,13 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
                     && location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4);
         }
 
-        private void ensureVisuals() {
-            if (controllerChunkLoaded() && location.getBlock().getType() == owner.spec.controllerMaterial()) {
-                registerHolograms(location.clone().add(0.5, 1.65, 0.5));
+        private void cleanupLegacyVisuals() {
+            if (!controllerChunkLoaded()
+                    || Boolean.TRUE.equals(getMeta().get("legacyDisplaysRemoved"))) {
+                return;
             }
+            TextHologram.removeLegacyMachineDisplays(location);
+            getMeta().put("legacyDisplaysRemoved", true);
         }
 
         public String statusLine() {

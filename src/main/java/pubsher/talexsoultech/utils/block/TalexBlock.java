@@ -2,6 +2,7 @@ package pubsher.talexsoultech.utils.block;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -65,7 +66,9 @@ public class TalexBlock {
 
         block.setType(Material.AIR);
 
-        block.getWorld().dropItem(block.getLocation(), this.stack);
+        if (playerData.getPlayer().getGameMode() != GameMode.CREATIVE) {
+            block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5), this.stack.clone());
+        }
 
     }
 

@@ -28,6 +28,9 @@ import java.util.UUID;
 @Getter
 @Setter
 public class PlayerData {
+    private static final String CATEGORY_UNLOCKS = "category_unlock";
+    private static final String PAID_CATEGORY_UNLOCKS = "paid_category_unlock";
+
 
     private final BaseTalex talex;
     private final PlayerAttractData playerAttractData;
@@ -57,18 +60,24 @@ public class PlayerData {
         this.persistenceWritable = persistenceWritable;
         this.jsonData = Objects.requireNonNull(jsonData, "jsonData");
 
-        if (!this.jsonData.has("category_unlock") || this.jsonData.get("category_unlock").isJsonNull()) {
-            this.jsonData.addProperty("category_unlock", "");
-        }
+        ensureUnlockProperty(CATEGORY_UNLOCKS);
+        ensureUnlockProperty(PAID_CATEGORY_UNLOCKS);
 
         this.playerAttractData = new PlayerAttractData(this, attractConfiguration);
 
     }
+    private void ensureUnlockProperty(String property) {
+        if (!jsonData.has(property) || jsonData.get(property).isJsonNull()) {
+            jsonData.addProperty(property, "");
+        }
+    }
+
 
     public static PlayerData createDefault(BaseTalex talex, Player player, boolean persistenceWritable) {
 
         JsonObject jsonData = new JsonObject();
-        jsonData.addProperty("category_unlock", "");
+        jsonData.addProperty(CATEGORY_UNLOCKS, "");
+        jsonData.addProperty(PAID_CATEGORY_UNLOCKS, "");
         return new PlayerData(talex, player, jsonData, null, persistenceWritable);
 
     }
@@ -169,30 +178,42 @@ public class PlayerData {
     }
 
     public PlayerData delCategoryUnlock(String ID) {
-
-        if (isCategoryUnLock(ID)) {
-            this.jsonData.addProperty("category_unlock", this.jsonData.get("category_unlock").getAsString().replaceFirst(ID + ", ", ""));
-        }
-
+        removeCategoryUnlock(CATEGORY_UNLOCKS, ID);
         return this;
-
     }
 
     public PlayerData addCategoryUnlock(String ID) {
-
-        if (!isCategoryUnLock(ID)) {
-            this.jsonData.addProperty("category_unlock", this.jsonData.get("category_unlock").getAsString() + ID + ", ");
-        }
-
+        addCategoryUnlock(CATEGORY_UNLOCKS, ID);
         return this;
-
     }
 
     public boolean isCategoryUnLock(String ID) {
+        return hasCategoryUnlock(CATEGORY_UNLOCKS, ID);
+    }
 
-        String str = this.jsonData.get("category_unlock").getAsString();
-        return str.contains(ID + ",");
+    public PlayerData addPaidCategoryUnlock(String ID) {
+        addCategoryUnlock(PAID_CATEGORY_UNLOCKS, ID);
+        return this;
+    }
 
+    public boolean isPaidCategoryUnlock(String ID) {
+        return hasCategoryUnlock(PAID_CATEGORY_UNLOCKS, ID);
+    }
+
+    private void addCategoryUnlock(String property, String ID) {
+        if (!hasCategoryUnlock(property, ID)) {
+            jsonData.addProperty(property, jsonData.get(property).getAsString() + ID + ", ");
+        }
+    }
+
+    private void removeCategoryUnlock(String property, String ID) {
+        if (hasCategoryUnlock(property, ID)) {
+            jsonData.addProperty(property, jsonData.get(property).getAsString().replace(ID + ", ", ""));
+        }
+    }
+
+    private boolean hasCategoryUnlock(String property, String ID) {
+        return jsonData.get(property).getAsString().contains(ID + ",");
     }
 
     public PlayerData dropItem(ItemStack stack) {

@@ -12,8 +12,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import pubsher.talexsoultech.entity.PlayerData;
-import pubsher.talexsoultech.entity.PlayerDataRunnable;
 import pubsher.talexsoultech.talex.electricity.EnergyUnits;
+import pubsher.talexsoultech.talex.electricity.PowerEndpointType;
 import pubsher.talexsoultech.talex.electricity.function.generator.BaseGeneratorObject;
 import pubsher.talexsoultech.talex.items.machine.GeneratorMachine;
 import pubsher.talexsoultech.talex.items.machine.MachineCore;
@@ -21,6 +21,7 @@ import pubsher.talexsoultech.talex.items.machine.MachineInfo;
 import pubsher.talexsoultech.talex.items.machine.rooter.BaseStorager;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
 import pubsher.talexsoultech.talex.managers.ElectricityManager;
+import pubsher.talexsoultech.platform.TextHologram;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.block.TalexBlock;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
@@ -47,6 +48,7 @@ public class NormalStorage extends BaseGeneratorObject {
                 1500,
                 30
         );
+        registerGlobalInteractionObserver();
     }
 
 
@@ -69,15 +71,12 @@ public class NormalStorage extends BaseGeneratorObject {
                     ElectricityManager.INSTANCE.unregister(location);
                     return;
                 }
-                registerHolograms(location.clone().add(0.5, 1.55, 0.5));
+                restoreTrackedBlock(location);
+                cleanupLegacyDisplays(location, this);
             }
 
             @Override
             public void updateMachineHologram(GeneratorMachine generatorMachine) {
-                this.hologram.clearLines();
-                this.hologram.appendTextLine(
-                        "§f存储电量: §c" + EnergyUnits.format(getEnergyBuffer().stored(), 3) + " §e§lSE ⚡"
-                );
             }
         };
     }
@@ -101,6 +100,12 @@ public class NormalStorage extends BaseGeneratorObject {
         HashMap<String, Object> meta = new Gson().fromJson(json.get("meta"), HashMap.class);
         return meta == null ? new HashMap<>() : meta;
     }
+    private static void cleanupLegacyDisplays(Location location, GeneratorMachine machine) {
+        if (Boolean.TRUE.equals(machine.getMeta().get("legacyDisplaysRemoved"))) return;
+        TextHologram.removeLegacyMachineDisplays(location);
+        machine.getMeta().put("legacyDisplaysRemoved", true);
+    }
+
 
     @Override
     public WorkBenchRecipe getRecipe() {
@@ -123,27 +128,23 @@ public class NormalStorage extends BaseGeneratorObject {
 
     @Override
     public void onClickedMachineItemBlock(PlayerData playerData, PlayerInteractEvent event) {
-
-        if ( event.getAction() != Action.RIGHT_CLICK_BLOCK ) {
-            return;
-        }
-
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Block block = event.getClickedBlock();
+        if (block == null || block.getType() != Material.JUKEBOX) return;
 
-        if ( block == null || block.getType() != Material.JUKEBOX ) {
-            return;
-        }
+        BaseStorager storage = storages.get(Location2String(block.getLocation()));
+        if (storage == null) return;
+        event.setCancelled(true);
+        cleanupLegacyDisplays(block.getLocation(), storage);
 
-        playerData.actionBar("§c§l这台机器没有界面!").delayRun(new PlayerDataRunnable() {
-
-            @Override
-            public void run() {
-
-                playerData.closeInventory();
-
-            }
-        }, 3);
-
+        long consumerCount = ElectricityManager.INSTANCE.getEndpoints().stream()
+                .filter(endpoint -> endpoint.type() == PowerEndpointType.CONSUMER)
+                .count();
+        playerData.actionBar(
+                "§a蓄电池 §7| §f电量 §e" + EnergyUnits.format(storage.getEnergyBuffer().stored(), 3)
+                        + "§7/§e" + EnergyUnits.format(storage.getEnergyBuffer().capacity(), 3)
+                        + " SE §7| §f耗能设备 §e" + consumerCount
+        );
     }
 
 
@@ -188,7 +189,7 @@ public class NormalStorage extends BaseGeneratorObject {
         if (block.getType() != Material.JUKEBOX) return false;
 
         BaseStorager storage = createStorage(block.getLocation(), 0L);
-        storage.registerHolograms(block.getLocation().clone().add(0.5, 1.55, 0.5));
+        cleanupLegacyDisplays(block.getLocation(), storage);
 
         storages.put(Location2String(block.getLocation()), storage);
         ElectricityManager.INSTANCE.registerEndpoint(storage);
@@ -240,7 +241,8 @@ public class NormalStorage extends BaseGeneratorObject {
             if (json.has("status")) {
                 storage.setMachineStatus(MachineInfo.MachineStatus.valueOf(json.get("status").getAsString()));
             }
-            if (loaded) storage.registerHolograms(location.clone().add(0.5, 1.55, 0.5));
+            if (loaded) restoreTrackedBlock(location);
+            if (loaded) cleanupLegacyDisplays(location, storage);
 
             storages.put(Location2String(location), storage);
             ElectricityManager.INSTANCE.registerEndpoint(storage);

@@ -83,9 +83,17 @@ public abstract class SoulTechItem extends TalexItem {
     /**
      * Dispatches the startup-built observer snapshot without an event-time collection copy.
      */
-    public static void dispatchGlobalInteractionObservers(PlayerData playerData, PlayerInteractEvent event) {
+    public static void dispatchGlobalInteractionObservers(
+            PlayerData playerData,
+            PlayerInteractEvent event,
+            MachineItem alreadyDispatched
+    ) {
         MachineItem[] observers = globalInteractionObservers;
-        for ( MachineItem observer : observers ) {
+        for (MachineItem observer : observers) {
+            if (alreadyDispatched != null
+                    && (observer == alreadyDispatched || observer.getID().equals(alreadyDispatched.getID()))) {
+                continue;
+            }
             observer.onClickedMachineItemBlock(playerData, event);
         }
     }

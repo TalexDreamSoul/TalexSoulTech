@@ -9,7 +9,7 @@ website: pubsher.com
 commands:
   talexsoultech:
     description: 查看灵魂科技命令帮助
-    usage: /<command> [help|guide|blood-moon|datalist|item-nbts|cloud [status|link <pairing-code>]|ext [list|reload|run <extension-id> <command> [args...]]]
+    usage: /<command> [help|guide|items [page|query]|item <id>|give <player> <id> [amount]|unlock <player> <category-id>|machines|power|multiblock|blood-moon|datalist|item-nbts|cloud [status|link <pairing-code>]|ext [list|reload|run <extension-id> <command> [args...]]]
     aliases:
       - "tst"
       - "soultech"
