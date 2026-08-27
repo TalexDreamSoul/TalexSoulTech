@@ -48,9 +48,14 @@ public final class MachineInventoryOps {
         return new Ingredient(prototype, amount);
     }
 
+    /**
+     * Moves already-existing stacks into a machine inventory. Every caller vacuums world
+     * drops, so this deliberately does not report production: the items were made elsewhere
+     * and counting them here would bill the same item twice.
+     */
     public static boolean insert(Inventory inventory, List<ItemStack> outputs, boolean simulate) {
         PreparedTransaction prepared = prepare(inventory, List.of(), outputs);
-        return simulate ? prepared.simulate() : commitAndCount(prepared, outputs);
+        return simulate ? prepared.simulate() : prepared.commit();
     }
 
     /**

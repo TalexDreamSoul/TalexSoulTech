@@ -133,7 +133,7 @@ import { DISCIPLINES, CATALOG_STATS } from "./catalog.js";
 
 ### Planning catalog and campaign
 
-- Planning identity and runtime identity are separate: dotted catalog IDs describe 810 planning entries; `/runtime` exposes the 150 registered command/PDC IDs. An implemented planning entry still directs operators to `/runtime` for the actual runtime ID.
+- Planning identity and runtime identity are separate: dotted catalog IDs describe 810 planning entries; `/runtime` exposes the 926 registered command/PDC IDs (150 preserved baseline records plus 776 new registrations). An implemented planning entry still directs operators to `/runtime` for the actual runtime ID.
 - The campaign has four acts and exactly nine waves. Every one of 27 disciplines belongs to one wave; `stage`, `wave`, and `status` are independent axes.
 - Each discipline has ten stable `discipline.family` keys and thirty stable `discipline.family.item` IDs. Exactly two families per discipline are narrative anchors: 54 families and 162 story items, exactly 20% of 810.
 - Story order is explicit `1..3` and independent of Roman tier. Tier comes only from the catalog item; E-family declaration order is never treated as tier order.
