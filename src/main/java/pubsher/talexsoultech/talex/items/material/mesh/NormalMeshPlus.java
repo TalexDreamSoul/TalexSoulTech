@@ -21,7 +21,7 @@ public class NormalMeshPlus extends BaseGriddleMesh {
 
     public NormalMeshPlus() {
 
-        super(new ItemBuilder(Material.OAK_TRAPDOOR).setName("§f高级筛网").setLore("", "§8> §a高级的筛网.", "", "§f耐久: §c120", ""), (short) 120);
+        super("griddle_mesh", new ItemBuilder(Material.OAK_TRAPDOOR).setName("§f高级筛网").setLore("", "§8> §a高级的筛网.", "", "§f耐久: §c120", ""), (short) 120);
     }
 
     @Override

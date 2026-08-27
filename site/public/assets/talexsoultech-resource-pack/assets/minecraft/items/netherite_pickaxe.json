@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:universal_matter_tool",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/universal_matter_tool"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/netherite_pickaxe"
+    }
+  }
+}

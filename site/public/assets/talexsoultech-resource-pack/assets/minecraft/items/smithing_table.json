@@ -1,0 +1,272 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.automation_block_placer_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_block_placer_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_fault_isolation_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_fault_isolation_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_field_drone_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_field_drone_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_harvester_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_harvester_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_recipe_control_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_recipe_control_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_scheduler_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_scheduler_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_thresholds_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_thresholds_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_breaking_advanced_recipe_chain",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_breaking_advanced_recipe_chain"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_tool_service_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_tool_service_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_chrono_clock_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_chrono_clock_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_maintenance_window_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_maintenance_window_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_task_buffer_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_task_buffer_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_temporal_anchor_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_temporal_anchor_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_excavation_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_excavation_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_end_lab_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_end_lab_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_obsidian_tools_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_obsidian_tools_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_waste_processing_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_waste_processing_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_fault_extraction_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_fault_extraction_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_ore_separation_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_ore_separation_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_scrap_recovery_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_scrap_recovery_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_bearing_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_bearing_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_conveyor_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_conveyor_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_crusher_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_crusher_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_cutter_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_cutter_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_drive_shaft_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_drive_shaft_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_gear_train_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_gear_train_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_milling_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_milling_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_press_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_press_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_robot_arm_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_robot_arm_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_casting_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_casting_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_forging_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_forging_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_precision_parts_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_precision_parts_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_recycling_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_recycling_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_cobble_production_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_cobble_production_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_machine_core_workstation",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_machine_core_workstation"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_registered_machines_a_compressor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_registered_machines_a_compressor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_registered_machines_b_machine_console",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_registered_machines_b_machine_console"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/smithing_table"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "talexsoultech:item/space_dimension_map_analyzer"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:electric_hoe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/electric_hoe"
+        }
+      },
+      {
+        "when": "talexsoultech:powered_wrench",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/powered_wrench"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/iron_hoe"
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.civic_defense_alert_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_defense_alert_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_defense_alert_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_defense_alert_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_disaster_response_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_disaster_response_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_disaster_response_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_disaster_response_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_alarm_grid_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_alarm_grid_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_alarm_grid_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_alarm_grid_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_hazard_suit_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_hazard_suit_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_hazard_suit_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_hazard_suit_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_healing_post_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_healing_post_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_healing_post_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_healing_post_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_heat_armor_fire_greaves",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_heat_armor_fire_greaves"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_mobility_armor_landing_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_mobility_armor_landing_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_rescue_line_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_rescue_line_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_rescue_line_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_rescue_line_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_shielding_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_shielding_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_shielding_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_shielding_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_void_guard_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_void_guard_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_void_guard_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_void_guard_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_climbing_kit_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_climbing_kit_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_climbing_kit_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_climbing_kit_plate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_rescue_beacon_armor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_rescue_beacon_armor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_rescue_beacon_plate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_rescue_beacon_plate"
+        }
+      },
+      {
+        "when": "talexsoultech:capacitor_backpack",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/capacitor_backpack"
+        }
+      },
+      {
+        "when": "talexsoultech:powered_chestplate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/powered_chestplate"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/iron_chestplate"
+    }
+  }
+}

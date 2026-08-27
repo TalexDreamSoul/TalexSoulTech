@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "talexsoultech:item/basic_tool_service_part"
+  }
+}

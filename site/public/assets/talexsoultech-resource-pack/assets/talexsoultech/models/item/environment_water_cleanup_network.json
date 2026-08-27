@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "talexsoultech:item/environment_water_cleanup_network"
+  }
+}

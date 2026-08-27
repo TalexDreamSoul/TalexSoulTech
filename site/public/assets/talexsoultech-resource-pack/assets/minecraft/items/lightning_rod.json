@@ -1,0 +1,27 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:mob_stunner",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mob_stunner"
+        }
+      },
+      {
+        "when": "talexsoultech:wireless_charge_pad",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/wireless_charge_pad"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/lightning_rod"
+    }
+  }
+}

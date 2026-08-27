@@ -5,6 +5,104 @@
     "index": 0,
     "cases": [
       {
+        "when": "talexsoultech.item.basic_field_storage_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_field_storage_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_public_inventory_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_public_inventory_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_transit_authority_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_transit_authority_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_shulker_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_shulker_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_supply_pack_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_supply_pack_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_belt_line_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_belt_line_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_dispatch_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_dispatch_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_jam_alarm_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_jam_alarm_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_pneumatic_tube_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_pneumatic_tube_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_portal_logistics_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_portal_logistics_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_rail_cargo_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_rail_cargo_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_return_route_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_return_route_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_sort_tags_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_sort_tags_relay"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_warehouse_relay",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_warehouse_relay"
+        }
+      },
+      {
         "when": "talexsoultech:void_box",
         "model": {
           "type": "minecraft:model",

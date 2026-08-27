@@ -8,6 +8,7 @@ import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.talex.items.compress.BaseCompress;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.WorkBenchRecipe;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
+import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 public class CompressWood2 extends BaseCompress {
 
@@ -15,7 +16,7 @@ public class CompressWood2 extends BaseCompress {
 
         super("wood_2", new ItemBuilder(Material.OAK_PLANKS).setName("§f压缩木板 §8(x81)").addFlag(ItemFlag.HIDE_ENCHANTS).addEnchant(Enchantment.UNBREAKING, 1).toItemStack(),
 
-                new ItemBuilder(new CompressWood1().getItemBuilder().toItemStack()).setAmount(9).toItemStack()
+                new ItemBuilder(SoulTechItem.get("compress_wood_1").getItemBuilder().toItemStack()).setAmount(9).toItemStack()
 
         );
 

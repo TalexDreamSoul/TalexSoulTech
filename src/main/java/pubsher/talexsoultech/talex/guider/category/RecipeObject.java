@@ -15,21 +15,58 @@ public class RecipeObject {
 
     private final TalexItem displayItem;
 
+    /**
+     * Removes a recipe only when the registry still points at the expected instance.
+     */
+    public static boolean unregister(String recipeID, RecipeObject expected) {
+        if (recipeID == null || recipeID.isBlank() || expected == null) {
+            return false;
+        }
+        synchronized (RecipeObject.class) {
+            if (recipes.get(recipeID) != expected) {
+                return false;
+            }
+            recipes.remove(recipeID);
+            return true;
+        }
+    }
+
     public RecipeObject(String recipeID, TalexItem displayItem) {
+
+        if ( recipeID == null || recipeID.isBlank() ) {
+            throw new IllegalArgumentException("Recipe ID must not be blank");
+        }
+        if ( displayItem == null ) {
+            throw new IllegalArgumentException("Recipe display item must not be null");
+        }
 
         this.recipeID = recipeID;
         this.displayItem = displayItem;
 
-        recipes.put(recipeID, this);
+        synchronized ( RecipeObject.class ) {
+            if ( recipes.containsKey(recipeID) ) {
+                throw new IllegalStateException("Duplicate recipe ID: " + recipeID);
+            }
+            recipes.put(recipeID, this);
+        }
 
     }
 
     public RecipeObject(SoulTechItem displayItem) {
 
+        if ( displayItem == null ) {
+            throw new IllegalArgumentException("Recipe display item must not be null");
+        }
+
         this.recipeID = "recipe_" + displayItem.getID();
         this.displayItem = displayItem;
 
-        recipes.put(recipeID, this);
+        synchronized ( RecipeObject.class ) {
+            if ( recipes.containsKey(recipeID) ) {
+                throw new IllegalStateException("Duplicate recipe ID: " + recipeID);
+            }
+            recipes.put(recipeID, this);
+        }
 
     }
 

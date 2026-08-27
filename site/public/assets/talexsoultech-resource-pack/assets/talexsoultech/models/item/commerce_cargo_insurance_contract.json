@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "talexsoultech:item/commerce_cargo_insurance_contract"
+  }
+}

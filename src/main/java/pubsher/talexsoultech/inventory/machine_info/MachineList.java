@@ -147,7 +147,8 @@ public class MachineList extends BaseGuider {
         for (CategoryManager.PoweredMachineEntry entry
                 : BaseTalex.getInstance().getCategoryManager().getPoweredMachines()) {
             CategoryObject recipeCategory = entry.recipeCategory();
-            CategoryObject discipline = recipeCategory.getFatherCategory();
+            CategoryObject discipline = BaseTalex.getInstance().getCategoryManager()
+                    .resolveDisciplineAncestor(recipeCategory);
             boolean unlocked = entry.machine().isUnlockedFor(playerData);
             String disciplineName = discipline == null
                     ? "未知学科"

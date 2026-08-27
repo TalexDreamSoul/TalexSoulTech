@@ -1,4 +1,5 @@
 import { DISCIPLINES, CATALOG_STATS } from "./data/catalog.js";
+import { CAMPAIGN_WAVES } from "./data/progression.js";
 import {
   SITE_CONTENT,
   TECH_ARCHITECTURE,
@@ -14,6 +15,40 @@ const STATUS_LABELS = Object.freeze({
   implemented: "已实装",
   planned: "规划中",
 });
+
+const CAMPAIGN_WAVE_LIST = Object.freeze(
+  (Array.isArray(CAMPAIGN_WAVES) ? CAMPAIGN_WAVES : Object.values(CAMPAIGN_WAVES || {}))
+    .filter((wave) => wave && wave.id)
+    .map((wave) => Object.freeze({
+      id: String(wave.id),
+      title: String(wave.title || wave.name || wave.id),
+      disciplineIds: Array.isArray(wave.disciplineIds) ? wave.disciplineIds.map(String) : [],
+    })),
+);
+const CAMPAIGN_WAVE_IDS = new Set(CAMPAIGN_WAVE_LIST.map((wave) => wave.id));
+const NARRATIVE_LABELS = Object.freeze({ all: "全部故事", anchor: "故事锚点" });
+
+function hasNarrativeStory(item) {
+  return item?.story !== null && item?.story !== undefined;
+}
+
+function waveControlOptions() {
+  return [{ id: "all", title: "全部波次" }, ...CAMPAIGN_WAVE_LIST];
+}
+
+function waveForDiscipline(disciplineId) {
+  return CAMPAIGN_WAVE_LIST.find((wave) => wave.disciplineIds.includes(String(disciplineId)))?.id || "";
+}
+
+function waveById(waveId) {
+  return CAMPAIGN_WAVE_LIST.find((wave) => wave.id === waveId) || null;
+}
+
+function catalogField(id, name, fallbackName = name) {
+  return byId(id)
+    || byId("catalog-controls")?.querySelector(`[name="${name}"]`)
+    || (fallbackName ? byId("catalog-controls")?.querySelector(`[name="${fallbackName}"]`) : null);
+}
 
 const KEY_LABELS = Object.freeze({
   implemented: "当前已实现",
@@ -143,7 +178,9 @@ const state = {
   catalog: {
     allItems: [],
     query: "",
+    wave: "all",
     discipline: "all",
+    narrative: "all",
     status: "all",
     page: 1,
   },
@@ -734,17 +771,24 @@ function initializeCatalogData() {
   const ids = new Set();
 
   for (const discipline of DISCIPLINES) {
+    const disciplineId = normalizeCopy(discipline.id);
+    const disciplineWaveId = normalizeCopy(discipline.waveId || waveForDiscipline(disciplineId));
+    const disciplineWave = waveById(disciplineWaveId);
     const items = Array.isArray(discipline.items) ? discipline.items : [];
     for (const item of items) {
       const id = normalizeCopy(item.id);
       if (!id || ids.has(id)) throw new Error("资料库包含缺失或重复的物品 ID。");
       ids.add(id);
+      const waveId = normalizeCopy(item.waveId || disciplineWaveId);
+      const story = item.story && typeof item.story === "object" ? item.story : null;
       const enriched = {
         ...item,
         id,
-        disciplineId: item.disciplineId || discipline.id,
+        disciplineId: normalizeCopy(item.disciplineId || disciplineId),
         disciplineName: discipline.name,
         disciplineStage: discipline.stage,
+        waveId,
+        waveTitle: waveById(waveId)?.title || disciplineWave?.title || "",
         discipline,
       };
       enriched.searchText = [
@@ -756,6 +800,10 @@ function initializeCatalogData() {
         enriched.recipeHint,
         enriched.disciplineName,
         enriched.disciplineStage,
+        enriched.waveId,
+        enriched.waveTitle,
+        story?.text,
+        story?.anchorReason,
       ].map(normalizeCopy).join(" ").toLocaleLowerCase("zh-CN");
       flattened.push(enriched);
     }
@@ -787,57 +835,92 @@ function renderCatalogStats() {
 function catalogHref(overrides = {}) {
   const query = {
     q: state.catalog.query,
+    wave: state.catalog.wave,
     discipline: state.catalog.discipline,
+    narrative: state.catalog.narrative,
     status: state.catalog.status,
     page: state.catalog.page,
     ...overrides,
   };
+  const normalizedQuery = normalizeCopy(query.q);
   const params = new URLSearchParams();
-  if (query.q) params.set("q", query.q);
-  if (query.discipline !== "all") params.set("discipline", query.discipline);
-  if (query.status !== "all") params.set("status", query.status);
+  if (normalizedQuery) params.set("q", normalizedQuery);
+  if (CAMPAIGN_WAVE_IDS.has(String(query.wave))) params.set("wave", String(query.wave));
+  if (query.discipline && query.discipline !== "all") params.set("discipline", query.discipline);
+  if (query.narrative === "anchor") params.set("narrative", "anchor");
+  if (query.status && query.status !== "all") params.set("status", query.status);
   if (query.page > 1) params.set("page", String(query.page));
   const serialized = params.toString();
   return serialized ? `/catalog?${serialized}` : "/catalog";
 }
 
+function renderCatalogSelect(select, choices) {
+  if (!select) return;
+  const fragment = document.createDocumentFragment();
+  for (const choice of choices) {
+    fragment.append(createElement("option", {
+      text: choice.title || choice.name,
+      attributes: { value: choice.id },
+    }));
+  }
+  select.replaceChildren(fragment);
+}
 function renderDisciplineControls() {
-  const choices = [{ id: "all", name: "全部学科" }, ...DISCIPLINES];
-  const select = byId("discipline-filter");
-  if (select) {
-    const selectFragment = document.createDocumentFragment();
-    for (const discipline of choices) {
-      selectFragment.append(createElement("option", {
+  const disciplineChoices = [{ id: "all", name: "全部学科" }, ...DISCIPLINES];
+  renderCatalogSelect(catalogField("discipline-filter", "discipline"), disciplineChoices);
+
+  const waveChoices = waveControlOptions();
+  renderCatalogSelect(catalogField("wave-filter", "wave"), waveChoices);
+
+  const narrativeChoices = Object.entries(NARRATIVE_LABELS).map(([id, title]) => ({ id, title }));
+  renderCatalogSelect(catalogField("narrative-filter", "narrative"), narrativeChoices);
+
+  const disciplineStrip = byId("discipline-strip");
+  if (disciplineStrip) {
+    const stripFragment = document.createDocumentFragment();
+    for (const discipline of disciplineChoices) {
+      const id = String(discipline.id);
+      const link = createElement("a", {
+        className: "discipline-chip",
         text: discipline.name,
-        attributes: { value: discipline.id },
-      }));
+        attributes: {
+          href: catalogHref({ discipline: id, page: 1 }),
+          "aria-pressed": id === state.catalog.discipline ? "true" : "false",
+        },
+      });
+      link.dataset.discipline = id;
+      stripFragment.append(link);
     }
-    select.replaceChildren(selectFragment);
+    disciplineStrip.replaceChildren(stripFragment);
   }
 
-  const strip = byId("discipline-strip");
-  if (!strip) return;
-
-  const stripFragment = document.createDocumentFragment();
-  for (const discipline of choices) {
-    const link = createElement("a", {
-      className: "discipline-chip",
-      text: discipline.name,
-      attributes: {
-        href: catalogHref({ discipline: discipline.id, page: 1 }),
-        "aria-pressed": discipline.id === state.catalog.discipline ? "true" : "false",
-      },
-    });
-    link.dataset.discipline = discipline.id;
-    stripFragment.append(link);
+  const waveStrip = byId("wave-strip");
+  if (waveStrip) {
+    const stripFragment = document.createDocumentFragment();
+    for (const wave of waveChoices) {
+      const id = String(wave.id);
+      const link = createElement("a", {
+        className: "wave-chip",
+        text: id === "all" ? wave.title : `${id} · ${wave.title}`,
+        attributes: {
+          href: catalogHref({ wave: id, page: 1 }),
+          "aria-pressed": id === state.catalog.wave ? "true" : "false",
+        },
+      });
+      link.dataset.wave = id;
+      stripFragment.append(link);
+    }
+    waveStrip.replaceChildren(stripFragment);
   }
-  strip.replaceChildren(stripFragment);
 }
 
+
 function filteredCatalogItems() {
-  const query = state.catalog.query.toLocaleLowerCase("zh-CN");
+  const query = normalizeCopy(state.catalog.query).toLocaleLowerCase("zh-CN");
   return state.catalog.allItems.filter((item) => {
+    if (state.catalog.wave !== "all" && item.waveId !== state.catalog.wave) return false;
     if (state.catalog.discipline !== "all" && item.disciplineId !== state.catalog.discipline) return false;
+    if (state.catalog.narrative === "anchor" && !hasNarrativeStory(item)) return false;
     if (state.catalog.status !== "all" && item.status !== state.catalog.status) return false;
     return !query || item.searchText.includes(query);
   });
@@ -847,12 +930,17 @@ function initializeCatalogStateFromUrl() {
   const params = new URL(window.location.href).searchParams;
   const disciplineIds = new Set(DISCIPLINES.map((discipline) => String(discipline.id)));
   const requestedDiscipline = normalizeCopy(params.get("discipline") || "all");
+  const requestedWave = normalizeCopy(params.get("wave") || "all");
+  const requestedNarrative = normalizeCopy(params.get("narrative") || "all");
   const requestedStatus = normalizeCopy(params.get("status") || "all");
   const rawPage = normalizeCopy(params.get("page"));
   const parsedPage = rawPage && /^\d+$/.test(rawPage) ? Number(rawPage) : 1;
+  const queryValue = params.has("q") ? params.get("q") : params.get("query");
 
-  state.catalog.query = normalizeCopy(params.get("q"));
+  state.catalog.query = normalizeCopy(queryValue);
+  state.catalog.wave = CAMPAIGN_WAVE_IDS.has(requestedWave) ? requestedWave : "all";
   state.catalog.discipline = disciplineIds.has(requestedDiscipline) ? requestedDiscipline : "all";
+  state.catalog.narrative = requestedNarrative === "anchor" ? "anchor" : "all";
   state.catalog.status = Object.prototype.hasOwnProperty.call(STATUS_LABELS, requestedStatus)
     ? requestedStatus
     : "all";
@@ -860,12 +948,16 @@ function initializeCatalogStateFromUrl() {
 }
 
 function setCatalogControlValues() {
-  const search = byId("catalog-search");
-  const discipline = byId("discipline-filter");
-  const status = byId("status-filter");
+  const search = catalogField("catalog-search", "q", "query");
+  const wave = catalogField("wave-filter", "wave");
+  const discipline = catalogField("discipline-filter", "discipline");
+  const narrative = catalogField("narrative-filter", "narrative");
+  const status = catalogField("status-filter", "status");
   const page = byId("catalog-controls")?.querySelector('[name="page"]');
   if (search) search.value = state.catalog.query;
+  if (wave) wave.value = state.catalog.wave;
   if (discipline) discipline.value = state.catalog.discipline;
+  if (narrative) narrative.value = state.catalog.narrative;
   if (status) status.value = state.catalog.status;
   if (page) page.value = String(state.catalog.page);
 }
@@ -887,10 +979,12 @@ function configureCatalogPageLink(link, page, enabled, rel) {
       link.href = catalogHref({ page });
       link.rel = rel;
       link.removeAttribute("aria-disabled");
+      link.removeAttribute("tabindex");
     } else {
       link.removeAttribute("href");
       link.removeAttribute("rel");
       link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
     }
     return;
   }
@@ -925,7 +1019,7 @@ function renderCatalog({ updateUrl = false, preserveSearchInput = false } = {}) 
       const row = createElement("tr");
       const itemHref = `/items/${encodeURIComponent(item.id)}`;
 
-      const nameCell = createElement("td", { attributes: { "data-label": "物品" } });
+      const nameCell = createElement("th", { attributes: { "data-label": "物品", scope: "row" } });
       nameCell.append(
         createElement("a", {
           className: "cell-title",
@@ -939,6 +1033,11 @@ function renderCatalog({ updateUrl = false, preserveSearchInput = false } = {}) 
       disciplineCell.append(createElement("a", {
         text: item.disciplineName,
         attributes: { href: `/disciplines/${encodeURIComponent(item.disciplineId)}` },
+      }));
+      const waveCell = createElement("td", { attributes: { "data-label": "波次" } });
+      waveCell.append(createElement("a", {
+        text: item.waveId,
+        attributes: { href: `/planning#wave-${encodeURIComponent(item.waveId || "")}` },
       }));
       const tierCell = createElement("td", {
         text: [item.tier, item.type].filter(Boolean).join(" · "),
@@ -957,7 +1056,7 @@ function renderCatalog({ updateUrl = false, preserveSearchInput = false } = {}) 
         attributes: { href: itemHref, "aria-label": `查看 ${item.name} 详情` },
       }));
 
-      row.append(nameCell, disciplineCell, tierCell, statusCell, actionCell);
+      row.append(nameCell, disciplineCell, waveCell, tierCell, statusCell, actionCell);
       fragment.append(row);
     }
     body.replaceChildren(fragment);
@@ -983,12 +1082,21 @@ function renderCatalog({ updateUrl = false, preserveSearchInput = false } = {}) 
     if (chip.tagName === "A") chip.href = catalogHref({ discipline, page: 1 });
   }
 
+  const waveStrip = byId("wave-strip");
+  for (const chip of waveStrip?.querySelectorAll(".wave-chip") || []) {
+    const wave = chip.dataset.wave || "all";
+    chip.setAttribute("aria-pressed", String(wave === state.catalog.wave));
+    if (chip.tagName === "A") chip.href = catalogHref({ wave, page: 1 });
+  }
+
   if (updateUrl) replaceCatalogUrl();
 }
 
 function resetCatalogFilters() {
   state.catalog.query = "";
+  state.catalog.wave = "all";
   state.catalog.discipline = "all";
+  state.catalog.narrative = "all";
   state.catalog.status = "all";
   state.catalog.page = 1;
   setCatalogControlValues();
@@ -1017,21 +1125,12 @@ function initCatalog() {
     renderDisciplineControls();
     renderCatalog();
   } catch (error) {
-    const frame = byId("catalog-table-frame");
-    const empty = byId("catalog-empty");
-    const stats = byId("catalog-stats");
-    const strip = byId("discipline-strip");
     const result = byId("catalog-result-count");
-    if (frame) frame.hidden = true;
-    if (empty) empty.hidden = true;
-    if (stats) stats.replaceChildren();
-    controls.setAttribute("aria-disabled", "true");
-    if (strip) strip.replaceChildren();
-    if (result) {
-      result.replaceChildren(createElement("div", {
-        className: "inline-error",
-        text: errorMessage(error, "资料库加载失败。"),
-      }));
+    const liveRegion = result?.closest("[aria-live]")
+      || byId("catalog")?.querySelector("[aria-live]")
+      || document.querySelector(".catalog-result-bar[aria-live]");
+    if (liveRegion) {
+      setText(result && liveRegion.contains(result) ? result : liveRegion, errorMessage(error, "资料库加载失败。"));
     }
     return;
   }
@@ -1039,12 +1138,17 @@ function initCatalog() {
   controls.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = new FormData(controls);
+    const queryValue = data.has("q") ? data.get("q") : data.get("query");
+    const wave = normalizeCopy(data.get("wave") || "all");
     const discipline = normalizeCopy(data.get("discipline") || "all");
+    const narrative = normalizeCopy(data.get("narrative") || "all");
     const status = normalizeCopy(data.get("status") || "all");
-    state.catalog.query = normalizeCopy(data.get("q"));
-    state.catalog.discipline = DISCIPLINES.some((entry) => entry.id === discipline)
+    state.catalog.query = normalizeCopy(queryValue);
+    state.catalog.wave = CAMPAIGN_WAVE_IDS.has(wave) ? wave : "all";
+    state.catalog.discipline = DISCIPLINES.some((entry) => String(entry.id) === discipline)
       ? discipline
       : "all";
+    state.catalog.narrative = narrative === "anchor" ? "anchor" : "all";
     state.catalog.status = Object.prototype.hasOwnProperty.call(STATUS_LABELS, status)
       ? status
       : "all";
@@ -1053,7 +1157,7 @@ function initCatalog() {
   });
 
   let searchFrame = 0;
-  byId("catalog-search")?.addEventListener("input", (event) => {
+  catalogField("catalog-search", "q", "query")?.addEventListener("input", (event) => {
     window.cancelAnimationFrame(searchFrame);
     searchFrame = window.requestAnimationFrame(() => {
       state.catalog.query = event.target.value;
@@ -1062,14 +1166,33 @@ function initCatalog() {
     });
   });
 
-  byId("discipline-filter")?.addEventListener("change", (event) => {
-    state.catalog.discipline = event.target.value;
+  catalogField("wave-filter", "wave")?.addEventListener("change", (event) => {
+    const wave = normalizeCopy(event.target.value);
+    state.catalog.wave = CAMPAIGN_WAVE_IDS.has(wave) ? wave : "all";
     state.catalog.page = 1;
     renderCatalog({ updateUrl: true });
   });
 
-  byId("status-filter")?.addEventListener("change", (event) => {
-    state.catalog.status = event.target.value;
+  catalogField("discipline-filter", "discipline")?.addEventListener("change", (event) => {
+    const discipline = normalizeCopy(event.target.value);
+    state.catalog.discipline = DISCIPLINES.some((entry) => String(entry.id) === discipline)
+      ? discipline
+      : "all";
+    state.catalog.page = 1;
+    renderCatalog({ updateUrl: true });
+  });
+
+  catalogField("narrative-filter", "narrative")?.addEventListener("change", (event) => {
+    state.catalog.narrative = normalizeCopy(event.target.value) === "anchor" ? "anchor" : "all";
+    state.catalog.page = 1;
+    renderCatalog({ updateUrl: true });
+  });
+
+  catalogField("status-filter", "status")?.addEventListener("change", (event) => {
+    const status = normalizeCopy(event.target.value);
+    state.catalog.status = Object.prototype.hasOwnProperty.call(STATUS_LABELS, status)
+      ? status
+      : "all";
     state.catalog.page = 1;
     renderCatalog({ updateUrl: true });
   });
@@ -1087,10 +1210,23 @@ function initCatalog() {
   }
 
   byId("discipline-strip")?.addEventListener("click", (event) => {
-    const chip = event.target.closest("[data-discipline]");
+    const chip = event.target?.closest?.("[data-discipline]");
     if (!chip || !shouldHandleCatalogLink(event)) return;
     event.preventDefault();
-    state.catalog.discipline = chip.dataset.discipline;
+    const discipline = normalizeCopy(chip.dataset.discipline || "all");
+    state.catalog.discipline = DISCIPLINES.some((entry) => String(entry.id) === discipline)
+      ? discipline
+      : "all";
+    state.catalog.page = 1;
+    renderCatalog({ updateUrl: true });
+  });
+
+  byId("wave-strip")?.addEventListener("click", (event) => {
+    const chip = event.target?.closest?.("[data-wave]");
+    if (!chip || !shouldHandleCatalogLink(event)) return;
+    event.preventDefault();
+    const wave = normalizeCopy(chip.dataset.wave || "all");
+    state.catalog.wave = CAMPAIGN_WAVE_IDS.has(wave) ? wave : "all";
     state.catalog.page = 1;
     renderCatalog({ updateUrl: true });
   });

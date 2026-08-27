@@ -51,6 +51,10 @@ public class GuiderBook extends BaseGuider {
 
     }
 
+    public static PlayerData.GuideView evaluate(CategoryObject category, PlayerData playerData) {
+        return playerData.evaluateGuide(category);
+    }
+
     @Override
     public boolean allowPutItem(String inventorySymbol) {
 
@@ -192,12 +196,16 @@ public class GuiderBook extends BaseGuider {
         }
 
         int startSlot = 10, i = -1;
+        int shownOnPage = 0;
 
         for ( CategoryObject categoryObject : new ArrayList<>(category.getChildren()) ) {
 
             ++i;
-            if ( i < start - 1 ) {
+            if ( i < start ) {
                 continue;
+            }
+            if (shownOnPage++ >= 21) {
+                break;
             }
 
             final boolean[] unlocked = { categoryObject.isUnlockedBy(playerData) };
@@ -208,7 +216,8 @@ public class GuiderBook extends BaseGuider {
 
                 @Override
                 public boolean onClick(InventoryClickEvent event) {
-                    boolean adminBypass = event.isShiftClick() && player.hasPermission("talex.soultech.admin");
+                    boolean adminBypass = player.hasPermission("talex.soultech.admin")
+                            && (event.isShiftClick() || categoryObject.getCategoryType() == CategoryObject.CategoryType.MENU);
 
                     if (adminBypass && categoryObject.getCategoryType() == CategoryObject.CategoryType.OBJECT) {
                         categoryObject.getRecipeObject().getDisplayItem().addToPlayer(player);
@@ -219,29 +228,32 @@ public class GuiderBook extends BaseGuider {
 
                     if (!unlocked[0]) {
                         if (adminBypass) {
-                            new GuiderBook(playerData, 0, categoryObject, instance).open();
-                            return true;
+                            PlayerData.UnlockAttempt attempt = playerData.tryUnlock(
+                                    categoryObject, PlayerData.UnlockEvidence.admin("admin_shift"));
+                            if (attempt.unlocked()) unlocked[0] = true;
+                        } else {
+                            PlayerData.UnlockEvidence evidence = categoryObject.requiresLevelPayment()
+                                    ? PlayerData.UnlockEvidence.paid("guide_click")
+                                    : PlayerData.UnlockEvidence.regular("guide_click");
+                            PlayerData.UnlockAttempt attempt = playerData.tryUnlock(categoryObject, evidence);
+                            if (!attempt.unlocked()) {
+                                String message = switch (attempt.failure()) {
+                                    case PREREQUISITES -> "§c请先解锁全部前置学科!";
+                                    case PAYMENT_REQUIRED -> "§c该学科需要经验解锁，请使用付费解锁证据.";
+                                    case INSUFFICIENT_LEVEL -> "§c你的等级不足以解锁该学科.";
+                                    case MISSING_EVIDENCE, INVALID_GUIDE_STATE -> "§c暂时无法验证解锁证据.";
+                                    default -> "§c无法解锁该学科.";
+                                };
+                                playerData.actionBar(message).playSound(Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
+                                return true;
+                            }
+                            unlocked[0] = true;
                         }
-                        if (!categoryObject.arePrepositionsUnlockedBy(playerData)) {
-                            playerData.actionBar("§c请先解锁全部前置学科!")
-                                    .playSound(Sound.BLOCK_ANVIL_LAND, 1.1F, 1.1F);
-                            return true;
-                        }
-
-                        int levelCost = categoryObject.getUnlockLevelCost();
-                        if (levelCost > 0 && player.getLevel() < levelCost) {
-                            playerData.actionBar("§c解锁 " + categoryName + " §c需要 §e" + levelCost
-                                            + " §c级经验，你当前只有 §e" + player.getLevel() + " §c级.")
+                        if (!unlocked[0]) {
+                            playerData.actionBar("§c无法验证管理员解锁证据.")
                                     .playSound(Sound.ENTITY_VILLAGER_NO, 1.0F, 1.0F);
                             return true;
                         }
-
-                        if (levelCost > 0) {
-                            player.giveExpLevels(-levelCost);
-                            playerData.addPaidCategoryUnlock(categoryObject.getID());
-                        }
-                        playerData.addCategoryUnlock(categoryObject.getID());
-                        unlocked[0] = true;
                         playerData.playSound(Sound.ENTITY_PLAYER_LEVELUP, 1.2F, 1.1F)
                                 .title("§a✔", "§e已解锁 " + categoryName, 5, 25, 15);
                     }
@@ -283,9 +295,6 @@ public class GuiderBook extends BaseGuider {
                                     "§7  等更多 " + (categoryObject.getPreposition().size() - 3) + " 项..."
                             );
                         }
-                    } else if (!categoryObject.requiresLevelPayment()) {
-                        playerData.addCategoryUnlock(categoryObject.getID());
-                        unlocked[0] = true;
                     }
 
                     itemBuilder.addLoreLine("");
@@ -310,7 +319,7 @@ public class GuiderBook extends BaseGuider {
                     if (categoryObject.getCategoryType() == CategoryObject.CategoryType.MENU
                             && player.hasPermission("talex.soultech.admin")) {
                         itemBuilder.addLoreLine("");
-                        itemBuilder.addLoreLine("§eSHIFT + 点击 §a强制进入类别");
+                        itemBuilder.addLoreLine("§a管理员点击将强制进入类别");
                     }
 
                     itemBuilder.isTrueAccessEnchant(unlocked[0], Enchantment.UNBREAKING, 1);
@@ -335,19 +344,11 @@ public class GuiderBook extends BaseGuider {
 
         }
 
-        int maxPage = category.getChildren().size() / 21;
-
-        if ( category.getChildren().size() % 21 != 0 ) {
-            maxPage++;
-        }
+        int maxPage = (category.getChildren().size() + 20) / 21;
 
         if ( maxPage != 0 ) {
 
-            int nowPage = start / 21;
-
-            if ( startSlot % 21 != 0 ) {
-                nowPage++;
-            }
+            int nowPage = (start / 21) + 1;
 
             if ( nowPage == 1 && maxPage != 1 ) {
 

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "talexsoultech:item/agroecology_animal_breeding_probe"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:arc_welder",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/arc_welder"
+        }
+      },
+      {
+        "when": "talexsoultech:personal_charger",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/personal_charger"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/blaze_rod"
+    }
+  }
+}

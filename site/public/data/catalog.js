@@ -1,3 +1,5 @@
+import { CAMPAIGN_WAVES } from './progression.js';
+
 const STATUS = Object.freeze({
   implemented: 'implemented',
   planned: 'planned',
@@ -16,6 +18,45 @@ const TIERS = Object.freeze({
   3: Object.freeze(['VII', 'VIII', 'IX']),
   4: Object.freeze(['X', 'XI', 'XII']),
 });
+const TIER_RANK = Object.freeze({
+  I: 1,
+  II: 2,
+  III: 3,
+  IV: 4,
+  V: 5,
+  VI: 6,
+  VII: 7,
+  VIII: 8,
+  IX: 9,
+  X: 10,
+  XI: 11,
+  XII: 12,
+});
+
+const PROGRESSION_INDEX = (() => {
+  const disciplineById = new Map();
+  const anchorByFamilyKey = new Map();
+  const storyByItemId = new Map();
+  for (const wave of CAMPAIGN_WAVES) {
+    for (const arc of wave.disciplineArcs) {
+      disciplineById.set(arc.id, { wave, arc });
+    }
+    for (const anchor of wave.anchors) {
+      anchorByFamilyKey.set(anchor.familyKey, { wave, anchor });
+      for (const story of anchor.stories) {
+        storyByItemId.set(story.itemId, {
+          waveId: wave.id,
+          familyKey: anchor.familyKey,
+          order: story.order,
+          text: story.text,
+          anchorReason: anchor.reason,
+        });
+      }
+    }
+  }
+  return Object.freeze({ disciplineById, anchorByFamilyKey, storyByItemId });
+})();
+
 
 const I = (slug, name, tier, type, purpose, recipeHint, status = STATUS.planned) => Object.freeze({
   slug,
@@ -132,6 +173,40 @@ const FAMILY_FORMS = Object.freeze({
     Object.freeze({ slug: 'gate', suffix: '量子门', type: '量子设施', purpose: (operation) => `放置并稳定供能后，每 20 tick ${operation}。` }),
   ]),
 });
+const EXPLICIT_FAMILY_KINDS = Object.freeze({
+  'basic.wood-compression': 'resource',
+  'basic.log-compression': 'resource',
+  'basic.stick-compression': 'resource',
+  'basic.breaking-starter': 'machine',
+  'basic.breaking-advanced': 'machine',
+  'basic.sieving': 'resource',
+  'materials.fire-materials': 'resource',
+  'materials.reinforced-thread': 'resource',
+  'botany.growth-aid': 'plant',
+  'botany.seed-cultivation': 'plant',
+  'botany.mushroom-cultivation': 'plant',
+  'botany.resin-harvesting': 'resource',
+  'defense.heat-armor': 'defense',
+  'defense.mobility-armor': 'defense',
+  'technology.electric-components': 'energy',
+  'technology.thermal-generation': 'energy',
+  'technology.energy-storage': 'energy',
+  'technology.fluid-tank': 'fluid',
+  'technology.registered-machines-a': 'machine',
+  'technology.registered-machines-b': 'machine',
+  'magic.wand-core': 'magic',
+  'magic.display-ritual': 'magic',
+  'space.space-dust': 'space',
+});
+
+function familyKindFor(familyKey, family) {
+  const familyKind = family.kind ?? EXPLICIT_FAMILY_KINDS[familyKey];
+  if (!familyKind || !Object.prototype.hasOwnProperty.call(FAMILY_FORMS, familyKind)) {
+    throw new Error(`缺少 ${familyKey} 的 family kind`);
+  }
+  return familyKind;
+}
+
 
 function plannedEntries(family, stage) {
   const forms = FAMILY_FORMS[family.kind];
@@ -152,25 +227,84 @@ function plannedEntries(family, stage) {
 }
 
 function assembleDiscipline(blueprint) {
-  const families = blueprint.families.map(({ id, name, concept }) => Object.freeze({ id, name, concept }));
+  const disciplineProgression = PROGRESSION_INDEX.disciplineById.get(blueprint.id);
+  if (!disciplineProgression) {
+    throw new Error(`缺少 ${blueprint.id} 的主线波次与职责`);
+  }
+  const { wave, arc } = disciplineProgression;
+  const families = blueprint.families.map(({ id, name, concept, kind, stem, operation, ingredients }) => {
+    const familyKey = `${blueprint.id}.${id}`;
+    const anchor = PROGRESSION_INDEX.anchorByFamilyKey.get(familyKey);
+    return Object.freeze({
+      id,
+      name,
+      concept,
+      key: familyKey,
+      familyKind: familyKindFor(familyKey, { kind }),
+      stem: stem ?? name,
+      operation: operation ?? null,
+      ingredients: ingredients ?? null,
+      isNarrativeAnchor: Boolean(anchor),
+      anchorReason: anchor?.anchor.reason ?? null,
+    });
+  });
+  const familyByKey = new Map(families.map((family) => [family.key, family]));
   const items = blueprint.families.flatMap((family) => {
+    const familyKey = `${blueprint.id}.${family.id}`;
+    const familyMeta = familyByKey.get(familyKey);
+    const familyKind = familyMeta.familyKind;
+    const familyForms = FAMILY_FORMS[familyKind];
     const entries = family.entries ?? plannedEntries(family, blueprint.stage);
-    return entries.map((entry) => Object.freeze({
-      id: `${blueprint.id}.${family.id}.${entry.slug}`,
-      name: entry.name,
-      tier: entry.tier,
-      type: entry.type,
-      purpose: entry.purpose,
-      status: entry.status,
-      disciplineId: blueprint.id,
-      family: family.name,
-      recipeHint: entry.recipeHint,
-    }));
+    const familyItems = entries.map((entry, declarationIndex) => {
+      const id = `${blueprint.id}.${family.id}.${entry.slug}`;
+      const story = PROGRESSION_INDEX.storyByItemId.get(id);
+      return {
+        id,
+        name: entry.name,
+        tier: entry.tier,
+        type: entry.type,
+        purpose: entry.purpose,
+        status: entry.status,
+        disciplineId: blueprint.id,
+        family: family.name,
+        familyId: family.id,
+        familyKey,
+        familyKind,
+        form: null,
+        waveId: wave.id,
+        recipeHint: entry.recipeHint,
+        isNarrativeAnchor: Boolean(story),
+        story: story
+          ? Object.freeze({ order: story.order, text: story.text, anchorReason: story.anchorReason })
+          : null,
+        previousItemId: null,
+        nextItemId: null,
+        declarationIndex,
+      };
+    });
+    const ordered = [...familyItems].sort((left, right) => (
+      TIER_RANK[left.tier] - TIER_RANK[right.tier]
+      || left.declarationIndex - right.declarationIndex
+    ));
+    ordered.forEach((item, index) => {
+      item.form = familyForms[index].slug;
+      item.previousItemId = ordered[index - 1]?.id ?? null;
+      item.nextItemId = ordered[index + 1]?.id ?? null;
+    });
+    return familyItems.map(({ declarationIndex, ...item }) => Object.freeze(item));
   });
   return Object.freeze({
     id: blueprint.id,
     stage: blueprint.stage,
     stageLabel: STAGE_LABELS[blueprint.stage],
+    waveId: wave.id,
+    progression: Object.freeze({
+      role: arc.role,
+      whyNow: arc.whyNow,
+      input: arc.input,
+      output: arc.output,
+      recovery: arc.recovery,
+    }),
     name: blueprint.name,
     tagline: blueprint.tagline,
     overview: blueprint.overview,
@@ -360,7 +494,7 @@ const BLUEPRINTS = Object.freeze([
     families: [
       E('wand-core', '法杖与注魔', '现有法杖和注魔核心构成魔能使用基础。', [
         I('magic-wand', '魔力手杖 I', 'II', '法术工具', '手持施放时消耗并显示法杖的魔能储量。', '按已注册魔力手杖配方制作', STATUS.implemented),
-        I('mystery-wand', '恐怖手杖 I', 'III', '法术工具', '手持施放时提供无限魔能标记并执行现有法杖效果。', '按已注册恐怖手杖配方制作', STATUS.implemented),
+        I('mystery-wand', '恐怖手杖 I', 'III', '法术工具', '保留历史的无限魔能标记，仅用于 legacy 法杖效果；不向电网、运输或跨域作业提供能量或成本来源。', '按已注册恐怖手杖配方制作', STATUS.implemented),
         I('injection-core', '注魔核心', 'III', '魔法核心', '作为注魔配方的核心输入，承载物品的魔能注入过程。', '按已注册注魔核心配方制作', STATUS.implemented),
       ]),
       E('display-ritual', '魔力展示', '现有魔力展示台可呈现放入的物品。', [
@@ -496,7 +630,7 @@ const BLUEPRINTS = Object.freeze([
     overview: '水利工程规划液体网络、灌溉与防洪，让水、蒸汽、盐水和冰的处理具有清晰容量与流向。',
     learningGoals: ['识别水源、流体容量和管网方向。', '为农田、机器和建筑分配不同液体用途。', '在洪水与堵塞前设置可见警报。'],
     families: [
-      P('source-capture', '水源取用', '把自然水源接入受限管网。', '水源取用', 'fluid', '每 40 tick 从相邻水源方块抽取 1 单位水且不删除水源', '铁锭、玻璃与水桶'),
+      P('source-capture', '水源取用', '把带 sourceId 的有限水源账本接入受限管网。', '水源取用', 'fluid', '每次转移先从同一 sourceId 的有限 source ledger 扣除配额；容量、质量或能量不足时停机。原版水方块不删除，但不能重复 credit。', '铁锭、玻璃与水桶'),
       P('filtration', '净水过滤', '移除液体中的颗粒标记。', '净水过滤', 'fluid', '每处理 1 桶浑水输出 1 桶净水并消耗 1 点滤芯耐久', '沙子、木炭与玻璃'),
       P('pressure-pump', '压力泵送', '让液体跨越有限高度差。', '压力泵送', 'fluid', '每 20 tick 将 1 单位液体提升至上方 8 格内的连接管道', '铁锭、活塞与红石粉'),
       P('canal-routing', '渠道分流', '把水流分配给两个明确出口。', 'fluid 分流', 'fluid', '当主储罐超过 50% 时将液体优先送往右侧输出管', '铁锭、红石比较器与玻璃'),
@@ -547,8 +681,8 @@ const BLUEPRINTS = Object.freeze([
   D({
     id: 'energy', stage: 3, name: '能源工程',
     tagline: '从单台火力机走向可调度、可保护、可度量的能量系统。',
-    overview: '能源工程规划多来源供能、热量储存、变压、保护和负荷响应，避免设备在无反馈时失控。',
-    learningGoals: ['读懂发电、储能、损耗和负载四类状态。', '为不同功率设备配置正确的传输边界。', '在超载前让系统主动保护而不是静默损坏。'],
+    overview: '能源工程规划多来源供能、热量储存、周期通量调配、共享线路保护和负荷响应，避免设备在无反馈时失控。',
+    learningGoals: ['读懂发电、储能、损耗和负载四类状态。', '为不同负载配置正确的周期通量与共享线路边界。', '在超载前让系统主动保护而不是静默损坏。'],
     families: [
       P('solid-fuel', '固体燃料', '让燃料热值与消耗速率可被观察。', '固体燃料', 'energy', '每 20 tick 产出固定 2 点热能并记录剩余燃料 tick', '煤炭、木炭与铁锭'),
       P('biomass', '生物质能', '把农业副产物转为低速稳定能源。', '生物质能', 'energy', '每 40 tick 消耗 4 个植物掉落物并产出 1 点能量', '堆肥、木板与电路板'),
@@ -557,7 +691,7 @@ const BLUEPRINTS = Object.freeze([
       P('wind-unit', '风力机组', '依据高度和天气提供可变输出。', '风力机组', 'energy', '在 Y=100 以上且下雨时每 20 tick 产出 2 点能量', '木板、铁锭与线'),
       P('heat-storage', '蓄热系统', '把短时过剩热量存为可回收能量。', '蓄热系统', 'energy', '在发电富余时每 20 tick 存入 2 点热能并在缺电时释放', '火焰锭、陶瓷外壳与铁锭'),
       P('battery-bank', '电池阵列', '将多个储能单元组合为容量池。', '电池阵列', 'energy', '把相邻 4 个蓄电池的可用容量汇总为一个读数', '基础蓄电池、铁锭与电路板'),
-      P('transformer', '电压变换', '控制跨等级能量传输。', '电压变换', 'energy', '把输入能量限制为每 20 tick 4 点并拒绝超出部分', '铜锭、铁锭与红石粉'),
+      P('transformer', '通量调配', '限制周期通量与共享线路吞吐，只使用统一 milli-SE 能量域。', '通量调配', 'energy', '按周期限制 milli-SE 输入与输出通量，容量或共享线路超限时拒绝请求。', '铜锭、铁锭与红石粉'),
       P('grid-protection', '电网保护', '在异常负载时隔离故障支路。', '电网保护', 'energy', '当支路连续 40 tick 超过额定输入时断开该支路', '红石比较器、铁锭与电路板'),
       P('load-response', '负荷响应', '让非关键机器在电量不足时有序停机。', '负荷响应', 'energy', '当储能低于 15% 时按优先级停止低优先级机器', '书、红石粉与电路板'),
     ],
@@ -767,8 +901,13 @@ const ALL_ITEMS = Object.freeze(DISCIPLINES.flatMap((discipline) => discipline.i
 const CATALOG_STATS = Object.freeze({
   disciplineCount: DISCIPLINES.length,
   itemCount: ALL_ITEMS.length,
+  familyCount: DISCIPLINES.reduce((count, discipline) => count + discipline.families.length, 0),
+  waveCount: CAMPAIGN_WAVES.length,
   implementedCount: ALL_ITEMS.filter((item) => item.status === STATUS.implemented).length,
   plannedCount: ALL_ITEMS.filter((item) => item.status === STATUS.planned).length,
+  narrativeAnchorFamilyCount: DISCIPLINES.reduce((count, discipline) => count + discipline.families.filter((family) => family.isNarrativeAnchor).length, 0),
+  storyCount: ALL_ITEMS.filter((item) => item.story !== null).length,
+  familyLinkCount: CAMPAIGN_WAVES.reduce((count, wave) => count + wave.familyLinks.length, 0),
 });
 
 function assertCatalog(condition, message) {
@@ -778,53 +917,202 @@ function assertCatalog(condition, message) {
 }
 
 function validateCatalog(disciplines, stats) {
+  const expectedWaveIds = Array.from({ length: 9 }, (_, index) => `W${index + 1}`);
+  assertCatalog(Array.isArray(CAMPAIGN_WAVES), 'campaign waves must be an array');
+  assertCatalog(CAMPAIGN_WAVES.length === 9, `expected 9 campaign waves, received ${CAMPAIGN_WAVES.length}`);
+  const waveById = new Map();
+  const progressionDisciplineIds = new Set();
+  const anchorFamilyKeys = new Set();
+  const storyIds = new Set();
+  const familyLinkKeys = new Set();
+  let familyLinkCount = 0;
+  for (const [index, wave] of CAMPAIGN_WAVES.entries()) {
+    assertCatalog(wave.id === expectedWaveIds[index], `campaign wave order must be W1-W9, received ${wave.id}`);
+    assertCatalog(wave.order === index + 1, `${wave.id} has invalid order`);
+    assertCatalog(!waveById.has(wave.id), `duplicate campaign wave ${wave.id}`);
+    waveById.set(wave.id, wave);
+    assertCatalog(wave.disciplineIds.length === 3, `${wave.id} must contain exactly 3 disciplines`);
+    assertCatalog(wave.disciplineArcs.length === 3, `${wave.id} must contain exactly 3 discipline arcs`);
+    assertCatalog(wave.anchors.length === 6, `${wave.id} must contain exactly 6 anchors`);
+    const waveArcIds = new Set();
+    for (const arc of wave.disciplineArcs) {
+      assertCatalog(!waveArcIds.has(arc.id), `${wave.id} has duplicate discipline arc ${arc.id}`);
+      assertCatalog(wave.disciplineIds.includes(arc.id), `${wave.id} arc ${arc.id} is not listed by disciplineIds`);
+      waveArcIds.add(arc.id);
+      progressionDisciplineIds.add(arc.id);
+      for (const key of ['role', 'whyNow', 'input', 'output', 'recovery']) {
+        assertCatalog(typeof arc[key] === 'string' && arc[key].trim().length > 0, `${arc.id} has an invalid progression ${key}`);
+      }
+    }
+    for (const anchor of wave.anchors) {
+      const expectedFamilyKey = `${anchor.disciplineId}.${anchor.familyId}`;
+      assertCatalog(wave.disciplineIds.includes(anchor.disciplineId), `${wave.id} anchor ${anchor.familyKey} points outside its wave`);
+      assertCatalog(anchor.familyKey === expectedFamilyKey, `${anchor.familyKey} is not a stable discipline.family key`);
+      assertCatalog(!anchorFamilyKeys.has(anchor.familyKey), `duplicate narrative anchor ${anchor.familyKey}`);
+      assertCatalog(anchor.stories.length === 3, `${anchor.familyKey} must contain exactly 3 stories`);
+      assertCatalog(typeof anchor.reason === 'string' && anchor.reason.trim().length > 0, `${anchor.familyKey} has no anchor reason`);
+      anchorFamilyKeys.add(anchor.familyKey);
+      const orders = anchor.stories.map((story) => story.order).sort((left, right) => left - right);
+      assertCatalog(orders.join(',') === '1,2,3', `${anchor.familyKey} story order must be 1,2,3`);
+      for (const story of anchor.stories) {
+        assertCatalog(!storyIds.has(story.itemId), `duplicate narrative story ${story.itemId}`);
+        assertCatalog(typeof story.text === 'string' && story.text.trim().length > 0, `${story.itemId} has empty story text`);
+        assertCatalog(!story.text.includes('Tier'), `${story.itemId} story text must not contain Tier metadata`);
+        assertCatalog(!story.text.includes(story.itemId), `${story.itemId} story text must not repeat its item ID`);
+        storyIds.add(story.itemId);
+      }
+    }
+    for (const link of wave.familyLinks) {
+      assertCatalog(link.kind === 'supports', `${wave.id} has unsupported family link kind ${link.kind}`);
+      assertCatalog(typeof link.from === 'string' && typeof link.to === 'string', `${wave.id} has an invalid family link endpoint`);
+      assertCatalog(link.from !== link.to, `${wave.id} has a self-referencing family link ${link.from}`);
+      const familyLinkKey = `${link.kind}:${link.from}->${link.to}`;
+      assertCatalog(!familyLinkKeys.has(familyLinkKey), `${wave.id} has duplicate family link ${familyLinkKey}`);
+      familyLinkKeys.add(familyLinkKey);
+      assertCatalog(typeof link.reason === 'string' && link.reason.trim().length > 0, `${wave.id} has a family link without a reason`);
+      familyLinkCount += 1;
+    }
+  }
+  assertCatalog(progressionDisciplineIds.size === 27, `expected 27 progression discipline arcs, received ${progressionDisciplineIds.size}`);
+  assertCatalog(anchorFamilyKeys.size === 54, `expected 54 unique narrative anchor families, received ${anchorFamilyKeys.size}`);
+  assertCatalog(storyIds.size === 162, `expected 162 unique narrative stories, received ${storyIds.size}`);
+  assertCatalog(familyLinkCount === 96, `expected 96 unique soft family links, received ${familyLinkCount}`);
+
   assertCatalog(disciplines.length === 27, `expected 27 disciplines, received ${disciplines.length}`);
   const disciplineIds = new Set();
   const itemIds = new Set();
+  const familyByKey = new Map();
+  const catalogItemsByFamily = new Map();
   let itemCount = 0;
   let implementedCount = 0;
   let plannedCount = 0;
+  let narrativeFamilyCount = 0;
+  let narrativeStoryCount = 0;
 
   for (const discipline of disciplines) {
     assertCatalog(!disciplineIds.has(discipline.id), `duplicate discipline id ${discipline.id}`);
     disciplineIds.add(discipline.id);
+    assertCatalog(waveById.has(discipline.waveId), `${discipline.id} points at an unknown wave ${discipline.waveId}`);
+    assertCatalog(waveById.get(discipline.waveId).disciplineIds.includes(discipline.id), `${discipline.id} is not listed in ${discipline.waveId}`);
+    assertCatalog(discipline.progression && typeof discipline.progression === 'object', `${discipline.id} has no progression arc`);
+    for (const key of ['role', 'whyNow', 'input', 'output', 'recovery']) {
+      assertCatalog(typeof discipline.progression[key] === 'string' && discipline.progression[key].trim().length > 0, `${discipline.id} has an invalid progression ${key}`);
+    }
     assertCatalog(Number.isInteger(discipline.stage) && discipline.stage >= 1 && discipline.stage <= 4, `invalid stage for ${discipline.id}`);
     assertCatalog(discipline.learningGoals.length === 3, `${discipline.id} must contain exactly 3 learning goals`);
     assertCatalog(discipline.families.length === 10, `${discipline.id} must contain exactly 10 family concepts`);
     assertCatalog(discipline.items.length === 30, `${discipline.id} must contain exactly 30 items`);
 
     const familyNames = new Set();
+    const familyIds = new Set();
     for (const family of discipline.families) {
+      const expectedFamilyKey = `${discipline.id}.${family.id}`;
       assertCatalog(typeof family.id === 'string' && family.id.length > 0, `${discipline.id} has an invalid family id`);
+      assertCatalog(!familyIds.has(family.id), `${discipline.id} has duplicate family id ${family.id}`);
       assertCatalog(typeof family.name === 'string' && family.name.length > 0, `${discipline.id} has an invalid family name`);
       assertCatalog(typeof family.concept === 'string' && family.concept.length > 0, `${discipline.id} has an invalid family concept`);
       assertCatalog(!familyNames.has(family.name), `${discipline.id} has duplicate family ${family.name}`);
+      assertCatalog(family.key === expectedFamilyKey, `${discipline.id}.${family.id} has an invalid family key`);
+      assertCatalog(family.isNarrativeAnchor === anchorFamilyKeys.has(family.key), `${family.key} narrative anchor flag drifted`);
+      assertCatalog(family.anchorReason === null || (typeof family.anchorReason === 'string' && family.anchorReason.trim().length > 0), `${family.key} has an invalid anchor reason`);
       familyNames.add(family.name);
+      familyIds.add(family.id);
+      familyByKey.set(family.key, family);
+      if (family.isNarrativeAnchor) narrativeFamilyCount += 1;
     }
 
-    for (const item of discipline.items) {
+    for (const [declarationIndex, item] of discipline.items.entries()) {
       assertCatalog(typeof item.id === 'string' && item.id.length > 0, `${discipline.id} has an invalid item id`);
       assertCatalog(!itemIds.has(item.id), `duplicate item id ${item.id}`);
       itemIds.add(item.id);
       assertCatalog(item.disciplineId === discipline.id, `${item.id} belongs to the wrong discipline`);
-      assertCatalog(familyNames.has(item.family), `${item.id} points at an unknown family`);
+      assertCatalog(familyIds.has(item.familyId), `${item.id} points at an unknown family id`);
+      assertCatalog(item.familyKey === `${discipline.id}.${item.familyId}`, `${item.id} has an invalid family key`);
+      assertCatalog(item.waveId === discipline.waveId, `${item.id} has a mismatched wave`);
+      assertCatalog(familyNames.has(item.family), `${item.id} points at an unknown family name`);
       for (const key of ['name', 'tier', 'type', 'purpose', 'recipeHint']) {
         assertCatalog(typeof item[key] === 'string' && item[key].trim().length > 0, `${item.id} has an invalid ${key}`);
       }
+      assertCatalog(Object.prototype.hasOwnProperty.call(TIER_RANK, item.tier), `${item.id} has an unknown Roman tier ${item.tier}`);
       assertCatalog(item.status === STATUS.implemented || item.status === STATUS.planned, `${item.id} has invalid status ${item.status}`);
+      assertCatalog(itemIds.has(item.id), `${item.id} was not registered`);
+      const familyItems = catalogItemsByFamily.get(item.familyKey) ?? [];
+      familyItems.push({ item, declarationIndex });
+      catalogItemsByFamily.set(item.familyKey, familyItems);
+      const expectedStory = PROGRESSION_INDEX.storyByItemId.get(item.id);
+      assertCatalog(item.isNarrativeAnchor === Boolean(expectedStory), `${item.id} narrative anchor flag drifted`);
+      if (expectedStory) {
+        assertCatalog(item.story && item.story.order === expectedStory.order, `${item.id} story order drifted`);
+        assertCatalog(item.story.text === expectedStory.text, `${item.id} story text drifted`);
+        assertCatalog(item.story.anchorReason === expectedStory.anchorReason, `${item.id} story anchor reason drifted`);
+        narrativeStoryCount += 1;
+      } else {
+        assertCatalog(item.story === null, `${item.id} unexpectedly has a story`);
+      }
       itemCount += 1;
       if (item.status === STATUS.implemented) implementedCount += 1;
       if (item.status === STATUS.planned) plannedCount += 1;
     }
   }
 
+  assertCatalog(disciplineIds.size === 27, `expected 27 catalog disciplines, received ${disciplineIds.size}`);
+  assertCatalog(disciplineIds.size === progressionDisciplineIds.size, 'catalog/progression discipline coverage differs');
+  assertCatalog(familyByKey.size === 270, `expected 270 catalog families, received ${familyByKey.size}`);
   assertCatalog(itemCount === 810, `expected 810 items, received ${itemCount}`);
   assertCatalog(implementedCount + plannedCount === 810, 'status totals must equal 810');
+  assertCatalog(narrativeFamilyCount === 54, `expected 54 narrative families, received ${narrativeFamilyCount}`);
+  assertCatalog(narrativeStoryCount === 162, `expected 162 narrative stories, received ${narrativeStoryCount}`);
+
+  for (const [familyKey, entries] of catalogItemsByFamily.entries()) {
+    const ordered = [...entries].sort((left, right) => (
+      TIER_RANK[left.item.tier] - TIER_RANK[right.item.tier]
+      || left.declarationIndex - right.declarationIndex
+    ));
+    ordered.forEach(({ item }, index) => {
+      assertCatalog(item.previousItemId === (ordered[index - 1]?.item.id ?? null), `${item.id} has an invalid previous item suggestion`);
+      assertCatalog(item.nextItemId === (ordered[index + 1]?.item.id ?? null), `${item.id} has an invalid next item suggestion`);
+      if (item.previousItemId) assertCatalog(itemById(itemIds, disciplines, item.previousItemId).familyKey === familyKey, `${item.id} previous item leaves its family`);
+      if (item.nextItemId) assertCatalog(itemById(itemIds, disciplines, item.nextItemId).familyKey === familyKey, `${item.id} next item leaves its family`);
+    });
+  }
+
+  const catalogItemById = new Map(disciplines.flatMap((discipline) => discipline.items.map((item) => [item.id, item])));
+  for (const wave of CAMPAIGN_WAVES) {
+    for (const anchor of wave.anchors) {
+      const family = familyByKey.get(anchor.familyKey);
+      assertCatalog(family && family.isNarrativeAnchor, `${anchor.familyKey} anchor family is missing from catalog`);
+      for (const story of anchor.stories) {
+        const item = catalogItemById.get(story.itemId);
+        assertCatalog(item && item.familyKey === anchor.familyKey, `${story.itemId} story points at the wrong family`);
+        assertCatalog(item.story !== null, `${story.itemId} anchor story is missing from catalog`);
+      }
+    }
+    for (const link of wave.familyLinks) {
+      assertCatalog(familyByKey.has(link.from), `${wave.id} link source ${link.from} is unknown`);
+      assertCatalog(familyByKey.has(link.to), `${wave.id} link target ${link.to} is unknown`);
+    }
+  }
+
   assertCatalog(stats.disciplineCount === 27, `stats disciplineCount must be 27, received ${stats.disciplineCount}`);
   assertCatalog(stats.itemCount === 810, `stats itemCount must be 810, received ${stats.itemCount}`);
+  assertCatalog(stats.familyCount === 270, `stats familyCount must be 270, received ${stats.familyCount}`);
+  assertCatalog(stats.waveCount === 9, `stats waveCount must be 9, received ${stats.waveCount}`);
   assertCatalog(stats.implementedCount === implementedCount, 'stats implementedCount does not match item data');
   assertCatalog(stats.plannedCount === plannedCount, 'stats plannedCount does not match item data');
+  assertCatalog(stats.narrativeAnchorFamilyCount === 54, 'stats narrativeAnchorFamilyCount must be 54');
+  assertCatalog(stats.storyCount === 162, 'stats storyCount must be 162');
+  assertCatalog(stats.familyLinkCount === 96, 'stats familyLinkCount must be 96');
 }
+
+function itemById(itemIds, disciplines, id) {
+  if (!itemIds.has(id)) throw new Error(`missing catalog item ${id}`);
+  for (const discipline of disciplines) {
+    const item = discipline.items.find((candidate) => candidate.id === id);
+    if (item) return item;
+  }
+  throw new Error(`missing catalog item ${id}`);
+}
+
 
 validateCatalog(DISCIPLINES, CATALOG_STATS);
 

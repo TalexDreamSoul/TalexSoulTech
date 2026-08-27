@@ -38,10 +38,38 @@ public abstract class SoulTechItem extends TalexItem {
         super.setType("st_items");
         super.addTag("soul_tech_item_id", ID);
 
+        if ( ID == null || ID.isBlank() ) {
+            throw new IllegalArgumentException("SoulTechItem ID must not be blank");
+        }
+
         this.ID = ID;
 
-        items.put("sti_" + ID, this);
+        synchronized ( SoulTechItem.class ) {
+            String registryKey = "sti_" + ID;
+            if ( items.containsKey(registryKey) ) {
+                throw new IllegalStateException("Duplicate SoulTechItem ID: " + ID);
+            }
+            items.put(registryKey, this);
+        }
 
+    }
+
+/**
+     * Removes a generated item only when the registry still points at the expected instance.
+     * This is used by transactional manifest installation rollback and never aliases IDs.
+     */
+    public static boolean unregister(String id, SoulTechItem expected) {
+        if (id == null || id.isBlank() || expected == null) {
+            return false;
+        }
+        synchronized (SoulTechItem.class) {
+            String key = "sti_" + id;
+            if (items.get(key) != expected) {
+                return false;
+            }
+            items.remove(key);
+            return true;
+        }
     }
 
     /**

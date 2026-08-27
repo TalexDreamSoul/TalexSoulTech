@@ -1,0 +1,258 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.agroecology_apiary_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_apiary_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_apiary_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_apiary_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_graft_bed_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_graft_bed_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_graft_bed_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_graft_bed_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_greenhouse_climate_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_greenhouse_climate_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_greenhouse_climate_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_greenhouse_climate_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_pest_control_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_pest_control_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_pest_control_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_pest_control_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_pollinator_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_pollinator_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_pollinator_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_pollinator_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_soil_restoration_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_soil_restoration_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_soil_restoration_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_soil_restoration_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_grafting_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_grafting_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_grafting_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_grafting_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_growth_aid_root_tonic",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_growth_aid_root_tonic"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_mushroom_cultivation_brown_mushroom",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_mushroom_cultivation_brown_mushroom"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_mushroom_cultivation_red_mushroom",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_mushroom_cultivation_red_mushroom"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_pest_guard_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_pest_guard_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_pest_guard_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_pest_guard_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_pollination_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_pollination_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_pollination_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_pollination_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_seed_cultivation_melon_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_seed_cultivation_melon_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_seed_cultivation_pumpkin_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_seed_cultivation_pumpkin_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_soil_profile_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_soil_profile_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_soil_profile_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_soil_profile_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_crop_timing_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_crop_timing_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_crop_timing_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_crop_timing_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_chorus_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_chorus_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_chorus_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_chorus_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_forest_restoration_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_forest_restoration_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_forest_restoration_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_forest_restoration_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_habitat_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_habitat_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_habitat_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_habitat_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_soil_repair_culture",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_soil_repair_culture"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_soil_repair_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_soil_repair_seed"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/wheat_seeds"
+    }
+  }
+}

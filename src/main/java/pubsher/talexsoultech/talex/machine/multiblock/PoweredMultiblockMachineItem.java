@@ -79,7 +79,9 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
 
     private CategoryObject requiredDiscipline() {
         CategoryObject recipeCategory = getOwnCategoryObject();
-        return recipeCategory == null ? null : recipeCategory.getFatherCategory();
+        if (recipeCategory == null) return null;
+        return pubsher.talexsoultech.talex.BaseTalex.getInstance()
+                .getCategoryManager().resolveDisciplineAncestor(recipeCategory);
     }
 
 
@@ -391,6 +393,7 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
         return new ItemBuilder(spec.displayMaterial())
                 .setName(spec.displayName())
                 .setLore(lore.toArray(String[]::new))
+                .setCustomModelDataString("talexsoultech:" + spec.id())
                 .toItemStack();
     }
 

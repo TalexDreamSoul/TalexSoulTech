@@ -1,0 +1,398 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.agroecology_animal_breeding_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_animal_breeding_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_crop_rotation_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_crop_rotation_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_astral_navigation_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_astral_navigation_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_constellation_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_constellation_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_lunar_cycle_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_lunar_cycle_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_meteor_watch_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_meteor_watch_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_solar_chart_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_solar_chart_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_star_map_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_star_map_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_telescope_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_telescope_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_inventory_watch_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_inventory_watch_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_recovery_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_recovery_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_sensors_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_sensors_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_crafting_record_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_crafting_record_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_canopy_cycle_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_canopy_cycle_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_lab_safety_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_lab_safety_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_water_analysis_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_water_analysis_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_aging_monitor_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_aging_monitor_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_history_archive_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_history_archive_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_phase_calendar_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_phase_calendar_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_time_shard_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_time_shard_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_weather_timeline_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_weather_timeline_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_graduation_station_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_graduation_station_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_knowledge_archive_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_knowledge_archive_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_artisan_guild_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_artisan_guild_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_reputation_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_reputation_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_ward_training_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_ward_training_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_coordinate_converter_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_coordinate_converter_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_ender_ecology_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_ender_ecology_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_dragon_breath_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_dragon_breath_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_void_resonance_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_void_resonance_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_air_quality_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_air_quality_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_biome_balance_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_biome_balance_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_impact_report_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_impact_report_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_weather_tower_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_weather_tower_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_cave_nav_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_cave_nav_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_compass_route_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_compass_route_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_ruin_scan_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_ruin_scan_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_survey_map_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_survey_map_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_threat_sense_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_threat_sense_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_fossil_reading_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_fossil_reading_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_ore_prospecting_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_ore_prospecting_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_strata_survey_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_strata_survey_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_terrain_model_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_terrain_model_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_field_calibration_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_field_calibration_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_gravity_lens_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_gravity_lens_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_leak_monitor_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_leak_monitor_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_inventory_ledger_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_inventory_ledger_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_spell_practice_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_spell_practice_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_glass_optics_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_glass_optics_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_maintenance_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_maintenance_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_corrosion_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_corrosion_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_dimension_map_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_dimension_map_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_route_record_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_route_record_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_void_observer_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_void_observer_station"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_machine_network_station",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_machine_network_station"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/lectern"
+    }
+  }
+}

@@ -8,6 +8,7 @@ import pubsher.talexsoultech.talex.guider.category.RecipeObject;
 import pubsher.talexsoultech.talex.items.breakhammer.BaseBreakHammer;
 import pubsher.talexsoultech.talex.items.breakhammer.StoneHammer;
 import pubsher.talexsoultech.utils.item.TalexItem;
+import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 public class BreakHammerRecipe extends RecipeObject {
 
@@ -16,7 +17,7 @@ public class BreakHammerRecipe extends RecipeObject {
     private TalexItem require, export;
 
     @Getter
-    private BaseBreakHammer displayRequireHammerTool = new StoneHammer();
+    private BaseBreakHammer displayRequireHammerTool = defaultHammer();
 
     public BreakHammerRecipe(String recipeID, TalexItem require, TalexItem displayItem) {
 
@@ -70,6 +71,14 @@ public class BreakHammerRecipe extends RecipeObject {
         this.require = new TalexItem(new ItemStack(require));
         this.export = new TalexItem(displayItem);
 
+    }
+
+    private static BaseBreakHammer defaultHammer() {
+        SoulTechItem item = SoulTechItem.get("break_hammer_wood");
+        if (item instanceof BaseBreakHammer hammer) {
+            return hammer;
+        }
+        throw new IllegalStateException("missing registered default break hammer");
     }
 
     public BreakHammerRecipe setDisplayRequireHammerTool(BaseBreakHammer baseBreakHammer) {

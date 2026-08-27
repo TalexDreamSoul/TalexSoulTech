@@ -1,0 +1,496 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.astral_astral_beacon_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_astral_beacon_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_astral_beacon_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_astral_beacon_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_astral_beacon_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_astral_beacon_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_observatory_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_observatory_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_observatory_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_observatory_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_observatory_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_observatory_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_worksite_safety_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_worksite_safety_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_worksite_safety_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_worksite_safety_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_worksite_safety_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_worksite_safety_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_district_map_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_district_map_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_district_map_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_district_map_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_district_map_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_district_map_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_public_works_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_public_works_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_public_works_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_public_works_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_public_works_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_public_works_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_bridgework_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_bridgework_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_bridgework_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_bridgework_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_bridgework_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_bridgework_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_landscape_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_landscape_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_landscape_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_landscape_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_landscape_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_landscape_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_modular_wall_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_modular_wall_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_modular_wall_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_modular_wall_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_modular_wall_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_modular_wall_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_scaffold_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_scaffold_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_scaffold_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_scaffold_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_scaffold_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_scaffold_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_settlement_core_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_settlement_core_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_settlement_core_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_settlement_core_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_settlement_core_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_settlement_core_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_signal_safety_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_signal_safety_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_signal_safety_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_signal_safety_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_signal_safety_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_signal_safety_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_structural_frame_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_structural_frame_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_structural_frame_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_structural_frame_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_structural_frame_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_structural_frame_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_weatherproof_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_weatherproof_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_weatherproof_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_weatherproof_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_weatherproof_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_weatherproof_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_work_light_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_work_light_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_work_light_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_work_light_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_work_light_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_work_light_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_fortification_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_fortification_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_fortification_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_fortification_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_fortification_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_fortification_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_ranged_cover_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_ranged_cover_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_ranged_cover_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_ranged_cover_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_ranged_cover_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_ranged_cover_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_protection_grid_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_protection_grid_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_protection_grid_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_protection_grid_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_protection_grid_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_protection_grid_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_field_camp_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_field_camp_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_field_camp_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_field_camp_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_field_camp_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_field_camp_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_cave_support_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_cave_support_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_cave_support_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_cave_support_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_cave_support_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_cave_support_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_structure_balance_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_structure_balance_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_structure_balance_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_structure_balance_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_structure_balance_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_structure_balance_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_floodgate_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_floodgate_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_floodgate_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_floodgate_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_floodgate_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_floodgate_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_composite_panel_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_composite_panel_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_composite_panel_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_composite_panel_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_composite_panel_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_composite_panel_workshop"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_stone_bond_brick",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_stone_bond_brick"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_stone_bond_frame",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_stone_bond_frame"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_stone_bond_workshop",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_stone_bond_workshop"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/bricks"
+    }
+  }
+}

@@ -11,6 +11,7 @@ Read this specification before changing any of the following:
 - player persistence or MySQL startup/shutdown behavior;
 - plugin/cloud pairing, snapshots, extension delivery, or Worker/D1 bindings;
 - Paper, resource-pack, or Cloudflare release procedures.
+- public planning-catalog identity, campaign waves, story anchors, or SSR/client catalog filters.
 
 Runtime baseline: Java 25 and Paper `26.1.2 build 74` (`pom.xml`).
 
@@ -56,6 +57,15 @@ Runtime keys are declared in `src/main/resources/config.yml`:
 ### Cloudflare bindings
 
 `site/wrangler.jsonc` binds static assets as `ASSETS`, D1 as `DB`, and Durable Objects as `SYNC_COORDINATOR` (`SyncCoordinator`) and `AUTH_RATE_LIMITER` (`AuthRateLimiter`). The production custom domain is `soultech.tagzxia.com`.
+
+### Public planning catalog
+
+```javascript
+import { CAMPAIGN, CAMPAIGN_ACTS, CAMPAIGN_WAVES } from "./progression.js";
+import { DISCIPLINES, CATALOG_STATS } from "./catalog.js";
+```
+
+`progression.js` is the single campaign source. `catalog.js` enriches its 27 disciplines and 810 planning items; SSR and client enhancement consume those exports rather than copying wave tables.
 
 ## 3. Contracts
 
@@ -111,6 +121,16 @@ Runtime keys are declared in `src/main/resources/config.yml`:
 - Extension code runs through bounded LuaJ/Rhino host APIs with private bounded KV, dependency ordering, LIFO disposers, and last-known-good recovery. It never receives raw Bukkit, filesystem, database, network, or secret access.
 - Release order is fixed: freeze/build JAR and resource pack -> apply remote D1 migrations -> deploy Worker -> pass live SaaS E2E -> atomically deploy the exact JAR to `wlcb1` -> pass Paper/RCON and real-client smoke.
 
+### Planning catalog and campaign
+
+- Planning identity and runtime identity are separate: dotted catalog IDs describe 810 planning entries; `/runtime` exposes the 150 registered command/PDC IDs. An implemented planning entry still directs operators to `/runtime` for the actual runtime ID.
+- The campaign has four acts and exactly nine waves. Every one of 27 disciplines belongs to one wave; `stage`, `wave`, and `status` are independent axes.
+- Each discipline has ten stable `discipline.family` keys and thirty stable `discipline.family.item` IDs. Exactly two families per discipline are narrative anchors: 54 families and 162 story items, exactly 20% of 810.
+- Story order is explicit `1..3` and independent of Roman tier. Tier comes only from the catalog item; E-family declaration order is never treated as tier order.
+- Cross-family campaign links are unique, non-self `supports` relations. They guide reading but never become recipes, unlocks, or hard runtime dependencies without a separately implemented transaction contract.
+- Planned water, energy, automation, transport, quantum, and time mechanics remain finite and recoverable. Water uses a finite source ledger; energy stays in the single milli-SE domain; legacy unlimited-magic markers cannot fund grids or cross-domain costs.
+- SSR owns the no-JS contract. `/catalog` normalizes `q/wave/discipline/narrative/status/page`; client enhancement must preserve the same semantics and leave SSR rows usable if JavaScript fails.
+
 ## 4. Validation & Error Matrix
 
 | Condition | Required result |
@@ -132,6 +152,10 @@ Runtime keys are declared in `src/main/resources/config.yml`:
 | Protected/cancelled block, failed secondary break, invalid target, or unloaded chunk | Perform no effect and consume no portable energy. |
 | Wireless output would exceed the debited operation budget | Cap deterministic distribution at the remaining budget; never create energy. |
 | Jetpack/harness is removed, empty, or lifecycle cleanup fires | Revoke only service-owned flight and clear transient UUID state. |
+| Campaign wave/discipline, anchor/story, family key, or soft relation count/identity drifts | Fail module import before rendering a partial catalog. |
+| A family link is unknown, duplicated, or self-referencing | Reject the catalog; never infer direction from prose. |
+| A planning item is presented as a `/tst`/PDC runtime ID | Label it as a planning ID and direct runtime operations to `/runtime`. |
+| Client query enhancement fails | Keep the SSR form, table, pagination, and links; report the enhancement error without blanking the page. |
 
 ## 5. Good / Base / Bad Cases
 
@@ -142,6 +166,9 @@ Runtime keys are declared in `src/main/resources/config.yml`:
 - **Bad release:** upload a new manifest/Worker and later build an unrelated JAR from a dirty workspace.
 - **Good portable action:** validate target and simulated charge, let the normal Paper event succeed, commit one bounded effect, then replace the charged stack once.
 - **Bad portable action:** consume energy at `LOWEST`, directly set adjacent blocks to air, schedule one task per item, or clear `allowFlight` that the service did not grant.
+- **Good planning catalog:** one progression module maps 4 acts -> 9 waves -> 27 disciplines -> 270 families -> 810 items, with 54 anchor families, 162 story items, and unique soft links; SSR and client filters consume the same fields.
+- **Base planning catalog:** an ordinary non-anchor item still answers purpose, input, recovery, and next reading step without invented lore; production identity remains independently discoverable in `/runtime`.
+- **Bad planning catalog:** duplicate wave constants in content/SSR/client, use a display name as a relation key, count story items as unlock requirements, infer story order from array position, or treat a dotted planning ID as a command ID.
 
 ## 6. Tests Required
 
@@ -151,6 +178,7 @@ Runtime keys are declared in `src/main/resources/config.yml`:
 - Site/API tests: auth rate limits, administrator/server isolation, monotonic snapshot sequence, pairing, extension CRUD, exact-body retries, and secret redaction.
 - Release verification: Java 25 `mvn -B -ntp test` and `mvn -B -ntp package`, isolated Paper load/cycle/graceful-stop smoke, live SaaS E2E, production Paper/RCON smoke, and a real-client gameplay/resource-pack loop.
 - Portable equipment tests: exact 47/3/50 catalog shape, 24 active tools, unique/backward upgrade graph, non-negative bounded arithmetic, simulate immutability, legacy migration, operation-budget divisibility/conservation, and lifecycle ownership transitions.
+- Planning/SSR tests: exact 4/9/27/54/162/810 shape, unique non-self soft links, real tier/story binding, W1-W9 discipline coverage, wave/narrative query normalization, item five-question pages, story-only anchor rendering, mobile-accessible table scrolling, and unchanged 150-item runtime catalog.
 
 ## 7. Wrong vs Correct
 
@@ -176,3 +204,23 @@ PowerCycleStats stats = electricityManager.runCycleNow();
 ```
 
 Topology changes are event-driven, settlement is bounded and deterministic, and observable stats support failure reporting without unsafe world access.
+
+### Public catalog identity
+
+#### Wrong
+
+```javascript
+const familyKey = item.family; // translated display name
+const runtimeId = item.id;     // dotted planning ID
+const wave = SITE_CONTENT.planning.verticalSlices[index];
+```
+
+#### Correct
+
+```javascript
+const familyKey = item.familyKey; // stable discipline.family
+const wave = CAMPAIGN_WAVES.find((entry) => entry.id === item.waveId);
+const runtimeId = null; // resolve operational identity from /runtime
+```
+
+Planning data can explain progression and story without becoming a second runtime registry.

@@ -1,0 +1,300 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.agroecology_apiary_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_apiary_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_graft_bed_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_graft_bed_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_greenhouse_climate_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_greenhouse_climate_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_irrigation_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_irrigation_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_irrigation_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_irrigation_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_pest_control_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_pest_control_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_pollinator_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_pollinator_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_soil_restoration_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_soil_restoration_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_grafting_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_grafting_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_growth_aid_harvest_charm",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_growth_aid_harvest_charm"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_mushroom_cultivation_spore_lantern",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_mushroom_cultivation_spore_lantern"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_pest_guard_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_pest_guard_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_pollination_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_pollination_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_seed_cultivation_beetroot_seed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_seed_cultivation_beetroot_seed"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_soil_profile_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_soil_profile_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_gas_capture_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_gas_capture_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_gas_capture_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_gas_capture_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_solvent_cycle_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_solvent_cycle_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_solvent_cycle_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_solvent_cycle_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_crop_timing_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_crop_timing_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_chorus_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_chorus_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_forest_restoration_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_forest_restoration_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_habitat_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_habitat_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_soil_repair_greenhouse",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_soil_repair_greenhouse"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_water_cleanup_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_water_cleanup_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_water_cleanup_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_water_cleanup_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_karst_water_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_karst_water_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_karst_water_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_karst_water_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_canal_routing_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_canal_routing_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_canal_routing_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_canal_routing_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_filtration_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_filtration_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_filtration_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_filtration_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_ice_storage_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_ice_storage_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_ice_storage_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_ice_storage_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_pressure_pump_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_pressure_pump_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_pressure_pump_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_pressure_pump_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_reservoir_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_reservoir_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_reservoir_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_reservoir_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_source_capture_filter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_source_capture_filter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_source_capture_pump",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_source_capture_pump"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_fluid_tank_level_gauge",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_fluid_tank_level_gauge"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/glass"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:energy_backpack",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_backpack"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/leather_chestplate"
+    }
+  }
+}

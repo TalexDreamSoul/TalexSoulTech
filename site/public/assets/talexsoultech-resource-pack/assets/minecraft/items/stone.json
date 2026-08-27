@@ -1,0 +1,118 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.basic_sieving_normal_mesh",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_sieving_normal_mesh"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_foreign_material_alloy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_foreign_material_alloy"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_foreign_material_fragment",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_foreign_material_fragment"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_endstone_alloy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_endstone_alloy"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_endstone_fragment",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_endstone_fragment"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_crystal_growth_alloy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_crystal_growth_alloy"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_crystal_growth_fragment",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_crystal_growth_fragment"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_deep_core_alloy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_deep_core_alloy"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_deep_core_fragment",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_deep_core_fragment"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_fire_materials_fire_rod",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_fire_materials_fire_rod"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_metal_grain_alloy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_metal_grain_alloy"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_metal_grain_fragment",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_metal_grain_fragment"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_reinforced_thread_thread_spool",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_reinforced_thread_thread_spool"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_alloying_alloy",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_alloying_alloy"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_alloying_fragment",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_alloying_fragment"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/stone"
+    }
+  }
+}

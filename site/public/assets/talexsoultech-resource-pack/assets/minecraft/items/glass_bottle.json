@@ -1,0 +1,237 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.agroecology_compost_loop_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_compost_loop_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_compost_loop_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_compost_loop_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_composting_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_composting_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_composting_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_composting_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_acid_base_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_acid_base_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_acid_base_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_acid_base_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_catalyst_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_catalyst_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_catalyst_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_catalyst_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_mining_paste_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_mining_paste_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_mining_paste_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_mining_paste_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_pigment_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_pigment_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_pigment_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_pigment_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_polymer_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_polymer_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_polymer_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_polymer_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_salt_crystal_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_salt_crystal_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_salt_crystal_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_salt_crystal_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_volcanic_sampling_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_volcanic_sampling_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_volcanic_sampling_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_volcanic_sampling_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_salt_water_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_salt_water_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_salt_water_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_salt_water_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_ceramic_shell_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_ceramic_shell_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_ceramic_shell_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_ceramic_shell_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_rubber_compound_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_rubber_compound_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_rubber_compound_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_rubber_compound_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_heat_treatment_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_heat_treatment_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_heat_treatment_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_heat_treatment_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_ore_washing_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_ore_washing_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_ore_washing_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_ore_washing_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_plating_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_plating_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_plating_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_plating_reagent"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_smelting_control_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_smelting_control_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_smelting_control_reagent",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_smelting_control_reagent"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/glass_bottle"
+    }
+  }
+}

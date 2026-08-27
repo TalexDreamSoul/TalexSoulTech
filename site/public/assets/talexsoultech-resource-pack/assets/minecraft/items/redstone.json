@@ -1,0 +1,251 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.astral_starlight_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_starlight_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_starlight_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_starlight_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_energy_charter_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_energy_charter_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_energy_charter_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_energy_charter_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_nether_thermal_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_nether_thermal_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_nether_thermal_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_nether_thermal_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_battery_bank_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_battery_bank_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_battery_bank_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_battery_bank_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_biomass_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_biomass_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_biomass_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_biomass_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_grid_protection_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_grid_protection_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_grid_protection_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_grid_protection_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_heat_storage_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_heat_storage_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_heat_storage_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_heat_storage_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_load_response_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_load_response_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_load_response_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_load_response_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_solar_mirror_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_solar_mirror_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_solar_mirror_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_solar_mirror_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_solid_fuel_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_solid_fuel_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_solid_fuel_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_solid_fuel_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_steam_turbine_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_steam_turbine_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_steam_turbine_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_steam_turbine_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_transformer_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_transformer_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_transformer_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_transformer_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_wind_unit_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_wind_unit_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_wind_unit_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_wind_unit_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_steam_loop_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_steam_loop_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_steam_loop_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_steam_loop_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_conductive_alloy_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_conductive_alloy_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_conductive_alloy_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_conductive_alloy_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_energy_storage_charge_meter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_energy_storage_charge_meter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_signal_basics_cell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_signal_basics_cell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_signal_basics_coil",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_signal_basics_coil"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_thermal_generation_draft_controller",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_thermal_generation_draft_controller"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/redstone"
+    }
+  }
+}

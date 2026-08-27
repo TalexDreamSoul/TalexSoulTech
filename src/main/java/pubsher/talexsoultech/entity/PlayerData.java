@@ -1,5 +1,6 @@
 package pubsher.talexsoultech.entity;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,10 +19,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 import pubsher.talexsoultech.entity.attract.PlayerAttractData;
 import pubsher.talexsoultech.inventory.MenuBasic;
 import pubsher.talexsoultech.talex.BaseTalex;
+import pubsher.talexsoultech.talex.guider.category.CategoryObject;
 import pubsher.talexsoultech.talex.items.GuideBookItem;
 import pubsher.talexsoultech.utils.NBTsUtil;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Accessors(chain = true)
@@ -30,6 +37,12 @@ import java.util.UUID;
 public class PlayerData {
     private static final String CATEGORY_UNLOCKS = "category_unlock";
     private static final String PAID_CATEGORY_UNLOCKS = "paid_category_unlock";
+    private static final String ADMIN_CATEGORY_UNLOCKS = "admin_category_unlock";
+    private static final String GUIDE_SCHEMA = "guide_schema";
+    private static final String GUIDE_UNLOCKS = "guide_unlocks";
+    private static final String GUIDE_EVIDENCE = "guide_evidence";
+    private static final String GUIDE_WAVES = "guide_waves";
+    public static final int CURRENT_GUIDE_SCHEMA = 2;
 
 
     private final BaseTalex talex;
@@ -48,7 +61,6 @@ public class PlayerData {
             YamlConfiguration attractConfiguration,
             boolean persistenceWritable
     ) {
-
         if (player == null || !player.isOnline()) {
             throw new IllegalArgumentException("player must be online when PlayerData is published");
         }
@@ -62,14 +74,73 @@ public class PlayerData {
 
         ensureUnlockProperty(CATEGORY_UNLOCKS);
         ensureUnlockProperty(PAID_CATEGORY_UNLOCKS);
+        migrateGuideState();
 
         this.playerAttractData = new PlayerAttractData(this, attractConfiguration);
-
     }
     private void ensureUnlockProperty(String property) {
-        if (!jsonData.has(property) || jsonData.get(property).isJsonNull()) {
+        if (!jsonData.has(property)) {
             jsonData.addProperty(property, "");
         }
+    }
+
+    /**
+     * Idempotently upgrades legacy unlock strings to guide_schema=2. Unknown
+     * properties and malformed existing canonical properties are left untouched;
+     * readers then fall back to the exact-token legacy representation.
+     */
+    public PlayerData migrateGuideState() {
+        migrateGuideState(jsonData);
+        return this;
+    }
+
+    public static JsonObject migrateGuideState(JsonObject source) {
+        Objects.requireNonNull(source, "source");
+        JsonElement schema = source.get(GUIDE_SCHEMA);
+        if (schema == null || schema.isJsonNull()) {
+            source.addProperty(GUIDE_SCHEMA, CURRENT_GUIDE_SCHEMA);
+        } else if (schema.isJsonPrimitive() && schema.getAsJsonPrimitive().isNumber()
+                && schema.getAsInt() < CURRENT_GUIDE_SCHEMA) {
+            source.addProperty(GUIDE_SCHEMA, CURRENT_GUIDE_SCHEMA);
+        }
+
+        JsonElement unlocks = source.get(GUIDE_UNLOCKS);
+        if (unlocks == null || unlocks.isJsonNull()) {
+            JsonObject canonical = new JsonObject();
+            canonical.add("regular", exactTokens(source.get(CATEGORY_UNLOCKS)));
+            canonical.add("paid", exactTokens(source.get(PAID_CATEGORY_UNLOCKS)));
+            canonical.add("admin", exactTokens(source.get(ADMIN_CATEGORY_UNLOCKS)));
+            source.add(GUIDE_UNLOCKS, canonical);
+        }
+        if (!source.has(GUIDE_EVIDENCE)) {
+            source.add(GUIDE_EVIDENCE, new JsonObject());
+        }
+        if (!source.has(GUIDE_WAVES)) {
+            source.add(GUIDE_WAVES, new JsonArray());
+        }
+        return source;
+    }
+
+    public static JsonArray exactTokens(JsonElement encoded) {
+        JsonArray result = new JsonArray();
+        if (encoded == null || encoded.isJsonNull() || !encoded.isJsonPrimitive()) {
+            return result;
+        }
+        String raw = encoded.getAsString();
+        for (String token : raw.split(",", -1)) {
+            String trimmed = token.trim();
+            if (!trimmed.isEmpty() && !containsExact(result, trimmed)) {
+                result.add(trimmed);
+            }
+        }
+        return result;
+    }
+
+    private static boolean containsExact(JsonArray values, String token) {
+        for (JsonElement value : values) {
+            if (value.isJsonPrimitive() && token.equals(value.getAsString())) return true;
+        }
+        return false;
     }
 
 
@@ -179,41 +250,283 @@ public class PlayerData {
 
     public PlayerData delCategoryUnlock(String ID) {
         removeCategoryUnlock(CATEGORY_UNLOCKS, ID);
+        removeCanonicalUnlock("regular", ID);
         return this;
     }
 
     public PlayerData addCategoryUnlock(String ID) {
         addCategoryUnlock(CATEGORY_UNLOCKS, ID);
+        addCanonicalUnlock("regular", ID);
         return this;
     }
 
     public boolean isCategoryUnLock(String ID) {
-        return hasCategoryUnlock(CATEGORY_UNLOCKS, ID);
+        return hasCategoryUnlock(CATEGORY_UNLOCKS, ID) || hasCanonicalUnlock("regular", ID);
     }
 
     public PlayerData addPaidCategoryUnlock(String ID) {
         addCategoryUnlock(PAID_CATEGORY_UNLOCKS, ID);
+        addCanonicalUnlock("paid", ID);
         return this;
     }
 
     public boolean isPaidCategoryUnlock(String ID) {
-        return hasCategoryUnlock(PAID_CATEGORY_UNLOCKS, ID);
+        return hasCategoryUnlock(PAID_CATEGORY_UNLOCKS, ID) || hasCanonicalUnlock("paid", ID);
     }
 
     private void addCategoryUnlock(String property, String ID) {
-        if (!hasCategoryUnlock(property, ID)) {
-            jsonData.addProperty(property, jsonData.get(property).getAsString() + ID + ", ");
+        if (ID == null || ID.isBlank() || hasCategoryUnlock(property, ID)) {
+            return;
         }
+        JsonElement current = jsonData.get(property);
+        String encoded = current != null && current.isJsonPrimitive() ? current.getAsString() : "";
+        jsonData.addProperty(property, encoded + ID.trim() + ", ");
     }
 
     private void removeCategoryUnlock(String property, String ID) {
-        if (hasCategoryUnlock(property, ID)) {
-            jsonData.addProperty(property, jsonData.get(property).getAsString().replace(ID + ", ", ""));
+        if (ID == null || ID.isBlank()) return;
+        JsonElement current = jsonData.get(property);
+        if (current == null || !current.isJsonPrimitive()) return;
+        List<String> tokens = new ArrayList<>(legacyTokens(current));
+        if (tokens.remove(ID.trim())) {
+            jsonData.addProperty(property, String.join(", ", tokens) + (tokens.isEmpty() ? "" : ", "));
         }
     }
 
     private boolean hasCategoryUnlock(String property, String ID) {
-        return jsonData.get(property).getAsString().contains(ID + ",");
+        if (ID == null || ID.isBlank()) return false;
+        JsonElement current = jsonData.get(property);
+        return current != null && legacyTokens(current).contains(ID.trim());
+    }
+
+    private static Set<String> legacyTokens(JsonElement encoded) {
+        if (encoded == null || encoded.isJsonNull() || !encoded.isJsonPrimitive()) {
+            return Set.of();
+        }
+        Set<String> tokens = new LinkedHashSet<>();
+        for (String token : encoded.getAsString().split(",", -1)) {
+            String trimmed = token.trim();
+            if (!trimmed.isEmpty()) tokens.add(trimmed);
+        }
+        return tokens;
+    }
+
+    public boolean hasCategoryUnlock(CategoryObject category) {
+        if (category == null) return false;
+        return hasAnyCanonicalOrLegacy(category.getID(), category.getPlanningId(), category.getRuntimeId(),
+                category.getLegacyRuntimeId());
+    }
+
+    private boolean hasAnyCanonicalOrLegacy(String... ids) {
+        for (String id : ids) {
+            if (id == null || id.isBlank()) continue;
+            if (isCategoryUnLock(id) || isPaidCategoryUnlock(id) || hasCategoryUnlock(ADMIN_CATEGORY_UNLOCKS, id)
+                    || hasCanonicalUnlock("admin", id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasCanonicalUnlock(String bucket, String id) {
+        JsonElement unlocks = jsonData.get(GUIDE_UNLOCKS);
+        if (unlocks == null || !unlocks.isJsonObject()) return false;
+        JsonElement values = unlocks.getAsJsonObject().get(bucket);
+        if (values == null || !values.isJsonArray()) return false;
+        return containsExact(values.getAsJsonArray(), id);
+    }
+
+    private void addCanonicalUnlock(String bucket, String id) {
+        if (id == null || id.isBlank()) return;
+        JsonElement unlocks = jsonData.get(GUIDE_UNLOCKS);
+        if (unlocks == null || !unlocks.isJsonObject()) return;
+        JsonObject object = unlocks.getAsJsonObject();
+        JsonElement values = object.get(bucket);
+        if (values == null || !values.isJsonArray()) {
+            values = new JsonArray();
+            object.add(bucket, values);
+        }
+        if (!containsExact(values.getAsJsonArray(), id.trim())) {
+            values.getAsJsonArray().add(id.trim());
+        }
+    }
+
+    private void removeCanonicalUnlock(String bucket, String id) {
+        JsonElement unlocks = jsonData.get(GUIDE_UNLOCKS);
+        if (unlocks == null || !unlocks.isJsonObject()) return;
+        JsonElement values = unlocks.getAsJsonObject().get(bucket);
+        if (values == null || !values.isJsonArray()) return;
+        JsonArray array = values.getAsJsonArray();
+        for (int index = array.size() - 1; index >= 0; index--) {
+            if (id.equals(array.get(index).getAsString())) array.remove(index);
+        }
+    }
+
+    /** One atomic unlock decision; callers must not mutate unlock fields directly. */
+    public synchronized UnlockAttempt tryUnlock(String categoryId, UnlockEvidence evidence) {
+        CategoryObject category = talex.getCategoryManager().getCategoryObject(categoryId);
+        if (category == null) return UnlockAttempt.failed(UnlockFailure.UNKNOWN_CATEGORY);
+        return tryUnlock(category, evidence);
+    }
+
+    public synchronized UnlockAttempt tryUnlock(CategoryObject category, UnlockEvidence evidence) {
+        if (category == null) return UnlockAttempt.failed(UnlockFailure.UNKNOWN_CATEGORY);
+        if (evidence == null || evidence.receipts().isEmpty()) {
+            return UnlockAttempt.failed(UnlockFailure.MISSING_EVIDENCE);
+        }
+        if (hasCategoryUnlock(category)) {
+            return UnlockAttempt.already();
+        }
+        if (!category.arePrepositionsUnlockedBy(this)) {
+            return UnlockAttempt.failed(UnlockFailure.PREREQUISITES);
+        }
+        boolean admin = evidence.admin();
+        boolean paid = evidence.paid() || admin;
+        int levelCost = category.getUnlockLevelCost();
+        if (levelCost > 0 && !paid) {
+            return UnlockAttempt.failed(UnlockFailure.PAYMENT_REQUIRED);
+        }
+        if (levelCost > 0 && !admin && player.getLevel() < levelCost) {
+            return UnlockAttempt.failed(UnlockFailure.INSUFFICIENT_LEVEL);
+        }
+        JsonObject canonical = canonicalUnlocksForWrite();
+        if (canonical == null) {
+            return UnlockAttempt.failed(UnlockFailure.INVALID_GUIDE_STATE);
+        }
+
+        String id = category.getID();
+        String bucket = admin ? "admin" : paid ? "paid" : "regular";
+        if (levelCost > 0 && !admin) {
+            player.giveExpLevels(-levelCost);
+        }
+        addCanonicalUnlock(bucket, id);
+        addCanonicalUnlock("regular", id);
+        if (admin) addCategoryUnlock(ADMIN_CATEGORY_UNLOCKS, id);
+        else if (paid) addCategoryUnlock(PAID_CATEGORY_UNLOCKS, id);
+        else addCategoryUnlock(CATEGORY_UNLOCKS, id);
+        recordEvidence(id, evidence);
+        return UnlockAttempt.success();
+    }
+
+    private JsonObject canonicalUnlocksForWrite() {
+        JsonElement value = jsonData.get(GUIDE_UNLOCKS);
+        if (value == null || !value.isJsonObject()) return null;
+        JsonObject object = value.getAsJsonObject();
+        for (String bucket : List.of("regular", "paid", "admin")) {
+            JsonElement values = object.get(bucket);
+            if (values == null) object.add(bucket, new JsonArray());
+            else if (!values.isJsonArray()) return null;
+        }
+        JsonElement evidence = jsonData.get(GUIDE_EVIDENCE);
+        JsonElement waves = jsonData.get(GUIDE_WAVES);
+        return evidence != null && evidence.isJsonObject() && waves != null && waves.isJsonArray() ? object : null;
+    }
+
+    private void recordEvidence(String id, UnlockEvidence evidence) {
+        JsonObject records = jsonData.getAsJsonObject(GUIDE_EVIDENCE);
+        JsonElement existing = records.get(id);
+        JsonArray values = existing != null && existing.isJsonArray() ? existing.getAsJsonArray() : new JsonArray();
+        for (String receipt : evidence.receipts()) {
+            if (!containsExact(values, receipt)) values.add(receipt);
+        }
+        records.add(id, values);
+    }
+
+    public boolean isWaveComplete(String waveId) {
+        JsonElement waves = jsonData.get(GUIDE_WAVES);
+        return waves != null && waves.isJsonArray() && containsExact(waves.getAsJsonArray(), waveId);
+    }
+
+    public PlayerData completeWave(String waveId) {
+        if (waveId == null || waveId.isBlank()) return this;
+        JsonElement waves = jsonData.get(GUIDE_WAVES);
+        if (waves != null && waves.isJsonArray() && !containsExact(waves.getAsJsonArray(), waveId)) {
+            waves.getAsJsonArray().add(waveId.trim());
+        }
+        return this;
+    }
+
+    public enum UnlockFailure {
+        UNKNOWN_CATEGORY, MISSING_EVIDENCE, PREREQUISITES, PAYMENT_REQUIRED, INSUFFICIENT_LEVEL, INVALID_GUIDE_STATE
+    }
+
+    public record UnlockAttempt(boolean unlocked, boolean alreadyUnlocked, UnlockFailure failure) {
+        public static UnlockAttempt success() { return new UnlockAttempt(true, false, null); }
+        public static UnlockAttempt already() { return new UnlockAttempt(true, true, null); }
+        public static UnlockAttempt failed(UnlockFailure failure) { return new UnlockAttempt(false, false, failure); }
+    }
+
+    public record UnlockEvidence(Set<String> receipts, boolean paid, boolean admin) {
+        public UnlockEvidence {
+            Set<String> clean = new LinkedHashSet<>();
+            if (receipts != null) {
+                for (String receipt : receipts) {
+                    if (receipt != null && !receipt.isBlank()) clean.add(receipt.trim());
+                }
+            }
+            receipts = Collections.unmodifiableSet(clean);
+        }
+
+        public static UnlockEvidence regular(String receipt) {
+            return new UnlockEvidence(Set.of(receipt), false, false);
+        }
+
+        public static UnlockEvidence paid(String receipt) {
+            return new UnlockEvidence(Set.of(receipt), true, false);
+        }
+
+        public static UnlockEvidence admin(String receipt) {
+            return new UnlockEvidence(Set.of(receipt), false, true);
+        }
+    }
+
+    public record GuideView(String id, boolean unlocked, boolean prerequisitesUnlocked, boolean paymentRequired, int levelCost) {
+    }
+
+    public GuideView evaluateGuide(CategoryObject category) {
+        Objects.requireNonNull(category, "category");
+        return new GuideView(category.getID(), hasCategoryUnlock(category),
+                category.arePrepositionsUnlockedBy(this), category.requiresLevelPayment(), category.getUnlockLevelCost());
+    }
+
+    /** Pure fixture evaluator; the supplied JSON is copied before migration. */
+    public static GuideView evaluateGuide(JsonObject source, CategoryObject category) {
+        Objects.requireNonNull(source, "source");
+        Objects.requireNonNull(category, "category");
+        JsonObject copy = JsonParser.parseString(source.toString()).getAsJsonObject();
+        migrateGuideState(copy);
+        boolean unlocked = hasCategoryUnlockIn(copy, category);
+        boolean prerequisites = category.getPreposition().stream()
+                .allMatch(prerequisite -> hasCategoryUnlockIn(copy, prerequisite));
+        return new GuideView(category.getID(), unlocked, prerequisites,
+                category.requiresLevelPayment(), category.getUnlockLevelCost());
+    }
+
+    private static boolean hasCategoryUnlockIn(JsonObject source, CategoryObject category) {
+        return hasAnyUnlockIn(source, category.getID(), category.getPlanningId(),
+                category.getRuntimeId(), category.getLegacyRuntimeId());
+    }
+
+    private static boolean hasAnyUnlockIn(JsonObject source, String... ids) {
+        for (String id : ids) {
+            if (id == null || id.isBlank()) continue;
+            if (legacyTokens(source.get(CATEGORY_UNLOCKS)).contains(id)
+                    || legacyTokens(source.get(PAID_CATEGORY_UNLOCKS)).contains(id)
+                    || legacyTokens(source.get(ADMIN_CATEGORY_UNLOCKS)).contains(id)
+                    || hasCanonicalUnlockIn(source, "regular", id)
+                    || hasCanonicalUnlockIn(source, "paid", id)
+                    || hasCanonicalUnlockIn(source, "admin", id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasCanonicalUnlockIn(JsonObject source, String bucket, String id) {
+        JsonElement unlocks = source.get(GUIDE_UNLOCKS);
+        if (unlocks == null || !unlocks.isJsonObject()) return false;
+        JsonElement values = unlocks.getAsJsonObject().get(bucket);
+        return values != null && values.isJsonArray() && containsExact(values.getAsJsonArray(), id);
     }
 
     public PlayerData dropItem(ItemStack stack) {

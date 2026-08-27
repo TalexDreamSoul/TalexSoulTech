@@ -365,6 +365,22 @@
   .catalog-submit-group .button {
     min-height: var(--control-md);
   }
+  .route-catalog .catalog-controls {
+    grid-template-columns: minmax(16rem, 2fr) repeat(4, minmax(8rem, 1fr));
+  }
+
+  .route-catalog .catalog-submit-group {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .catalog-filter-strip + .catalog-filter-strip {
+    margin-top: var(--space-2);
+  }
+
+  .wave-chip {
+    text-decoration: none;
+  }
 
   .discipline-chip {
     text-decoration: none;
@@ -428,6 +444,32 @@
     font-family: var(--font-mono);
   }
 
+  .discipline-anchor-list {
+    display: grid;
+    gap: var(--space-3);
+    list-style: none;
+  }
+
+  .discipline-anchor-list li {
+    padding-top: var(--space-3);
+    border-top: var(--line) solid var(--color-line);
+  }
+
+  .discipline-anchor-list code,
+  .family-sequence code {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-subtle);
+    font-size: var(--text-xs);
+  }
+
+  .family-anchor-copy,
+  .relationship-reason {
+    display: block;
+    margin-top: var(--space-1);
+    color: var(--color-subtle);
+    font-size: var(--text-xs);
+  }
   .item-detail .route-definitions {
     margin-top: var(--space-8);
   }
@@ -455,6 +497,23 @@
     text-decoration: none;
   }
 
+  .item-progression {
+    margin-bottom: var(--space-8);
+  }
+
+  .item-progression .route-definitions {
+    grid-template-columns: 1fr;
+  }
+
+  .family-sequence [aria-current="step"] {
+    color: var(--color-accent);
+    font-weight: 700;
+  }
+
+  .restorer-record {
+    margin-top: var(--space-8);
+    border-top-color: var(--color-line-strong);
+  }
   .route-structured-content {
     max-width: var(--route-wide-reading);
   }
@@ -550,6 +609,82 @@
 
   .route-curriculum-table {
     margin-top: var(--space-8);
+  }
+  .campaign-summary {
+    margin-bottom: var(--space-12);
+  }
+
+  .campaign-acts {
+    display: grid;
+    gap: var(--space-16);
+  }
+
+  .campaign-act > header {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.6fr) minmax(0, 2fr);
+    gap: var(--space-8);
+    align-items: baseline;
+    padding-top: var(--space-6);
+    border-top: var(--line) solid var(--color-line-strong);
+  }
+
+  .campaign-act > header p {
+    max-width: var(--reading-width);
+    color: var(--color-muted);
+  }
+
+  .campaign-wave-list {
+    margin-top: var(--space-8);
+    border-top: var(--line) solid var(--color-line-strong);
+  }
+
+  .campaign-wave {
+    padding-block: var(--space-8);
+    scroll-margin-top: calc(var(--header-height) + var(--space-6));
+  }
+
+  .campaign-wave + .campaign-wave {
+    border-top: var(--line) solid var(--color-line);
+  }
+
+  .campaign-wave > header {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-6);
+    align-items: baseline;
+  }
+
+  .campaign-wave > header p,
+  .campaign-wave-state {
+    color: var(--color-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .campaign-wave > .route-two-column {
+    margin-top: var(--space-6);
+  }
+
+  .campaign-discipline-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    list-style: none;
+  }
+
+  .campaign-discipline-links a {
+    display: inline-flex;
+    min-height: var(--control-sm);
+    align-items: center;
+    padding-inline: var(--space-3);
+    border: var(--line) solid var(--color-line);
+    color: var(--color-ink-strong);
+    text-decoration: none;
+  }
+
+  .campaign-gates {
+    margin-top: var(--space-6);
   }
 
   .route-architecture-stack {
@@ -737,6 +872,13 @@
       grid-template-columns: 1fr;
       gap: var(--space-8);
     }
+    .route-catalog .catalog-controls {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .route-catalog .field-search {
+      grid-column: 1 / -1;
+    }
 
     .admin-summary-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -837,6 +979,23 @@
     .catalog-submit-group .button {
       width: 100%;
     }
+    .route-catalog .catalog-controls {
+      grid-template-columns: 1fr;
+    }
+
+    .route-catalog .field-search {
+      grid-column: auto;
+    }
+
+    .campaign-act > header {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+
+    .campaign-wave > header {
+      align-items: start;
+      flex-direction: column;
+    }
 
     .discipline-stage > header {
       align-items: start;
@@ -887,6 +1046,99 @@
       content: attr(data-label);
       font-size: var(--text-xs);
       font-weight: 700;
+    }
+    .route-catalog .table-frame,
+    .discipline-detail .table-frame,
+    .planning-manual .table-frame {
+      max-width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .catalog-table,
+    .discipline-detail .route-static-table,
+    .route-campaign-table {
+      min-width: 44rem;
+    }
+
+    .catalog-table thead,
+    .discipline-detail .route-static-table thead,
+    .route-campaign-table thead {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+
+    .catalog-table tbody,
+    .discipline-detail .route-static-table tbody,
+    .route-campaign-table tbody {
+      display: table-row-group;
+    }
+
+    .catalog-table tr,
+    .discipline-detail .route-static-table tr,
+    .route-campaign-table tr {
+      display: table-row;
+      width: auto;
+      padding: 0;
+      border: 0;
+    }
+
+    .catalog-table tbody th,
+    .catalog-table td,
+    .discipline-detail .route-static-table tbody th,
+    .discipline-detail .route-static-table td,
+    .route-campaign-table tbody th,
+    .route-campaign-table td {
+      display: table-cell;
+      width: auto;
+      margin: 0;
+      padding: var(--space-4);
+      border: 0;
+      border-bottom: var(--line) solid var(--color-line);
+      color: var(--color-muted);
+      font-size: var(--text-base);
+      font-weight: 400;
+      text-align: left;
+    }
+
+    .catalog-table tbody th,
+    .discipline-detail .route-static-table tbody th,
+    .route-campaign-table tbody th {
+      color: var(--color-ink-strong);
+      font-weight: 700;
+    }
+
+    .catalog-table tbody th::before,
+    .catalog-table td::before,
+    .discipline-detail .route-static-table tbody th::before,
+    .discipline-detail .route-static-table td::before,
+    .route-campaign-table tbody th::before,
+    .route-campaign-table td::before {
+      display: none;
+    }
+
+    .catalog-table td:last-child,
+    .discipline-detail .route-static-table td:last-child,
+    .route-campaign-table td:last-child {
+      display: table-cell;
+      grid-column: auto;
+      margin: 0;
+      padding: var(--space-4);
+      text-align: right;
+    }
+
+    .catalog-table td:last-child .button,
+    .catalog-table td:last-child .text-button,
+    .discipline-detail .route-static-table td:last-child .button,
+    .discipline-detail .route-static-table td:last-child .text-button,
+    .route-campaign-table td:last-child .button,
+    .route-campaign-table td:last-child .text-button {
+      width: auto;
     }
 
     .route-anchor-index {

@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/system-invariants.md", "reason": "Runtime, electricity, catalog and release invariants"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Package ownership for new content runtime"}
+{"file": ".trellis/tasks/08-25-full-catalog-runtime/design.md", "reason": "Authoritative architecture and data-flow contract"}
+{"file": "site/public/data/catalog.js", "reason": "Canonical 810-item authoring catalog"}
+{"file": "site/public/data/progression.js", "reason": "Canonical four-act nine-wave behavior gates"}

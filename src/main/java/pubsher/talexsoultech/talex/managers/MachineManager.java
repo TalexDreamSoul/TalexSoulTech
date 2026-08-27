@@ -31,7 +31,17 @@ public class MachineManager {
 
     public void registerMachine(BaseMachine baseMachine) {
 
-        this.machines.put(baseMachine.getMachineName(), baseMachine);
+        if ( baseMachine == null || baseMachine.getMachineName() == null || baseMachine.getMachineName().isBlank() ) {
+            throw new IllegalArgumentException("Machine and machine name must not be null or blank");
+        }
+
+        synchronized ( machines ) {
+            String machineName = baseMachine.getMachineName();
+            if ( machines.containsKey(machineName) ) {
+                throw new IllegalStateException("Duplicate machine name: " + machineName);
+            }
+            machines.put(machineName, baseMachine);
+        }
 
     }
 

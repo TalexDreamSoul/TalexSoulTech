@@ -3,6 +3,15 @@ import { copyFile, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync } from "node:zlib";
+import {
+  ASSET_GENERATION_COUNTS,
+  BASELINE_RUNTIME_COUNT,
+  buildRuntimeCatalogSource,
+  createGeneratedModels,
+  expectedFallbackKind,
+  loadAssetManifest,
+  validateAssetModels,
+} from "./catalog-asset-generation.mjs";
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const siteDirectory = resolve(scriptDirectory, "..");
@@ -10,6 +19,17 @@ const source = resolve(siteDirectory, "..", "target", "talex-soul-tech-3.0.0-SNA
 const downloadsDirectory = resolve(siteDirectory, "public", "downloads");
 const filename = "TalexSoulTech-3.0.0-SNAPSHOT.jar";
 const destination = resolve(downloadsDirectory, filename);
+const runtimeCatalogDestination = resolve(siteDirectory, "public", "data", "runtime-catalog.js");
+const runtimeManifestSource = resolve(
+  siteDirectory,
+  "..",
+  "src",
+  "main",
+  "resources",
+  "talexsoultech",
+  "content",
+  "catalog-runtime.json",
+);
 
 const resourcePackVersion = "26.1.2";
 const resourcePackFormat = 84;
@@ -17,6 +37,19 @@ const resourcePackName = `TalexSoulTech-${resourcePackVersion}-resource-pack.zip
 const resourcePackSourceDirectory = resolve(siteDirectory, "public", "assets", "talexsoultech-resource-pack");
 const resourcePackDestination = resolve(siteDirectory, "public", "assets", resourcePackName);
 const resourcePackManifestDestination = resolve(siteDirectory, "public", "assets", "TalexSoulTech-resource-pack.manifest.json");
+const poweredEquipmentCatalogSource = resolve(
+  siteDirectory,
+  "..",
+  "src",
+  "main",
+  "java",
+  "pubsher",
+  "talexsoultech",
+  "talex",
+  "items",
+  "equipment",
+  "ElectricalEquipmentCatalog.java",
+);
 
 const palette = {
   ".": [0, 0, 0, 0],
@@ -33,9 +66,12 @@ const palette = {
   A: [218, 151, 56, 255],
   Y: [255, 211, 85, 255],
   R: [183, 57, 43, 255],
+  G: [66, 190, 111, 255],
+  N: [37, 76, 126, 255],
+  W: [238, 245, 247, 255],
 };
 
-const customModels = [
+const baseCustomModels = [
   {
     id: "guide_book",
     baseMaterial: "book",
@@ -222,6 +258,140 @@ const customModels = [
   },
 ];
 
+function equipmentKind(id, machine) {
+  if (machine) return "machine";
+  if (id.includes("battery")) return "battery";
+  if (/backpack|chestplate|leggings|boots|helmet|jetpack|harness/.test(id)) return "armor";
+  if (/charger|receiver|generator|recall|scanner|analyzer|collector|flashlight/.test(id)) return "device";
+  return "tool";
+}
+
+function createEquipmentPixels(id, tier, machine) {
+  const grid = Array.from({ length: 16 }, () => Array(16).fill("."));
+  const digest = createHash("sha256").update(id).digest();
+  const tierColors = ["C", "G", "T", "V", "P"];
+  const accents = ["Y", "O", "T", "G", "P", "R", "W", "N"];
+  const base = tierColors[tier - 1];
+  const accent = accents[digest[0] % accents.length];
+  const secondary = accents[digest[1] % accents.length];
+  const set = (x, y, value) => {
+    if (x >= 0 && x < 16 && y >= 0 && y < 16) grid[y][x] = value;
+  };
+  const rect = (x1, y1, x2, y2, value) => {
+    for (let y = y1; y <= y2; y += 1) {
+      for (let x = x1; x <= x2; x += 1) set(x, y, value);
+    }
+  };
+  const outlineRect = (x1, y1, x2, y2, fill) => {
+    rect(x1, y1, x2, y2, "K");
+    rect(x1 + 1, y1 + 1, x2 - 1, y2 - 1, fill);
+  };
+
+  switch (equipmentKind(id, machine)) {
+    case "battery":
+      outlineRect(5, 2, 10, 13, "D");
+      rect(7, 1, 8, 1, "L");
+      rect(6, 4, 9, 11, base);
+      rect(7, 5, 8, 10, accent);
+      set(6, 12, "S");
+      set(9, 12, "S");
+      break;
+    case "armor":
+      rect(4, 3, 11, 4, "K");
+      rect(3, 4, 12, 6, "K");
+      rect(5, 5, 10, 12, "K");
+      rect(4, 6, 11, 9, base);
+      rect(6, 5, 9, 11, "D");
+      rect(7, 6, 8, 9, accent);
+      set(5, 10, secondary);
+      set(10, 10, secondary);
+      break;
+    case "machine":
+      outlineRect(2, 4, 13, 13, "D");
+      rect(3, 5, 12, 7, base);
+      outlineRect(5, 7, 10, 12, "N");
+      rect(6, 8, 9, 10, accent);
+      set(3, 12, "L");
+      set(12, 12, "L");
+      rect(5, 2, 10, 3, "K");
+      rect(6, 2, 9, 2, secondary);
+      break;
+    case "device":
+      for (let offset = 0; offset < 5; offset += 1) {
+        rect(7 - offset, 3 + offset, 8 + offset, 12 - offset, "K");
+      }
+      for (let offset = 0; offset < 3; offset += 1) {
+        rect(7 - offset, 5 + offset, 8 + offset, 10 - offset, base);
+      }
+      rect(7, 6, 8, 9, accent);
+      set(4, 7, secondary);
+      set(11, 8, secondary);
+      break;
+    default:
+      for (let step = 0; step < 9; step += 1) {
+        set(3 + step, 13 - step, "K");
+        if (step < 8) set(3 + step, 12 - step, "B");
+      }
+      outlineRect(8, 2, 13, 6, base);
+      rect(9, 3, 12, 4, accent);
+      set(4, 11, secondary);
+      set(5, 12, secondary);
+      break;
+  }
+
+  for (let bit = 0; bit < 10; bit += 1) {
+    const value = (digest[2 + (bit >> 3)] >> (bit & 7)) & 1;
+    set(3 + bit, 14, value === 1 ? accent : "S");
+  }
+  return grid.map((row) => row.join(""));
+}
+
+async function loadEquipmentCustomModels() {
+  const source = await readFile(poweredEquipmentCatalogSource, "utf8");
+  const portablePattern = /item\(\s*"([a-z0-9_]+)"\s*,\s*"[^"]*"\s*,\s*Material\.([A-Z0-9_]+)\s*,\s*([1-5])/g;
+  const chargerPattern = /charger\(\s*"([a-z0-9_]+)"\s*,\s*"[^"]*"\s*,\s*Material\.([A-Z0-9_]+)\s*,\s*([1-5])/g;
+  const portable = [...source.matchAll(portablePattern)].map((match) => ({
+    id: match[1],
+    baseMaterial: match[2].toLowerCase(),
+    tier: Number(match[3]),
+    machine: false,
+  }));
+  const chargers = [...source.matchAll(chargerPattern)].map((match) => ({
+    id: match[1],
+    baseMaterial: match[2].toLowerCase(),
+    tier: Number(match[3]),
+    machine: true,
+  }));
+  if (portable.length !== 47 || chargers.length !== 3) {
+    throw new Error(`电力装备材质目录必须为 47+3，当前 ${portable.length}+${chargers.length}`);
+  }
+  const definitions = [...portable, ...chargers];
+  if (new Set(definitions.map((definition) => definition.id)).size !== 50) {
+    throw new Error("电力装备材质 ID 必须全局唯一");
+  }
+  return definitions.map((definition) => ({
+    id: definition.id,
+    baseMaterial: definition.baseMaterial,
+    selector: `talexsoultech:${definition.id}`,
+    pixels: createEquipmentPixels(definition.id, definition.tier, definition.machine),
+  }));
+}
+
+const equipmentCustomModels = await loadEquipmentCustomModels();
+const runtimeManifest = await loadAssetManifest(runtimeManifestSource);
+const generatedCustomModels = createGeneratedModels(runtimeManifest.manifest);
+const preservedCustomModels = [...baseCustomModels, ...equipmentCustomModels].map((model) => ({
+  ...model,
+  generated: false,
+  legacy: true,
+}));
+const modelClosure = validateAssetModels({
+  manifest: runtimeManifest.manifest,
+  existingModels: preservedCustomModels,
+  generatedModels: generatedCustomModels,
+});
+const customModels = modelClosure.allModels.sort((left, right) => (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
+
 function crc32(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -338,6 +508,17 @@ function createZip(files) {
 
 function vanillaFallback(baseMaterial) {
   const model = (path) => ({ type: "minecraft:model", model: path });
+  const explicitModels = {
+    beacon: "minecraft:block/beacon",
+    clock: "minecraft:item/clock_00",
+    compass: "minecraft:item/compass_16",
+    lightning_rod: "minecraft:block/lightning_rod",
+    lodestone: "minecraft:block/lodestone",
+    recovery_compass: "minecraft:item/recovery_compass_16",
+    redstone_block: "minecraft:block/redstone_block",
+    respawn_anchor: "minecraft:block/respawn_anchor_0",
+  };
+  if (explicitModels[baseMaterial]) return model(explicitModels[baseMaterial]);
   if (baseMaterial === "chest" || baseMaterial === "trapped_chest") {
     const texture = baseMaterial === "chest" ? "normal" : "trapped";
     return {
@@ -361,9 +542,8 @@ function vanillaFallback(baseMaterial) {
       property: "minecraft:local_time",
     };
   }
-  return model(
-    baseMaterial === "barrel" ? "minecraft:block/barrel" : `minecraft:item/${baseMaterial}`,
-  );
+  const kind = expectedFallbackKind(baseMaterial);
+  return model(`minecraft:${kind}/${baseMaterial}`);
 }
 
 function packJson(value) {
@@ -390,16 +570,22 @@ async function prepareResourcePack() {
   );
 
   const byMaterial = new Map();
+  const modelRecords = [];
   for (const customModel of customModels) {
+    const itemDefinition = `assets/minecraft/items/${customModel.baseMaterial}.json`;
+    const directItemDefinition = `assets/talexsoultech/items/${customModel.id}.json`;
+    const modelPath = `assets/talexsoultech/models/item/${customModel.id}.json`;
+    const texturePath = `assets/talexsoultech/textures/item/${customModel.id}.png`;
+    const texture = createPixelTexture(customModel.pixels);
     files.set(
-      `assets/talexsoultech/models/item/${customModel.id}.json`,
+      modelPath,
       packJson({
         parent: "minecraft:item/generated",
         textures: { layer0: `talexsoultech:item/${customModel.id}` },
       }),
     );
     files.set(
-      `assets/talexsoultech/items/${customModel.id}.json`,
+      directItemDefinition,
       packJson({
         model: {
           type: "minecraft:model",
@@ -407,18 +593,36 @@ async function prepareResourcePack() {
         },
       }),
     );
-    files.set(
-      `assets/talexsoultech/textures/item/${customModel.id}.png`,
-      createPixelTexture(customModel.pixels),
-    );
+    files.set(texturePath, texture);
     const materialModels = byMaterial.get(customModel.baseMaterial) ?? [];
     materialModels.push(customModel);
     byMaterial.set(customModel.baseMaterial, materialModels);
+    modelRecords.push({
+      runtimeId: customModel.runtimeId ?? customModel.id,
+      planningId: customModel.planningId ?? null,
+      selector: customModel.selector,
+      baseMaterial: customModel.baseMaterial,
+      generated: Boolean(customModel.generated),
+      legacy: Boolean(customModel.legacy),
+      itemDefinition,
+      directItemDefinition,
+      model: modelPath,
+      texture: texturePath,
+      textureSha256: fileHash(texture),
+    });
   }
 
-  for (const [baseMaterial, materialModels] of byMaterial) {
+  const fallbackRecords = [];
+  for (const baseMaterial of [...byMaterial.keys()].sort()) {
+    const materialModels = byMaterial.get(baseMaterial).sort((left, right) => (left.selector < right.selector ? -1 : left.selector > right.selector ? 1 : 0));
+    const fallback = vanillaFallback(baseMaterial);
+    const fallbackText = JSON.stringify(fallback);
+    if (!fallback || fallbackText.includes("undefined") || !fallbackText.includes("minecraft:")) {
+      throw new Error(`missing safe vanilla fallback for ${baseMaterial}`);
+    }
+    const itemDefinition = `assets/minecraft/items/${baseMaterial}.json`;
     files.set(
-      `assets/minecraft/items/${baseMaterial}.json`,
+      itemDefinition,
       packJson({
         model: {
           type: "minecraft:select",
@@ -431,10 +635,17 @@ async function prepareResourcePack() {
               model: `talexsoultech:item/${customModel.id}`,
             },
           })),
-          fallback: vanillaFallback(baseMaterial),
+          fallback,
         },
       }),
     );
+    fallbackRecords.push({
+      baseMaterial,
+      itemDefinition,
+      kind: expectedFallbackKind(baseMaterial),
+      selectorCount: materialModels.length,
+      valid: true,
+    });
   }
 
   const archiveFiles = [...files]
@@ -450,24 +661,64 @@ async function prepareResourcePack() {
   await mkdir(dirname(resourcePackDestination), { recursive: true });
   await writeFile(resourcePackDestination, archive);
 
+  const filePaths = new Set(archiveFiles.map((file) => file.path));
+  for (const record of modelRecords) {
+    for (const path of [record.itemDefinition, record.directItemDefinition, record.model, record.texture]) {
+      if (!filePaths.has(path)) throw new Error(`resource pack closure missing ${path}`);
+    }
+  }
+  if (modelRecords.length !== customModels.length || modelRecords.filter((record) => record.generated).length !== ASSET_GENERATION_COUNTS.newRegistrations) {
+    throw new Error("resource pack model closure does not cover preserved and generated assets");
+  }
+  if (new Set(modelRecords.map((record) => record.selector)).size !== modelRecords.length) {
+    throw new Error("resource pack selectors must be globally unique");
+  }
+  if (new Set(modelRecords.map((record) => record.model)).size !== modelRecords.length || new Set(modelRecords.map((record) => record.texture)).size !== modelRecords.length) {
+    throw new Error("resource pack models and textures must be globally unique");
+  }
+  if (fallbackRecords.some((record) => !record.valid || record.selectorCount < 1)) {
+    throw new Error("resource pack fallback closure is incomplete");
+  }
+  const generatedCount = modelRecords.filter((record) => record.generated).length;
+  const preservedCount = modelRecords.length - generatedCount;
   const resourcePackManifest = {
     filename: resourcePackName,
     version: resourcePackVersion,
     target: "Minecraft Java 26.1.2 / Paper 26.1.2",
-    resourcePackFormat: { major: 84, minor: 0 },
+    resourcePackFormat: { major: resourcePackFormat, minor: 0 },
+    sourceManifest: {
+      path: "src/main/resources/talexsoultech/content/catalog-runtime.json",
+      sha256: runtimeManifest.sourceManifestHash,
+      authoringHash: runtimeManifest.manifest.authoringHash,
+    },
+    counts: {
+      mapped: ASSET_GENERATION_COUNTS.catalog,
+      catalogMapped: ASSET_GENERATION_COUNTS.catalog,
+      newAssets: generatedCount,
+      newRegistrations: ASSET_GENERATION_COUNTS.newRegistrations,
+      runtime: ASSET_GENERATION_COUNTS.runtimeTotal,
+      runtimeTotal: ASSET_GENERATION_COUNTS.runtimeTotal,
+      baseline: BASELINE_RUNTIME_COUNT,
+      preservedAssets: preservedCount,
+      customModels: modelRecords.length,
+      files: archiveFiles.length,
+      baseMaterialDefinitions: fallbackRecords.length,
+    },
+    closure: {
+      files: { count: archiveFiles.length, complete: true },
+      models: { count: modelRecords.length, generated: generatedCount, preserved: preservedCount, complete: true },
+      directItemDefinitions: { count: modelRecords.length, complete: true },
+      textures: { count: modelRecords.length, generated: generatedCount, size: "16x16", complete: true },
+      selectors: { count: modelRecords.length, unique: true, generated: generatedCount, preserved: preservedCount, complete: true },
+      fallbacks: { count: fallbackRecords.length, valid: true, complete: true },
+    },
     archive: {
       path: `assets/${resourcePackName}`,
       size: archive.length,
       sha256: fileHash(archive),
     },
-    models: customModels.map((customModel) => ({
-      selector: customModel.selector,
-      baseMaterial: customModel.baseMaterial,
-      itemDefinition: `assets/minecraft/items/${customModel.baseMaterial}.json`,
-      directItemDefinition: `assets/talexsoultech/items/${customModel.id}.json`,
-      model: `assets/talexsoultech/models/item/${customModel.id}.json`,
-      texture: `assets/talexsoultech/textures/item/${customModel.id}.png`,
-    })),
+    models: modelRecords.sort((left, right) => (left.runtimeId < right.runtimeId ? -1 : left.runtimeId > right.runtimeId ? 1 : 0)),
+    fallbacks: fallbackRecords,
     files: archiveFiles.map((file) => ({
       path: file.path,
       size: file.content.length,
@@ -489,13 +740,25 @@ await copyFile(source, destination);
 
 const bytes = await readFile(destination);
 const metadata = await stat(destination);
+const jarSha256 = createHash("sha256").update(bytes).digest("hex");
 const manifest = {
   filename,
   version: "3.0.0-SNAPSHOT",
   target: "Paper 26.1.2 / Java 25",
   size: metadata.size,
-  sha256: createHash("sha256").update(bytes).digest("hex"),
+  sha256: jarSha256,
 };
+
+await writeFile(
+  runtimeCatalogDestination,
+  buildRuntimeCatalogSource({
+    manifest: runtimeManifest.manifest,
+    jarSha256,
+    observedAt: "2026-08-25",
+    sourceManifestHash: runtimeManifest.sourceManifestHash,
+  }),
+  "utf8",
+);
 
 await writeFile(
   resolve(downloadsDirectory, "manifest.json"),

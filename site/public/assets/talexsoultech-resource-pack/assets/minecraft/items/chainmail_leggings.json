@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:servo_leggings",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/servo_leggings"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/chainmail_leggings"
+    }
+  }
+}

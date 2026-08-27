@@ -1,0 +1,69 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.magic_arcane_garden_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_arcane_garden_array"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_display_ritual_ritual_bell",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_display_ritual_ritual_bell"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_elemental_runes_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_elemental_runes_array"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_enchanted_tools_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_enchanted_tools_array"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_magic_storage_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_magic_storage_array"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_mana_measurement_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_mana_measurement_array"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_soul_binding_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_soul_binding_array"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_ward_circle_array",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_ward_circle_array"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/enchanting_table"
+    }
+  }
+}

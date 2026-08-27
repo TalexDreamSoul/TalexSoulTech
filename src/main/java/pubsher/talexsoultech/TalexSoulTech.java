@@ -12,6 +12,8 @@ import pubsher.talexsoultech.listener.BlockListener;
 import pubsher.talexsoultech.listener.Listeners;
 import pubsher.talexsoultech.listener.MultiblockProtectionListener;
 import pubsher.talexsoultech.talex.BaseTalex;
+import pubsher.talexsoultech.talex.content.ContentBehaviorService;
+import pubsher.talexsoultech.talex.content.items.ContentRegistryLifecycle;
 import pubsher.talexsoultech.talex.items.equipment.PoweredEquipmentService;
 import pubsher.talexsoultech.talex.storage.StorageBoxManager;
 import pubsher.talexsoultech.talex.world.WildernessListener;
@@ -52,6 +54,8 @@ public final class TalexSoulTech extends JavaPlugin {
 
     @Getter
     private PoweredEquipmentService poweredEquipmentService;
+    @Getter
+    private ContentBehaviorService contentBehaviorService;
 
     private WildernessManager wildernessManager;
     @Getter
@@ -72,6 +76,7 @@ public final class TalexSoulTech extends JavaPlugin {
         this.baseTalex = BaseTalex.getInstance();
         this.poweredEquipmentService = new PoweredEquipmentService(this);
         this.baseTalex.enable();
+        this.contentBehaviorService = ContentBehaviorService.install(this, baseTalex.getContentRegistry());
         this.cloudSyncService = new CloudSyncService(this);
         this.extensionManager = new ExtensionManager(this);
 
@@ -79,6 +84,7 @@ public final class TalexSoulTech extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BlockListener(), this);
         getServer().getPluginManager().registerEvents(new MultiblockProtectionListener(), this);
         getServer().getPluginManager().registerEvents(new UIListener(), this);
+        getServer().getPluginManager().registerEvents(contentBehaviorService.listener(), this);
 
         this.storageBoxManager = new StorageBoxManager(this);
         this.storageBoxManager.enable();
@@ -116,6 +122,10 @@ public final class TalexSoulTech extends JavaPlugin {
 
     @SneakyThrows
     private void saveMachines() {
+        if (baseTalex == null || baseTalex.getMachineManager() == null) {
+            return;
+        }
+
 
         YamlConfiguration yaml = new YamlConfiguration();
 
@@ -134,6 +144,11 @@ public final class TalexSoulTech extends JavaPlugin {
     @SneakyThrows
     @Override
     public void onDisable() {
+
+        if (contentBehaviorService != null) {
+            contentBehaviorService.close();
+            contentBehaviorService = null;
+        }
 
         if (baseTalex != null) {
             baseTalex.beginPlayerShutdown();
@@ -205,6 +220,9 @@ public final class TalexSoulTech extends JavaPlugin {
             }
             MultiblockStructureRegistry.INSTANCE.clear();
             SoulTechItem.clearGlobalInteractionObservers();
+            if (baseTalex != null) {
+                ContentRegistryLifecycle.uninstall(baseTalex.getContentRegistry());
+            }
 
             if (baseTalex != null) {
                 baseTalex.getMysqlManager().shutdown();

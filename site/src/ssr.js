@@ -1,4 +1,6 @@
 import { CATALOG_STATS, DISCIPLINES } from "../public/data/catalog.js";
+import { CAMPAIGN, CAMPAIGN_ACTS, CAMPAIGN_WAVES } from "../public/data/progression.js";
+import { RUNTIME_GROUPS, RUNTIME_ITEMS, RUNTIME_RELEASE } from "../public/data/runtime-catalog.js";
 import {
   SAAS_ARCHITECTURE,
   SITE_CONTENT,
@@ -9,12 +11,14 @@ import {
 const DOWNLOAD_URL = "/downloads/TalexSoulTech-3.0.0-SNAPSHOT.jar";
 const MANIFEST_URL = "/downloads/manifest.json";
 const CATALOG_PAGE_SIZE = 24;
+const RUNTIME_CATALOG_PAGE_SIZE = 30;
 
 const NAVIGATION = Object.freeze([
   { label: "首页", path: "/" },
   { label: "下载", path: "/download" },
   { label: "教程", path: "/docs" },
   { label: "学科", path: "/disciplines" },
+  { label: "实装目录", path: "/runtime" },
   { label: "资料库", path: "/catalog" },
   { label: "架构", path: "/architecture" },
   { label: "扩展", path: "/extensions" },
@@ -23,6 +27,11 @@ const NAVIGATION = Object.freeze([
 
 const STATUS_LABELS = Object.freeze({
   implemented: "已实装",
+  planned: "规划中",
+});
+
+const CAMPAIGN_STATE_LABELS = Object.freeze({
+  mixed: "实装根基与规划并存",
   planned: "规划中",
 });
 
@@ -155,10 +164,26 @@ const HTML_ESCAPES = Object.freeze({
   "'": "&#39;",
 });
 
+const WAVE_BY_ID = new Map();
 const DISCIPLINE_BY_ID = new Map();
 const TUTORIAL_BY_ID = new Map();
+const FAMILY_BY_KEY = new Map();
+const FAMILY_LINKS_BY_KEY = new Map();
 const ITEM_BY_ID = new Map();
 const CATALOG_RECORDS = [];
+
+for (const wave of CAMPAIGN_WAVES) {
+  WAVE_BY_ID.set(wave.id, wave);
+  for (const link of wave.familyLinks) {
+    const relationship = Object.freeze({ ...link, waveId: wave.id });
+    for (const familyKey of new Set([link.from, link.to])) {
+      if (!FAMILY_LINKS_BY_KEY.has(familyKey)) FAMILY_LINKS_BY_KEY.set(familyKey, []);
+      FAMILY_LINKS_BY_KEY.get(familyKey).push(relationship);
+    }
+  }
+}
+
+for (const links of FAMILY_LINKS_BY_KEY.values()) Object.freeze(links);
 
 for (const tutorial of TUTORIALS) {
   TUTORIAL_BY_ID.set(tutorial.id, tutorial);
@@ -166,7 +191,11 @@ for (const tutorial of TUTORIALS) {
 
 for (const discipline of DISCIPLINES) {
   DISCIPLINE_BY_ID.set(discipline.id, discipline);
+  for (const family of discipline.families) {
+    FAMILY_BY_KEY.set(family.key, Object.freeze({ family, discipline }));
+  }
   for (const item of discipline.items) {
+    const wave = WAVE_BY_ID.get(item.waveId);
     const record = Object.freeze({
       item,
       discipline,
@@ -177,6 +206,10 @@ for (const discipline of DISCIPLINES) {
         item.purpose,
         item.family,
         item.recipeHint,
+        item.waveId,
+        wave?.title,
+        item.story?.text,
+        item.story?.anchorReason,
         discipline.name,
         discipline.stage,
       ].map(normalizeCopy).join(" ").toLocaleLowerCase("zh-CN"),
@@ -193,6 +226,7 @@ const PUBLIC_SITEMAP_PATHS = Object.freeze([
   "/docs",
   ...TUTORIALS.map((tutorial) => `/docs/${encodeURIComponent(tutorial.id)}`),
   "/catalog",
+  "/runtime",
   "/disciplines",
   ...DISCIPLINES.map((discipline) => `/disciplines/${encodeURIComponent(discipline.id)}`),
   ...CATALOG_RECORDS.map(({ item }) => `/items/${encodeURIComponent(item.id)}`),
@@ -310,6 +344,48 @@ function statusLabel(status) {
   return `<span class="status-label is-${normalized}">${escapeHtml(STATUS_LABELS[normalized])}</span>`;
 }
 
+function renderCampaignState(state) {
+  const normalized = state === "mixed" ? "mixed" : "planned";
+  const label = CAMPAIGN_STATE_LABELS[state] || normalizeCopy(state) || CAMPAIGN_STATE_LABELS.planned;
+  return `<span class="campaign-wave-state status-label is-${normalized}">${escapeHtml(label)}</span>`;
+}
+
+function familyDetailHref(familyKey) {
+  const record = FAMILY_BY_KEY.get(familyKey);
+  if (!record) return "/disciplines";
+  return `/disciplines/${encodeURIComponent(record.discipline.id)}#family-${encodeURIComponent(familyKey)}`;
+}
+
+function renderFamilySequence(item) {
+  const records = [item.previousItemId, item.id, item.nextItemId]
+    .filter(Boolean)
+    .map((itemId) => ITEM_BY_ID.get(itemId))
+    .filter(Boolean);
+  return `<ol class="route-link-list family-sequence" id="family-sequence">${records.map((record) => {
+    const current = record.item.id === item.id;
+    const step = current ? "当前" : record.item.id === item.previousItemId ? "上一步" : "下一步";
+    const copy = `${escapeHtml(step)} · ${escapeHtml(record.item.name)}<code>${escapeHtml(record.item.id)}</code>`;
+    return `<li${current ? ' aria-current="step"' : ""}>${current ? `<span>${copy}</span>` : `<a href="/items/${encodeURIComponent(record.item.id)}">${copy}</a>`}${statusLabel(record.item.status)}</li>`;
+  }).join("")}</ol>`;
+}
+
+function renderSoftFamilyLinks(item) {
+  const relationships = FAMILY_LINKS_BY_KEY.get(item.familyKey) || [];
+  const rows = relationships.map((relationship) => {
+    const outgoing = relationship.from === item.familyKey;
+    const targetKey = outgoing ? relationship.to : relationship.from;
+    const target = FAMILY_BY_KEY.get(targetKey);
+    const targetName = target?.family.name || targetKey;
+    return `<li><div><a href="${escapeHtml(familyDetailHref(targetKey))}">${escapeHtml(outgoing ? "支持" : "承接自")} · ${escapeHtml(targetName)}</a><code>${escapeHtml(targetKey)}</code><span class="relationship-reason">${escapeHtml(relationship.reason)}</span></div><span class="status-label">软关联 · ${escapeHtml(relationship.kind)}</span></li>`;
+  }).join("");
+  return `<aside class="route-related" id="related-routes" aria-labelledby="related-routes-title"><h2 id="related-routes-title">关联路线</h2><p>以下仅表示策划中的 supports 关系，不是已实装配方或硬依赖。</p>${rows ? `<ul class="route-link-list">${rows}</ul>` : '<p class="state-copy">当前家族没有声明软关联；请回到学科页选择下一条路线。</p>'}</aside>`;
+}
+
+function renderStoryRecord(item) {
+  if (!item.story) return "";
+  return `<section class="route-callout restorer-record" id="restorer-record" aria-labelledby="restorer-record-title"><p class="kicker">叙事锚点 · 第 ${escapeHtml(item.story.order)} 则</p><h2 id="restorer-record-title">复原者记录</h2><p>${escapeHtml(item.story.text)}</p><dl class="definition-grid route-definitions"><div><dt>家族锚点</dt><dd><code>${escapeHtml(item.familyKey)}</code></dd></div><div><dt>锚点理由</dt><dd>${escapeHtml(item.story.anchorReason)}</dd></div></dl></section>`;
+}
+
 function renderTutorialArticle(tutorial) {
   const notes = Array.isArray(tutorial.notes) && tutorial.notes.length
     ? `<aside class="tutorial-note"><h3>操作备注</h3>${renderPrimitiveList(tutorial.notes)}</aside>`
@@ -348,6 +424,13 @@ function renderHomePage() {
       meta: `${CATALOG_STATS.itemCount} 个物品条目`,
     },
     {
+      id: "runtime",
+      path: "/runtime",
+      label: "生产实装目录",
+      detail: "直接列出当前生产 JAR 启动后注册的稳定物品 ID；与 810 条策划容量分开，不再用规划状态代替运行事实。",
+      meta: `${RUNTIME_RELEASE.itemCount} 个生产注册项 · ${RUNTIME_RELEASE.electricalEntryCount} 个电力条目`,
+    },
+    {
       id: "architecture",
       path: "/architecture",
       label: "架构",
@@ -370,7 +453,7 @@ function renderHomePage() {
     },
   ];
 
-  const body = `<section class="hero shell route-home-hero" id="top" aria-labelledby="hero-title"><div class="hero-copy"><p class="kicker">${escapeHtml(SITE_CONTENT.hero.eyebrow)}</p><h1 id="hero-title">${escapeHtml(SITE_CONTENT.hero.title)}</h1><p class="hero-summary">${escapeHtml(SITE_CONTENT.hero.description)}</p><div class="hero-actions"><a class="button button-primary" href="/download">${escapeHtml(SITE_CONTENT.hero.primaryAction)}</a><a class="button button-secondary" href="/architecture">${escapeHtml(SITE_CONTENT.hero.secondaryAction)}</a></div></div><figure class="hero-visual"><img src="/assets/voxel-industrial-lab-hero.webp" alt="原创方块工业实验室内的熔炉核心、管线、储罐与多方块机器" width="1536" height="1024" fetchpriority="high"><figcaption>${escapeHtml(SITE_CONTENT.brand.visualStatement)}</figcaption></figure></section><section class="fact-band" aria-label="一期关键现状"><dl class="shell fact-grid"><div><dt>已落地学科根目录</dt><dd>${escapeHtml(implementedDisciplines)}</dd></div><div><dt>资料库条目</dt><dd>${escapeHtml(CATALOG_STATS.itemCount)}</dd></div><div><dt>已实装物品</dt><dd>${escapeHtml(CATALOG_STATS.implementedCount)}</dd></div><div><dt>运行基线</dt><dd>Paper 26.1.2 · Java 25</dd></div></dl></section><section class="section shell route-home-directory" aria-labelledby="home-directory-title"><header class="section-heading"><h2 id="home-directory-title">按任务进入，不在首页翻完整手册</h2><p>${escapeHtml(SITE_CONTENT.brand.tagline)}</p></header><div class="route-directory">${routeEntries.map((entry) => `<section class="route-directory-row" id="${escapeHtml(entry.id)}"><div><h3><a href="${escapeHtml(entry.path)}">${escapeHtml(entry.label)}</a></h3><p>${escapeHtml(entry.detail)}</p></div><div class="route-directory-meta"><span>${escapeHtml(entry.meta)}</span><a class="text-button" href="${escapeHtml(entry.path)}" aria-label="进入${escapeHtml(entry.label)}">进入章节</a></div></section>`).join("")}</div></section>`;
+  const body = `<section class="hero shell route-home-hero" id="top" aria-labelledby="hero-title"><div class="hero-copy"><p class="kicker">${escapeHtml(SITE_CONTENT.hero.eyebrow)}</p><h1 id="hero-title">${escapeHtml(SITE_CONTENT.hero.title)}</h1><p class="hero-summary">${escapeHtml(SITE_CONTENT.hero.description)}</p><div class="hero-actions"><a class="button button-primary" href="/download">${escapeHtml(SITE_CONTENT.hero.primaryAction)}</a><a class="button button-secondary" href="/runtime">核对生产实装目录</a></div></div><figure class="hero-visual"><img src="/assets/voxel-industrial-lab-hero.webp" alt="原创方块工业实验室内的熔炉核心、管线、储罐与多方块机器" width="1536" height="1024" fetchpriority="high"><figcaption>${escapeHtml(SITE_CONTENT.brand.visualStatement)}</figcaption></figure></section><section class="fact-band" aria-label="一期关键现状"><dl class="shell fact-grid"><div><dt>已落地学科根目录</dt><dd>${escapeHtml(implementedDisciplines)}</dd></div><div><dt>规划资料库条目</dt><dd>${escapeHtml(CATALOG_STATS.itemCount)}</dd></div><div><dt>生产已注册物品</dt><dd>${escapeHtml(RUNTIME_RELEASE.itemCount)}</dd></div><div><dt>运行基线</dt><dd>Paper 26.1.2 · Java 25</dd></div></dl></section><section class="section shell route-home-directory" aria-labelledby="home-directory-title"><header class="section-heading"><h2 id="home-directory-title">按任务进入，不在首页翻完整手册</h2><p>${escapeHtml(SITE_CONTENT.brand.tagline)}</p></header><div class="route-directory">${routeEntries.map((entry) => `<section class="route-directory-row" id="${escapeHtml(entry.id)}"><div><h3><a href="${escapeHtml(entry.path)}">${escapeHtml(entry.label)}</a></h3><p>${escapeHtml(entry.detail)}</p></div><div class="route-directory-meta"><span>${escapeHtml(entry.meta)}</span><a class="text-button" href="${escapeHtml(entry.path)}" aria-label="进入${escapeHtml(entry.label)}">进入章节</a></div></section>`).join("")}</div></section>`;
 
   return {
     title: "TalexSoulTech | 灵魂科技工业手册",
@@ -448,19 +531,25 @@ function renderTutorialPage(tutorial) {
 
 function normalizedCatalogQuery(url) {
   const q = normalizeCopy(url.searchParams.get("q"));
+  const requestedWave = normalizeCopy(url.searchParams.get("wave"));
   const requestedDiscipline = normalizeCopy(url.searchParams.get("discipline"));
+  const requestedNarrative = normalizeCopy(url.searchParams.get("narrative"));
   const requestedStatus = normalizeCopy(url.searchParams.get("status"));
+  const wave = WAVE_BY_ID.has(requestedWave) ? requestedWave : "all";
   const discipline = DISCIPLINE_BY_ID.has(requestedDiscipline) ? requestedDiscipline : "all";
+  const narrative = requestedNarrative === "anchor" ? "anchor" : "all";
   const status = ["implemented", "planned"].includes(requestedStatus) ? requestedStatus : "all";
   const rawPage = normalizeCopy(url.searchParams.get("page"));
   const page = /^\d+$/.test(rawPage) && Number(rawPage) > 0 ? Number(rawPage) : 1;
-  return { q, discipline, status, page };
+  return { q, wave, discipline, narrative, status, page };
 }
 
-function catalogHref({ q, discipline, status, page }) {
+function catalogHref({ q = "", wave = "all", discipline = "all", narrative = "all", status = "all", page = 1 } = {}) {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
+  if (wave !== "all") params.set("wave", wave);
   if (discipline !== "all") params.set("discipline", discipline);
+  if (narrative !== "all") params.set("narrative", narrative);
   if (status !== "all") params.set("status", status);
   if (page > 1) params.set("page", String(page));
   const query = params.toString();
@@ -471,7 +560,9 @@ function renderCatalogPage(url) {
   const query = normalizedCatalogQuery(url);
   const needle = query.q.toLocaleLowerCase("zh-CN");
   const filtered = CATALOG_RECORDS.filter(({ item, searchText }) => {
+    if (query.wave !== "all" && item.waveId !== query.wave) return false;
     if (query.discipline !== "all" && item.disciplineId !== query.discipline) return false;
+    if (query.narrative === "anchor" && !item.story) return false;
     if (query.status !== "all" && item.status !== query.status) return false;
     return !needle || searchText.includes(needle);
   });
@@ -479,17 +570,23 @@ function renderCatalogPage(url) {
   const page = Math.min(query.page, totalPages);
   const pageQuery = { ...query, page };
   const pageItems = filtered.slice((page - 1) * CATALOG_PAGE_SIZE, page * CATALOG_PAGE_SIZE);
-  const options = DISCIPLINES.map((discipline) => `<option value="${escapeHtml(discipline.id)}"${discipline.id === query.discipline ? " selected" : ""}>${escapeHtml(discipline.name)}</option>`).join("");
-  const chips = [
+  const disciplineOptions = DISCIPLINES.map((discipline) => `<option value="${escapeHtml(discipline.id)}"${discipline.id === query.discipline ? " selected" : ""}>${escapeHtml(discipline.name)}</option>`).join("");
+  const waveOptions = CAMPAIGN_WAVES.map((wave) => `<option value="${escapeHtml(wave.id)}"${wave.id === query.wave ? " selected" : ""}>${escapeHtml(wave.id)} · ${escapeHtml(wave.title)}</option>`).join("");
+  const disciplineChips = [
     `<a class="discipline-chip" href="${escapeHtml(catalogHref({ ...pageQuery, discipline: "all", page: 1 }))}" data-discipline="all" aria-pressed="${query.discipline === "all"}">全部学科</a>`,
     ...DISCIPLINES.map((discipline) => `<a class="discipline-chip" href="${escapeHtml(catalogHref({ ...pageQuery, discipline: discipline.id, page: 1 }))}" data-discipline="${escapeHtml(discipline.id)}" aria-pressed="${discipline.id === query.discipline}">${escapeHtml(discipline.name)}</a>`),
   ].join("");
-  const rows = pageItems.map(({ item, discipline }) => `<tr><td data-label="物品"><a class="cell-title" href="/items/${encodeURIComponent(item.id)}">${escapeHtml(item.name)}</a><span class="cell-code">${escapeHtml(item.id)}</span></td><td data-label="学科"><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></td><td data-label="层级">${escapeHtml(item.tier)} · ${escapeHtml(item.type)}</td><td data-label="状态">${statusLabel(item.status)}</td><td data-label="操作"><a class="text-button" href="/items/${encodeURIComponent(item.id)}">查看详情</a></td></tr>`).join("");
+  const waveChips = [
+    `<a class="discipline-chip wave-chip" href="${escapeHtml(catalogHref({ ...pageQuery, wave: "all", page: 1 }))}" data-wave="all" aria-pressed="${query.wave === "all"}">全部波次</a>`,
+    ...CAMPAIGN_WAVES.map((wave) => `<a class="discipline-chip wave-chip" href="${escapeHtml(catalogHref({ ...pageQuery, wave: wave.id, page: 1 }))}" data-wave="${escapeHtml(wave.id)}" aria-pressed="${wave.id === query.wave}">${escapeHtml(wave.id)}</a>`),
+  ].join("");
+  const rows = pageItems.map(({ item, discipline }) => {
+    const wave = WAVE_BY_ID.get(item.waveId);
+    return `<tr><th scope="row" data-label="物品"><a class="cell-title" href="/items/${encodeURIComponent(item.id)}">${escapeHtml(item.name)}</a><span class="cell-code">${escapeHtml(item.id)}</span></th><td data-label="学科"><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></td><td data-label="波次"><a href="/planning#wave-${encodeURIComponent(item.waveId)}">${escapeHtml(wave?.id || item.waveId)}</a></td><td data-label="层级">${escapeHtml(item.tier)} · ${escapeHtml(item.type)}</td><td data-label="状态">${statusLabel(item.status)}</td><td data-label="操作"><a class="text-button" href="/items/${encodeURIComponent(item.id)}">查看详情</a></td></tr>`;
+  }).join("");
   const previousHref = page > 1 ? catalogHref({ ...pageQuery, page: page - 1 }) : "";
   const nextHref = page < totalPages ? catalogHref({ ...pageQuery, page: page + 1 }) : "";
-  const resultCopy = query.q
-    ? `“${query.q}”找到 ${filtered.length} 个条目`
-    : `找到 ${filtered.length} 个条目`;
+  const resultCopy = query.q ? `“${query.q}”找到 ${filtered.length} 个条目` : `找到 ${filtered.length} 个条目`;
   const stats = [
     ["学科总数", CATALOG_STATS.disciplineCount],
     ["物品总数", CATALOG_STATS.itemCount],
@@ -499,14 +596,14 @@ function renderCatalogPage(url) {
   const body = `${renderRouteHero({
     crumbs: [{ label: "首页", href: "/" }, { label: "资料库" }],
     title: "27 学科资料库",
-    description: "检索 810 个物品，逐项区分已实装能力与后续规划。筛选、分页和详情链接在禁用 JavaScript 时仍然可用。",
+    description: "检索 810 个策划物品，逐项区分已实装能力与后续规划；当前生产注册项始终以独立的 /runtime 目录为准。",
     label: `${CATALOG_STATS.itemCount} 个可核对条目`,
-    actions: '<a class="button button-secondary" href="/disciplines">按学科浏览</a><a class="button button-secondary" href="/planning">查看完整策划</a>',
-  })}<section class="section shell catalog-section route-catalog" id="catalog" aria-labelledby="catalog-title"><header class="section-heading compact-heading"><h2 id="catalog-title">物品索引</h2><p>名称、用途、配方线索、学科与研发状态共同参与筛选。</p></header><dl class="catalog-stats" id="catalog-stats" aria-label="资料库统计">${stats.map(([label, value]) => `<div class="catalog-stat"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl><form class="catalog-controls" id="catalog-controls" action="/catalog" method="get" role="search"><div class="field field-search"><label for="catalog-search">检索名称、用途或配方线索</label><input id="catalog-search" name="q" type="search" value="${escapeHtml(query.q)}" autocomplete="off" enterkeyhint="search" placeholder="输入物品名称或关键词"></div><div class="field"><label for="discipline-filter">学科</label><select id="discipline-filter" name="discipline"><option value="all"${query.discipline === "all" ? " selected" : ""}>全部学科</option>${options}</select></div><div class="field"><label for="status-filter">研发状态</label><select id="status-filter" name="status"><option value="all"${query.status === "all" ? " selected" : ""}>全部状态</option><option value="implemented"${query.status === "implemented" ? " selected" : ""}>已实装</option><option value="planned"${query.status === "planned" ? " selected" : ""}>规划中</option></select></div><div class="catalog-submit-group"><button class="button button-primary" type="submit">应用筛选</button><a class="button button-secondary reset-filter" id="catalog-reset" href="/catalog">重置</a></div></form><div class="discipline-strip" id="discipline-strip" aria-label="按学科快速筛选">${chips}</div><div class="catalog-result-bar" aria-live="polite"><p id="catalog-result-count" tabindex="-1">${escapeHtml(resultCopy)}</p><p id="catalog-page-status">第 ${page} / ${totalPages} 页</p></div><div class="table-frame" id="catalog-table-frame"${pageItems.length ? "" : " hidden"}><table class="data-table catalog-table"><thead><tr><th scope="col">物品</th><th scope="col">学科</th><th scope="col">层级</th><th scope="col">状态</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead><tbody id="catalog-body">${rows}</tbody></table></div><div class="empty-state" id="catalog-empty"${pageItems.length ? " hidden" : ""}><h3>没有匹配的物品</h3><p>缩短关键词或清除一个筛选条件后再试。</p><a class="button button-secondary" id="catalog-empty-reset" href="/catalog">清除筛选</a></div><nav class="pagination" aria-label="资料库分页">${previousHref ? `<a class="button button-secondary" id="catalog-prev" rel="prev" href="${escapeHtml(previousHref)}">上一页</a>` : '<a class="button button-secondary is-disabled" id="catalog-prev" aria-disabled="true">上一页</a>'}${nextHref ? `<a class="button button-secondary" id="catalog-next" rel="next" href="${escapeHtml(nextHref)}">下一页</a>` : '<a class="button button-secondary is-disabled" id="catalog-next" aria-disabled="true">下一页</a>'}</nav></section>`;
+    actions: '<a class="button button-secondary" href="/disciplines">按学科浏览</a><a class="button button-secondary" href="/planning">查看四幕九波</a>',
+  })}<section class="section shell catalog-section route-catalog" id="catalog" aria-labelledby="catalog-title"><header class="section-heading compact-heading"><h2 id="catalog-title">物品索引</h2><p>名称、用途、配方线索、波次、故事、学科与研发状态共同参与筛选。</p></header><dl class="catalog-stats" id="catalog-stats" aria-label="资料库统计">${stats.map(([label, value]) => `<div class="catalog-stat"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl><form class="catalog-controls" id="catalog-controls" action="/catalog" method="get" role="search"><div class="field field-search"><label for="catalog-search">检索名称、用途、配方或故事</label><input id="catalog-search" name="q" type="search" value="${escapeHtml(query.q)}" autocomplete="off" enterkeyhint="search" placeholder="输入物品名称或关键词"></div><div class="field"><label for="wave-filter">波次</label><select id="wave-filter" name="wave"><option value="all"${query.wave === "all" ? " selected" : ""}>全部波次</option>${waveOptions}</select></div><div class="field"><label for="discipline-filter">学科</label><select id="discipline-filter" name="discipline"><option value="all"${query.discipline === "all" ? " selected" : ""}>全部学科</option>${disciplineOptions}</select></div><div class="field"><label for="narrative-filter">叙事</label><select id="narrative-filter" name="narrative"><option value="all"${query.narrative === "all" ? " selected" : ""}>全部条目</option><option value="anchor"${query.narrative === "anchor" ? " selected" : ""}>仅故事锚点</option></select></div><div class="field"><label for="status-filter">研发状态</label><select id="status-filter" name="status"><option value="all"${query.status === "all" ? " selected" : ""}>全部状态</option><option value="implemented"${query.status === "implemented" ? " selected" : ""}>已实装</option><option value="planned"${query.status === "planned" ? " selected" : ""}>规划中</option></select></div><div class="catalog-submit-group"><button class="button button-primary" type="submit">应用筛选</button><a class="button button-secondary reset-filter" id="catalog-reset" href="/catalog">重置</a></div></form><nav class="discipline-strip catalog-filter-strip" id="wave-strip" aria-label="按波次快速筛选">${waveChips}</nav><nav class="discipline-strip catalog-filter-strip" id="discipline-strip" aria-label="按学科快速筛选">${disciplineChips}</nav><div class="catalog-result-bar" aria-live="polite"><p id="catalog-result-count" tabindex="-1">${escapeHtml(resultCopy)}</p><p id="catalog-page-status">第 ${escapeHtml(page)} / ${escapeHtml(totalPages)} 页</p></div><div class="table-frame" id="catalog-table-frame"${pageItems.length ? "" : " hidden"}><table class="data-table catalog-table"><thead><tr><th scope="col">物品</th><th scope="col">学科</th><th scope="col">波次</th><th scope="col">层级</th><th scope="col">状态</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead><tbody id="catalog-body">${rows}</tbody></table></div><div class="empty-state" id="catalog-empty"${pageItems.length ? " hidden" : ""}><h3>没有匹配的物品</h3><p>缩短关键词或清除一个筛选条件后再试。</p><a class="button button-secondary" id="catalog-empty-reset" href="/catalog">清除筛选</a></div><nav class="pagination" aria-label="资料库分页">${previousHref ? `<a class="button button-secondary" id="catalog-prev" rel="prev" href="${escapeHtml(previousHref)}">上一页</a>` : '<a class="button button-secondary is-disabled" id="catalog-prev" aria-disabled="true" tabindex="-1">上一页</a>'}${nextHref ? `<a class="button button-secondary" id="catalog-next" rel="next" href="${escapeHtml(nextHref)}">下一页</a>` : '<a class="button button-secondary is-disabled" id="catalog-next" aria-disabled="true" tabindex="-1">下一页</a>'}</nav></section>`;
 
   return {
     title: "27 学科资料库 | TalexSoulTech",
-    description: "检索 TalexSoulTech 的 27 学科与 810 个物品条目，按学科、状态和关键词筛选并查看独立物品详情。",
+    description: "检索 TalexSoulTech 的 27 学科与 810 个策划物品，按波次、学科、叙事、状态和关键词筛选；生产实装目录独立核对。",
     canonicalPath: "/catalog",
     kind: "catalog",
     scripts: ["/app.js"],
@@ -514,24 +611,73 @@ function renderCatalogPage(url) {
   };
 }
 
+function normalizedRuntimeQuery(url) {
+  const q = normalizeCopy(url.searchParams.get("q"));
+  const requestedGroup = normalizeCopy(url.searchParams.get("group"));
+  const group = RUNTIME_GROUPS.includes(requestedGroup) ? requestedGroup : "all";
+  const rawPage = normalizeCopy(url.searchParams.get("page"));
+  const page = /^\d+$/.test(rawPage) && Number(rawPage) > 0 ? Number(rawPage) : 1;
+  return { q, group, page };
+}
+
+function runtimeHref({ q, group, page }) {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (group !== "all") params.set("group", group);
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `/runtime?${query}` : "/runtime";
+}
+
+function renderRuntimeCatalogPage(url) {
+  const query = normalizedRuntimeQuery(url);
+  const needle = query.q.toLocaleLowerCase("zh-CN");
+  const filtered = RUNTIME_ITEMS.filter((item) => {
+    if (query.group !== "all" && item.group !== query.group) return false;
+    return !needle || `${item.id} ${item.name} ${item.group}`.toLocaleLowerCase("zh-CN").includes(needle);
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / RUNTIME_CATALOG_PAGE_SIZE));
+  const page = Math.min(query.page, totalPages);
+  const pageQuery = { ...query, page };
+  const pageItems = filtered.slice((page - 1) * RUNTIME_CATALOG_PAGE_SIZE, page * RUNTIME_CATALOG_PAGE_SIZE);
+  const groupOptions = RUNTIME_GROUPS.map((group) => `<option value="${escapeHtml(group)}"${group === query.group ? " selected" : ""}>${escapeHtml(group)}</option>`).join("");
+  const rows = pageItems.map((item) => `<tr><td data-label="注册物品"><strong class="cell-title">${escapeHtml(item.name)}</strong><span class="cell-code">${escapeHtml(item.id)}</span></td><td data-label="运行分组">${escapeHtml(item.group)}</td><td data-label="管理员发放"><code>/tst give &lt;玩家&gt; ${escapeHtml(item.id)} 1</code></td></tr>`).join("");
+  const previousHref = page > 1 ? runtimeHref({ ...pageQuery, page: page - 1 }) : "";
+  const nextHref = page < totalPages ? runtimeHref({ ...pageQuery, page: page + 1 }) : "";
+  const body = `${renderRouteHero({
+    crumbs: [{ label: "首页", href: "/" }, { label: "生产实装目录" }],
+    title: "生产实装目录",
+    description: "此页来自当前生产 JAR 的 /tst items 注册结果，稳定 ID 可直接用于管理员发放和故障核对；810 条资料库仍是独立的策划容量。",
+    label: `${RUNTIME_RELEASE.itemCount} 个实际注册物品`,
+    actions: '<a class="button button-secondary" href="/catalog">查看 810 条策划资料库</a><a class="button button-secondary" href="/download">核对发布制品</a>',
+    meta: `<dl class="route-meta-list"><div><dt>生产版本</dt><dd>${escapeHtml(RUNTIME_RELEASE.version)}</dd></div><div><dt>电力条目</dt><dd>${RUNTIME_RELEASE.electricalEntryCount}</dd></div><div><dt>JAR SHA-256</dt><dd><code>${escapeHtml(RUNTIME_RELEASE.jarSha256.slice(0, 12))}…</code></dd></div></dl>`,
+  })}<section class="section shell catalog-section route-catalog route-runtime" id="runtime-catalog" aria-labelledby="runtime-title"><header class="section-heading compact-heading"><h2 id="runtime-title">当前生产注册项</h2><p>观测日期 ${escapeHtml(RUNTIME_RELEASE.observedAt)}。名称用于阅读，稳定 ID 才是命令、PDC 与配方身份。</p></header><dl class="catalog-stats" aria-label="生产目录统计"><div class="catalog-stat"><dt>注册总数</dt><dd>${RUNTIME_RELEASE.itemCount}</dd></div><div class="catalog-stat"><dt>电力条目</dt><dd>${RUNTIME_RELEASE.electricalEntryCount}</dd></div><div class="catalog-stat"><dt>运行分组</dt><dd>${RUNTIME_GROUPS.length}</dd></div><div class="catalog-stat"><dt>筛选结果</dt><dd>${filtered.length}</dd></div></dl><form class="catalog-controls" action="/runtime" method="get" role="search"><div class="field field-search"><label for="runtime-search">检索显示名或稳定 ID</label><input id="runtime-search" name="q" type="search" value="${escapeHtml(query.q)}" autocomplete="off" enterkeyhint="search" placeholder="例如 electric_drill 或 电动钻机"></div><div class="field"><label for="runtime-group">运行分组</label><select id="runtime-group" name="group"><option value="all"${query.group === "all" ? " selected" : ""}>全部分组</option>${groupOptions}</select></div><div class="catalog-submit-group"><button class="button button-primary" type="submit">应用筛选</button><a class="button button-secondary reset-filter" href="/runtime">重置</a></div></form><div class="catalog-result-bar" aria-live="polite"><p>${query.q ? `“${escapeHtml(query.q)}”找到 ${filtered.length} 个注册项` : `找到 ${filtered.length} 个注册项`}</p><p>第 ${page} / ${totalPages} 页</p></div><div class="table-frame"${pageItems.length ? "" : " hidden"}><table class="data-table catalog-table"><thead><tr><th scope="col">注册物品</th><th scope="col">运行分组</th><th scope="col">管理员发放</th></tr></thead><tbody>${rows}</tbody></table></div><div class="empty-state"${pageItems.length ? " hidden" : ""}><h3>没有匹配的生产注册项</h3><p>缩短关键词或清除分组后再试。</p><a class="button button-secondary" href="/runtime">清除筛选</a></div><nav class="pagination" aria-label="生产目录分页">${previousHref ? `<a class="button button-secondary" rel="prev" href="${escapeHtml(previousHref)}">上一页</a>` : '<a class="button button-secondary is-disabled" aria-disabled="true">上一页</a>'}${nextHref ? `<a class="button button-secondary" rel="next" href="${escapeHtml(nextHref)}">下一页</a>` : '<a class="button button-secondary is-disabled" aria-disabled="true">下一页</a>'}</nav></section>`;
+  return {
+    title: "生产实装目录 | TalexSoulTech",
+    description: `核对 TalexSoulTech ${RUNTIME_RELEASE.version} 当前生产 JAR 实际注册的 ${RUNTIME_RELEASE.itemCount} 个物品 ID。`,
+    canonicalPath: "/runtime",
+    kind: "runtime",
+    body,
+  };
+}
+
 function renderDisciplinesPage() {
-  const stages = new Map();
-  for (const discipline of DISCIPLINES) {
-    if (!stages.has(discipline.stageLabel)) stages.set(discipline.stageLabel, []);
-    stages.get(discipline.stageLabel).push(discipline);
-  }
-  const groups = [...stages.entries()].map(([stageLabel, disciplines]) => `<section class="discipline-stage"><header><h2>${escapeHtml(stageLabel)}</h2><p>${disciplines.filter((discipline) => discipline.status === "implemented").length} 门已实装 · ${disciplines.filter((discipline) => discipline.status === "planned").length} 门规划中</p></header><div class="route-directory">${disciplines.map((discipline) => `<article class="route-directory-row"><div><h3><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></h3><p>${escapeHtml(discipline.tagline)}</p></div><div class="route-directory-meta">${statusLabel(discipline.status)}<span>${discipline.items.length} 个物品</span></div></article>`).join("")}</div></section>`).join("");
+  const groups = CAMPAIGN_WAVES.map((wave) => {
+    const disciplines = wave.disciplineIds.map((disciplineId) => DISCIPLINE_BY_ID.get(disciplineId)).filter(Boolean);
+    const stages = [...new Set(disciplines.map((discipline) => discipline.stageLabel))].join(" · ");
+    return `<section class="discipline-stage discipline-wave" id="disciplines-${escapeHtml(wave.id)}" data-wave-id="${escapeHtml(wave.id)}"><header><div><p class="kicker"><a href="/planning#wave-${encodeURIComponent(wave.id)}">${escapeHtml(wave.id)}</a></p><h2>${escapeHtml(wave.title)}</h2></div><p>${renderCampaignState(wave.state)}<span>${escapeHtml(stages)}</span></p></header><div class="route-directory">${disciplines.map((discipline) => `<article class="route-directory-row"><div><h3><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></h3><p>${escapeHtml(discipline.tagline)}</p></div><div class="route-directory-meta">${statusLabel(discipline.status)}<span>${escapeHtml(discipline.stageLabel)}</span><span>${escapeHtml(discipline.items.length)} 个物品</span></div></article>`).join("")}</div></section>`;
+  }).join("");
   const body = `${renderRouteHero({
     crumbs: [{ label: "首页", href: "/" }, { label: "学科" }],
-    title: "27 门学科的完整边界",
+    title: "27 门学科的主线位置",
     description: SITE_CONTENT.planning.lead,
-    label: `${CATALOG_STATS.disciplineCount} 门学科 · 四阶段`,
-    actions: '<a class="button button-secondary" href="/catalog">检索全部物品</a><a class="button button-secondary" href="/planning">阅读策划原则</a>',
-  })}<section class="section shell route-section discipline-index" aria-label="学科索引">${groups}</section>`;
+    label: `${CAMPAIGN_WAVES.length} 波 · ${CAMPAIGN_ACTS.length} 幕`,
+    actions: '<a class="button button-secondary" href="/catalog">检索全部物品</a><a class="button button-secondary" href="/planning#vertical-slices">阅读四幕九波</a>',
+  })}<section class="section shell route-section discipline-index" aria-label="按九个波次排列的学科索引">${groups}</section>`;
 
   return {
     title: "学科索引 | TalexSoulTech",
-    description: "浏览 TalexSoulTech 四个阶段的 27 门学科，核对每门学科的状态、学习目标、概念家族与 30 个物品条目。",
+    description: "按 W1 至 W9 浏览 TalexSoulTech 的 27 门学科；阶段、实装状态、主线职责与策划容量分开显示。",
     canonicalPath: "/disciplines",
     kind: "disciplines",
     body,
@@ -539,8 +685,12 @@ function renderDisciplinesPage() {
 }
 
 function renderDisciplinePage(discipline) {
-  const families = discipline.families.map((family) => `<tr><th scope="row" data-label="概念家族">${escapeHtml(family.name)}</th><td data-label="标识"><code>${escapeHtml(family.id)}</code></td><td data-label="设计职责">${escapeHtml(family.concept)}</td></tr>`).join("");
-  const items = discipline.items.map((item) => `<tr><td data-label="物品"><a class="cell-title" href="/items/${encodeURIComponent(item.id)}">${escapeHtml(item.name)}</a><span class="cell-code">${escapeHtml(item.id)}</span></td><td data-label="家族">${escapeHtml(item.family)}</td><td data-label="层级">${escapeHtml(item.tier)} · ${escapeHtml(item.type)}</td><td data-label="状态">${statusLabel(item.status)}</td><td data-label="操作"><a class="text-button" href="/items/${encodeURIComponent(item.id)}">查看详情</a></td></tr>`).join("");
+  const wave = WAVE_BY_ID.get(discipline.waveId);
+  const progression = discipline.progression || {};
+  const anchorFamilies = discipline.families.filter((family) => family.isNarrativeAnchor);
+  const families = discipline.families.map((family) => `<tr id="family-${escapeHtml(family.key)}"><th scope="row" data-label="概念家族">${escapeHtml(family.name)}</th><td data-label="稳定 key"><code>${escapeHtml(family.key)}</code></td><td data-label="设计职责">${escapeHtml(family.concept)}</td><td data-label="叙事锚点">${family.isNarrativeAnchor ? `<strong>故事家族</strong><span class="family-anchor-copy">${escapeHtml(family.anchorReason)}</span>` : "—"}</td></tr>`).join("");
+  const items = discipline.items.map((item) => `<tr><th scope="row" data-label="物品"><a class="cell-title" href="/items/${encodeURIComponent(item.id)}">${escapeHtml(item.name)}</a><span class="cell-code">${escapeHtml(item.id)}</span></th><td data-label="家族"><code>${escapeHtml(item.familyKey)}</code></td><td data-label="层级">${escapeHtml(item.tier)} · ${escapeHtml(item.type)}</td><td data-label="状态">${statusLabel(item.status)}</td><td data-label="操作"><a class="text-button" href="/items/${encodeURIComponent(item.id)}">查看详情</a></td></tr>`).join("");
+  const anchorList = `<ul class="discipline-anchor-list">${anchorFamilies.map((family) => `<li><strong>${escapeHtml(family.name)}</strong><code>${escapeHtml(family.key)}</code><span class="family-anchor-copy">${escapeHtml(family.anchorReason)}</span></li>`).join("")}</ul>`;
   const body = `${renderRouteHero({
     crumbs: [
       { label: "首页", href: "/" },
@@ -549,13 +699,13 @@ function renderDisciplinePage(discipline) {
     ],
     title: discipline.name,
     description: discipline.tagline,
-    label: discipline.stageLabel,
-    meta: `<dl class="route-meta-list"><div><dt>研发状态</dt><dd>${escapeHtml(STATUS_LABELS[discipline.status])}</dd></div><div><dt>概念家族</dt><dd>${discipline.families.length}</dd></div><div><dt>物品容量</dt><dd>${discipline.items.length}</dd></div></dl>`,
-  })}<section class="section shell route-section discipline-detail"><div class="route-two-column"><article class="route-prose"><h2>学科职责</h2><p>${escapeHtml(discipline.overview)}</p></article><aside class="route-callout"><h2>学习目标</h2>${renderPrimitiveList(discipline.learningGoals, true)}</aside></div><section class="route-inner-section" aria-labelledby="families-title"><header class="section-heading compact-heading"><h2 id="families-title">十个概念家族</h2><p>概念家族定义内容职责，不等于已经存在十台机器或十条可生产配方。</p></header><div class="table-frame"><table class="data-table route-static-table"><thead><tr><th scope="col">概念家族</th><th scope="col">标识</th><th scope="col">设计职责</th></tr></thead><tbody>${families}</tbody></table></div></section><section class="route-inner-section catalog-section" aria-labelledby="discipline-items-title"><header class="section-heading compact-heading"><h2 id="discipline-items-title">${discipline.items.length} 个物品条目</h2><p>每个条目都有独立详情页，并明确用途、配方线索与研发状态。</p></header><div class="table-frame"><table class="data-table"><thead><tr><th scope="col">物品</th><th scope="col">家族</th><th scope="col">层级</th><th scope="col">状态</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead><tbody>${items}</tbody></table></div></section></section>`;
+    label: `${wave?.id || discipline.waveId} · ${discipline.stageLabel}`,
+    meta: `<dl class="route-meta-list"><div><dt>主线波次</dt><dd><a href="/planning#wave-${encodeURIComponent(discipline.waveId)}">${escapeHtml(wave?.id || discipline.waveId)}</a></dd></div><div><dt>波次状态</dt><dd>${renderCampaignState(wave?.state)}</dd></div><div><dt>研发状态</dt><dd>${statusLabel(discipline.status)}</dd></div><div><dt>故事家族</dt><dd>${escapeHtml(anchorFamilies.length)}</dd></div><div><dt>物品容量</dt><dd>${escapeHtml(discipline.items.length)}</dd></div></dl>`,
+  })}<section class="section shell route-section discipline-detail" data-wave-id="${escapeHtml(discipline.waveId)}"><div class="route-two-column"><article class="route-prose"><h2>主线职责</h2><p>${escapeHtml(progression.role || discipline.overview)}</p><dl class="definition-grid route-definitions"><div><dt>为何现在</dt><dd>${escapeHtml(progression.whyNow)}</dd></div><div><dt>需要什么</dt><dd>${escapeHtml(progression.input)}</dd></div><div><dt>产出什么</dt><dd>${escapeHtml(progression.output)}</dd></div><div><dt>失败恢复</dt><dd>${escapeHtml(progression.recovery)}</dd></div></dl></article><aside class="route-callout"><h2>两个故事家族</h2><p>这些 family 承载本学科的复原者记录；稳定引用始终使用完整 family key。</p>${anchorList}</aside></div><section class="route-inner-section" aria-labelledby="families-title"><header class="section-heading compact-heading"><h2 id="families-title">${escapeHtml(discipline.families.length)} 个概念家族</h2><p>概念家族定义内容职责与建议研修顺序，不等于已存在机器、配方或硬依赖。</p></header><div class="table-frame"><table class="data-table route-static-table"><thead><tr><th scope="col">概念家族</th><th scope="col">稳定 key</th><th scope="col">设计职责</th><th scope="col">叙事锚点</th></tr></thead><tbody>${families}</tbody></table></div></section><section class="route-inner-section catalog-section" aria-labelledby="discipline-items-title"><header class="section-heading compact-heading"><h2 id="discipline-items-title">${escapeHtml(discipline.items.length)} 个物品条目</h2><p>层级是 catalog 的真实 tier；故事顺序独立，不替代层级或配方前置。</p></header><div class="table-frame"><table class="data-table route-static-table"><thead><tr><th scope="col">物品</th><th scope="col">家族 key</th><th scope="col">层级</th><th scope="col">状态</th><th scope="col"><span class="sr-only">操作</span></th></tr></thead><tbody>${items}</tbody></table></div><a class="text-button" href="${escapeHtml(catalogHref({ discipline: discipline.id }))}">在资料库中筛选本学科</a></section></section>`;
 
   return {
     title: `${discipline.name} | TalexSoulTech 学科`,
-    description: `${discipline.tagline} 查看学习目标、概念家族与 ${discipline.items.length} 个物品条目。`,
+    description: `${discipline.tagline} 查看 ${discipline.waveId} 主线职责、输入、产出、恢复、稳定 family key 与 ${discipline.items.length} 个策划物品。`,
     canonicalPath: `/disciplines/${encodeURIComponent(discipline.id)}`,
     kind: "discipline",
     body,
@@ -564,10 +714,19 @@ function renderDisciplinePage(discipline) {
 
 function renderItemPage(record) {
   const { item, discipline } = record;
-  const siblings = discipline.items.filter((candidate) => candidate.family === item.family && candidate.id !== item.id).slice(0, 5);
-  const siblingList = siblings.length
-    ? `<ul class="route-link-list">${siblings.map((sibling) => `<li><a href="/items/${encodeURIComponent(sibling.id)}">${escapeHtml(sibling.name)}</a>${statusLabel(sibling.status)}</li>`).join("")}</ul>`
-    : `<p class="state-copy">当前家族没有其他条目。</p>`;
+  const wave = WAVE_BY_ID.get(item.waveId);
+  const familyRecord = FAMILY_BY_KEY.get(item.familyKey);
+  const progression = discipline.progression || {};
+  const nextRecord = item.nextItemId ? ITEM_BY_ID.get(item.nextItemId) : null;
+  const firstRelationship = (FAMILY_LINKS_BY_KEY.get(item.familyKey) || [])
+    .find((relationship) => relationship.from === item.familyKey);
+  const relatedKey = firstRelationship?.to || "";
+  const relatedFamily = relatedKey ? FAMILY_BY_KEY.get(relatedKey) : null;
+  const nextStep = nextRecord
+    ? `<a href="/items/${encodeURIComponent(nextRecord.item.id)}">${escapeHtml(nextRecord.item.name)}</a><span class="family-anchor-copy">按同一家族的建议顺序继续；这不是配方硬依赖。</span>`
+    : relatedFamily
+      ? `本家族建议顺序已完成；转向软关联的 <a href="${escapeHtml(familyDetailHref(relatedKey))}">${escapeHtml(relatedFamily.family.name)}</a>。`
+      : `<a href="/disciplines/${encodeURIComponent(discipline.id)}">回到${escapeHtml(discipline.name)}选择下一条家族路线</a>。`;
   const body = `${renderRouteHero({
     crumbs: [
       { label: "首页", href: "/" },
@@ -577,13 +736,13 @@ function renderItemPage(record) {
     ],
     title: item.name,
     description: item.purpose,
-    label: `${discipline.name} · ${item.family}`,
-    meta: `<dl class="route-meta-list"><div><dt>研发状态</dt><dd>${escapeHtml(STATUS_LABELS[item.status])}</dd></div><div><dt>层级</dt><dd>${escapeHtml(item.tier)}</dd></div><div><dt>类型</dt><dd>${escapeHtml(item.type)}</dd></div></dl>`,
-  })}<section class="section shell route-section item-detail"><div class="route-two-column"><article class="route-prose"><h2>条目说明</h2><dl class="definition-grid route-definitions"><div><dt>内部标识</dt><dd><code>${escapeHtml(item.id)}</code></dd></div><div><dt>所属学科</dt><dd><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></dd></div><div><dt>概念家族</dt><dd>${escapeHtml(item.family)}</dd></div><div><dt>用途</dt><dd>${escapeHtml(item.purpose)}</dd></div></dl><section class="route-callout route-recipe"><h3>配方线索</h3><p>${escapeHtml(item.recipeHint)}</p></section></article><aside class="route-related"><h2>同一家族</h2>${siblingList}<a class="text-button" href="${escapeHtml(catalogHref({ q: "", discipline: discipline.id, status: "all", page: 1 }))}">查看该学科全部物品</a></aside></div></section>`;
+    label: `${wave?.id || item.waveId} · ${discipline.name} · ${familyRecord?.family.name || item.family}`,
+    meta: `<dl class="route-meta-list"><div><dt>研发状态</dt><dd>${statusLabel(item.status)}</dd></div><div><dt>波次</dt><dd><a href="/planning#wave-${encodeURIComponent(item.waveId)}">${escapeHtml(wave?.id || item.waveId)}</a></dd></div><div><dt>层级</dt><dd>${escapeHtml(item.tier)}</dd></div><div><dt>类型</dt><dd>${escapeHtml(item.type)}</dd></div></dl>`,
+  })}<section class="section shell route-section item-detail" data-wave-id="${escapeHtml(item.waveId)}"><div class="route-two-column item-progression" id="item-progression"><article class="route-prose"><h2>主线位置</h2><dl class="definition-grid route-definitions"><div><dt>为何现在</dt><dd>${escapeHtml(item.currentMotivation || progression.whyNow)}</dd></div><div><dt>需要什么</dt><dd>${escapeHtml(progression.input)}</dd></div><div><dt>产出什么</dt><dd>${escapeHtml(progression.output || item.purpose)}</dd></div><div><dt>失败怎么办</dt><dd>${escapeHtml(item.recovery || progression.recovery)}</dd></div><div><dt>下一步去哪</dt><dd>${nextStep}</dd></div></dl></article><aside class="route-callout"><h2>稳定身份</h2><dl class="definition-grid route-definitions"><div><dt>策划条目 ID</dt><dd><code>${escapeHtml(item.id)}</code></dd></div><div><dt>运行时身份</dt><dd>${item.status === "implemented" ? '<a href="/runtime">前往生产实装目录核对运行 ID</a>' : "尚未进入生产运行目录"}</dd></div><div><dt>完整 family key</dt><dd><a href="${escapeHtml(familyDetailHref(item.familyKey))}"><code>${escapeHtml(item.familyKey)}</code></a></dd></div><div><dt>所属学科</dt><dd><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></dd></div><div><dt>故事锚点</dt><dd>${item.isNarrativeAnchor ? "是" : "否"}</dd></div></dl></aside></div><div class="route-two-column"><section aria-labelledby="family-sequence-title"><h2 id="family-sequence-title">建议家族顺序</h2><p class="route-copy">顺序按 catalog 的真实 tier 排列；它只用于研修引导，不声明 recipe dependency。</p>${renderFamilySequence(item)}</section>${renderSoftFamilyLinks(item)}</div>${renderStoryRecord(item)}<section class="route-callout route-recipe" aria-labelledby="recipe-hint-title"><h2 id="recipe-hint-title">配方线索</h2><p>${escapeHtml(item.recipeHint)}</p></section></section>`;
 
   return {
     title: `${item.name} | TalexSoulTech 资料库`,
-    description: `${item.name}：${item.purpose} 所属${discipline.name}，${STATUS_LABELS[item.status]}。`,
+    description: `${item.name}：${item.purpose} 所属 ${discipline.name} ${item.waveId}，${STATUS_LABELS[item.status]}。`,
     canonicalPath: `/items/${encodeURIComponent(item.id)}`,
     kind: "item",
     body,
@@ -596,18 +755,33 @@ function renderContentSection(content, id) {
 
 function renderPlanningPage() {
   const planning = SITE_CONTENT.planning;
-  const curriculumRows = planning.curriculum.map((entry) => `<tr><td data-label="序号" class="cell-code">${escapeHtml(entry.order)}</td><th scope="row" data-label="学科">${escapeHtml(entry.name)}</th><td data-label="状态">${escapeHtml(entry.state)}</td><td data-label="职责">${escapeHtml(entry.role)}</td></tr>`).join("");
+  const acts = [...CAMPAIGN_ACTS].sort((left, right) => left.order - right.order);
+  const actSections = acts.map((act) => {
+    const waves = act.waveIds.map((waveId) => WAVE_BY_ID.get(waveId)).filter(Boolean);
+    return `<section class="campaign-act" data-act-id="${escapeHtml(act.id)}"><header><div><p class="kicker">第 ${escapeHtml(act.order)} 幕</p><h3>${escapeHtml(act.title)}</h3></div><p>${escapeHtml(act.revelation)}</p></header><div class="campaign-wave-list">${waves.map((wave) => {
+      const disciplineLinks = wave.disciplineIds.map((disciplineId) => {
+        const discipline = DISCIPLINE_BY_ID.get(disciplineId);
+        return discipline ? `<li><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></li>` : "";
+      }).join("");
+      return `<article class="campaign-wave" id="wave-${escapeHtml(wave.id)}" data-wave-id="${escapeHtml(wave.id)}"><header><div><p>${escapeHtml(wave.id)} · ${escapeHtml(wave.anchors.length)} 个故事家族</p><h4>${escapeHtml(wave.title)}</h4></div>${renderCampaignState(wave.state)}</header><ul class="campaign-discipline-links" aria-label="${escapeHtml(wave.id)} 学科">${disciplineLinks}</ul><div class="route-two-column"><div class="route-prose"><p>${escapeHtml(wave.purpose)}</p><dl class="definition-grid route-definitions"><div><dt>玩家动机</dt><dd>${escapeHtml(wave.motivation)}</dd></div><div><dt>本波危机</dt><dd>${escapeHtml(wave.crisis)}</dd></div><div><dt>承接输入</dt><dd>${escapeHtml(wave.continuityIn)}</dd></div><div><dt>交付下一波</dt><dd>${escapeHtml(wave.continuityOut)}</dd></div></dl></div><aside class="route-callout campaign-gates"><h5>行为门禁</h5><dl class="definition-grid route-definitions"><div><dt>策划门禁</dt><dd>${escapeHtml(wave.gate)}</dd></div><div><dt>验证门禁</dt><dd>${escapeHtml(wave.verificationGate)}</dd></div></dl></aside></div></article>`;
+    }).join("")}</div><aside class="route-callout"><h4>本幕取舍</h4><p>${escapeHtml(act.choice)}</p><h4>为何连续</h4><p>${escapeHtml(act.need)}</p></aside></section>`;
+  }).join("");
+  const curriculumRows = CAMPAIGN_WAVES.flatMap((wave) => wave.disciplineIds.map((disciplineId) => {
+    const discipline = DISCIPLINE_BY_ID.get(disciplineId);
+    if (!discipline) return "";
+    return `<tr><td data-label="波次"><a href="#wave-${encodeURIComponent(wave.id)}">${escapeHtml(wave.id)}</a></td><th scope="row" data-label="学科"><a href="/disciplines/${encodeURIComponent(discipline.id)}">${escapeHtml(discipline.name)}</a></th><td data-label="阶段">${escapeHtml(discipline.stageLabel)}</td><td data-label="状态">${statusLabel(discipline.status)}</td><td data-label="主线职责">${escapeHtml(discipline.progression?.role)}</td></tr>`;
+  })).join("");
   const body = `${renderRouteHero({
     crumbs: [{ label: "首页", href: "/" }, { label: "完整策划" }],
     title: planning.title,
     description: planning.lead,
-    label: "游戏策划与运行边界",
-    actions: '<a class="button button-secondary" href="#core-loop">核心循环</a><a class="button button-secondary" href="#curriculum">学科容量</a>',
-  })}<section class="section shell route-section planning-manual"><nav class="route-anchor-index" aria-label="本页索引"><a href="#guidebook">向导书</a><a href="#machines">机器</a><a href="#power">电力</a><a href="#core-loop">核心循环</a><a href="#progression">成长节奏</a><a href="#curriculum">学科容量</a><a href="#economy">经济与恢复</a></nav>${renderContentSection(SITE_CONTENT.guidebook, "guidebook")}${renderContentSection(SITE_CONTENT.machines, "machines")}${renderContentSection(SITE_CONTENT.power, "power")}${renderContentSection(SITE_CONTENT.coreLoop, "core-loop")}${renderContentSection(SITE_CONTENT.progression, "progression")}<section class="route-inner-section" id="curriculum"><header class="section-heading compact-heading"><h2>${escapeHtml(planning.title)}</h2><p>${escapeHtml(planning.lead)}</p></header><div class="route-two-column route-accounting"><div><h3>容量口径</h3>${renderStructuredValue(planning.accounting, "accounting")}</div><aside class="route-callout"><h3>策划原则</h3>${renderPrimitiveList(planning.principles)}</aside></div><div class="table-frame route-curriculum-table"><table class="data-table route-static-table"><thead><tr><th scope="col">序号</th><th scope="col">学科</th><th scope="col">状态</th><th scope="col">职责</th></tr></thead><tbody>${curriculumRows}</tbody></table></div></section>${renderContentSection(SITE_CONTENT.economy, "economy")}</section>`;
+    label: "四幕九波 · 运行边界独立",
+    actions: '<a class="button button-secondary" href="#vertical-slices">阅读四幕九波</a><a class="button button-secondary" href="#curriculum">查看学科层级</a>',
+  })}<section class="section shell route-section planning-manual"><nav class="route-anchor-index" aria-label="本页索引"><a href="#campaign">复原主线</a><a href="#vertical-slices">四幕九波</a><a href="#curriculum">学科层级</a><a href="#planning-principles">策划口径</a><a href="#guidebook">向导书</a><a href="#machines">机器</a><a href="#power">电力</a><a href="#core-loop">核心循环</a><a href="#progression">成长节奏</a><a href="#economy">经济与恢复</a></nav><section class="route-inner-section" id="campaign" aria-labelledby="campaign-title"><header class="section-heading compact-heading"><h2 id="campaign-title">复原主线</h2><p>810 条策划物品承载这条叙事；当前生产运行目录仍由独立的 150 项 runtime 清单定义。</p></header><div class="route-two-column campaign-summary"><article class="route-prose"><h3>世界前提</h3><p>${escapeHtml(CAMPAIGN.premise)}</p><h3>中心问题</h3><p>${escapeHtml(CAMPAIGN.centralQuestion)}</p></article><aside class="route-callout"><h3>复原者身份</h3><p>${escapeHtml(CAMPAIGN.playerIdentity)}</p><h3>终局</h3><p>${escapeHtml(CAMPAIGN.ending)}</p></aside></div></section><section class="route-inner-section" id="vertical-slices" aria-labelledby="vertical-slices-title"><header class="section-heading compact-heading"><h2 id="vertical-slices-title">四幕九波</h2><p>波次只从 progression.js 渲染一次；状态、连续性与门禁不会被复制成另一套常量。</p></header><div class="campaign-acts">${actSections}</div></section><section class="route-inner-section" id="curriculum" aria-labelledby="curriculum-title"><header class="section-heading compact-heading"><h2 id="curriculum-title">九波学科层级</h2><p>阶段是次级容量信息；主线顺序以 W1–W9 为准，策划状态不等于当前生产能力。</p></header><div class="table-frame route-curriculum-table"><table class="data-table route-static-table route-campaign-table"><thead><tr><th scope="col">波次</th><th scope="col">学科</th><th scope="col">阶段</th><th scope="col">状态</th><th scope="col">主线职责</th></tr></thead><tbody>${curriculumRows}</tbody></table></div></section><section class="route-inner-section" id="planning-principles"><header class="section-heading compact-heading"><h2>策划口径</h2><p>策划容量、生产实装与验收证据分别核对。</p></header><div class="route-structured-content">${renderObjectBody(planning, new Set(["title", "lead", "curriculum", "verticalSlices"]))}</div></section>${renderContentSection(SITE_CONTENT.guidebook, "guidebook")}${renderContentSection(SITE_CONTENT.machines, "machines")}${renderContentSection(SITE_CONTENT.power, "power")}${renderContentSection(SITE_CONTENT.coreLoop, "core-loop")}${renderContentSection(SITE_CONTENT.progression, "progression")}${renderContentSection(SITE_CONTENT.economy, "economy")}</section>`;
 
   return {
     title: "完整游戏策划 | TalexSoulTech",
-    description: "阅读 TalexSoulTech 的向导书、机器、电力、核心循环、成长节奏、27 学科容量、经济平衡与故障恢复原则。",
+    description: "阅读 TalexSoulTech 四幕九波主线、27 门学科、故事锚点、行为门禁，以及 810 策划容量与 150 生产目录的明确边界。",
     canonicalPath: "/planning",
     kind: "planning",
     body,
@@ -779,6 +953,7 @@ function navigationPath(pathname) {
   if (pathname.startsWith("/docs")) return "/docs";
   if (pathname.startsWith("/disciplines")) return "/disciplines";
   if (pathname.startsWith("/items") || pathname.startsWith("/catalog")) return "/catalog";
+  if (pathname.startsWith("/runtime")) return "/runtime";
   if (pathname.startsWith("/download")) return "/download";
   if (pathname.startsWith("/architecture")) return "/architecture";
   if (pathname.startsWith("/extensions")) return "/extensions";
@@ -792,7 +967,7 @@ function renderHeader(pathname) {
 }
 
 function renderFooter() {
-  return `<footer class="site-footer"><div class="shell footer-layout"><div><a class="brand-link" href="/"><img src="/favicon.svg" alt="" width="30" height="30"><span class="brand-wordmark">TalexSoulTech</span></a><p>${escapeHtml(SITE_CONTENT.footer.statement)}</p></div><nav aria-label="页脚导航"><a href="/docs">教程</a><a href="/disciplines">学科</a><a href="/catalog">资料库</a><a href="/architecture">架构</a><a href="/extensions">扩展</a><a href="/console">控制台</a></nav><p class="footer-meta">${escapeHtml(SITE_CONTENT.footer.privacy)}</p></div></footer>`;
+  return `<footer class="site-footer"><div class="shell footer-layout"><div><a class="brand-link" href="/"><img src="/favicon.svg" alt="" width="30" height="30"><span class="brand-wordmark">TalexSoulTech</span></a><p>${escapeHtml(SITE_CONTENT.footer.statement)}</p></div><nav aria-label="页脚导航"><a href="/docs">教程</a><a href="/disciplines">学科</a><a href="/runtime">实装目录</a><a href="/catalog">策划资料库</a><a href="/architecture">架构</a><a href="/extensions">扩展</a><a href="/console">控制台</a></nav><p class="footer-meta">${escapeHtml(SITE_CONTENT.footer.privacy)}</p></div></footer>`;
 }
 
 function renderDocument(page, url) {
@@ -860,6 +1035,7 @@ function resolvePage(pathname, url) {
   if (pathname === "/download") return renderDownloadPage();
   if (pathname === "/docs") return renderDocsIndexPage();
   if (pathname === "/catalog") return renderCatalogPage(url);
+  if (pathname === "/runtime") return renderRuntimeCatalogPage(url);
   if (pathname === "/disciplines") return renderDisciplinesPage();
   if (pathname === "/planning") return renderPlanningPage();
   if (pathname === "/architecture") return renderArchitecturePage();

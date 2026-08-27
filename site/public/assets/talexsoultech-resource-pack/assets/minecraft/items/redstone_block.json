@@ -1,0 +1,153 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.astral_starlight_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_starlight_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_energy_charter_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_energy_charter_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_nether_thermal_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_nether_thermal_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_battery_bank_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_battery_bank_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_biomass_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_biomass_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_grid_protection_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_grid_protection_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_heat_storage_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_heat_storage_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_load_response_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_load_response_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_solar_mirror_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_solar_mirror_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_solid_fuel_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_solid_fuel_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_steam_turbine_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_steam_turbine_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_transformer_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_transformer_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.energy_wind_unit_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/energy_wind_unit_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_steam_loop_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_steam_loop_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_conductive_alloy_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_conductive_alloy_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_electric_components_wrench",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_electric_components_wrench"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_energy_storage_power_isolator",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_energy_storage_power_isolator"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_signal_basics_unit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_signal_basics_unit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_thermal_generation_ash_collector",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_thermal_generation_ash_collector"
+        }
+      },
+      {
+        "when": "talexsoultech:compact_battery",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/compact_battery"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/redstone_block"
+    }
+  }
+}

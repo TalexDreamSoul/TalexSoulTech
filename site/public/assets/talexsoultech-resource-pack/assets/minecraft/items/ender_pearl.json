@@ -1,0 +1,223 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.dimensional_border_transit_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_border_transit_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_border_transit_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_border_transit_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_dimensional_anchor_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_dimensional_anchor_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_dimensional_anchor_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_dimensional_anchor_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_gateway_frame_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_gateway_frame_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_gateway_frame_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_gateway_frame_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_phase_stabilizer_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_phase_stabilizer_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_phase_stabilizer_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_phase_stabilizer_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_return_protocol_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_return_protocol_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_return_protocol_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_return_protocol_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_rift_chart_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_rift_chart_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_rift_chart_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_rift_chart_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_ender_pearl_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_ender_pearl_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_ender_pearl_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_ender_pearl_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_gateway_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_gateway_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_gateway_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_gateway_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_portal_finder_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_portal_finder_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_portal_finder_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_portal_finder_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_cargo_folding_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_cargo_folding_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_cargo_folding_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_cargo_folding_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_local_anchor_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_local_anchor_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_local_anchor_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_local_anchor_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_portal_frame_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_portal_frame_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_portal_frame_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_portal_frame_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_return_signal_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_return_signal_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_return_signal_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_return_signal_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_rift_safety_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_rift_safety_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_rift_safety_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_rift_safety_shard"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_space_cache_anchor",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_space_cache_anchor"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_space_cache_shard",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_space_cache_shard"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/ender_pearl"
+    }
+  }
+}

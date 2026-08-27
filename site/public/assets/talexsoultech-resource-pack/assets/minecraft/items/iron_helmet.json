@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:mining_helmet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mining_helmet"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/iron_helmet"
+    }
+  }
+}

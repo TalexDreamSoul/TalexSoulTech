@@ -1,0 +1,76 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.civic_role_protocol_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_role_protocol_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_works_board_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_works_board_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_cargo_insurance_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_cargo_insurance_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_cooperative_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_cooperative_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_market_board_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_market_board_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_price_panel_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_price_panel_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_quest_permit_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_quest_permit_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_vending_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_vending_exchange"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_work_contract_exchange",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_work_contract_exchange"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/emerald_block"
+    }
+  }
+}

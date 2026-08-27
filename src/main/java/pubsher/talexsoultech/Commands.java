@@ -13,6 +13,7 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import pubsher.talexsoultech.entity.PlayerData;
+import pubsher.talexsoultech.inventory.guider.GuiderBook;
 import pubsher.talexsoultech.inventory.machine_info.MachineList;
 import pubsher.talexsoultech.talex.environment.blood_moon.BloodMoonCreator;
 import pubsher.talexsoultech.talex.items.GuideBookItem;
@@ -64,7 +65,7 @@ public class Commands implements TabExecutor {
                 sendHelp(sender, label);
                 return true;
             case "guide":
-                return giveGuide(sender);
+                return handleGuide(sender, label, args);
             case "items":
                 return showItems(sender, label, args);
             case "item":
@@ -109,7 +110,7 @@ public class Commands implements TabExecutor {
             candidates.add("power");
             candidates.add("multiblock");
 
-            if (sender instanceof Player) {
+            if (sender instanceof Player || sender.hasPermission(ADMIN_PERMISSION)) {
                 candidates.add("guide");
             }
             if (sender.hasPermission(ADMIN_PERMISSION)) {
@@ -126,6 +127,9 @@ public class Commands implements TabExecutor {
             return matching(candidates, args[0]);
         }
 
+        if (args.length == 2 && "guide".equalsIgnoreCase(args[0]) && sender.hasPermission(ADMIN_PERMISSION)) {
+            return matching(Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList(), args[1]);
+        }
         if (args.length == 2 && ("items".equalsIgnoreCase(args[0]) || "item".equalsIgnoreCase(args[0]))) {
             return matching(itemIds(), args[1]);
         }
@@ -172,6 +176,28 @@ public class Commands implements TabExecutor {
 
         return Collections.emptyList();
 
+    }
+
+    private boolean handleGuide(CommandSender sender, String label, String[] args) {
+        if (args.length == 1) return giveGuide(sender);
+        if (!requirePermission(sender, ADMIN_PERMISSION)) return true;
+        if (args.length != 2) {
+            sender.sendMessage(status("用法：/" + label + " guide <玩家>", NamedTextColor.YELLOW));
+            return true;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(status("玩家不在线：" + args[1], NamedTextColor.RED));
+            return true;
+        }
+        PlayerData playerData = TalexSoulTech.getInstance().getBaseTalex().getPlayerManager().get(target.getName());
+        if (playerData == null) {
+            sender.sendMessage(status("玩家数据仍在加载：" + target.getName(), NamedTextColor.YELLOW));
+            return true;
+        }
+        new GuiderBook(playerData).open();
+        sender.sendMessage(status("已为 " + target.getName() + " 打开完整向导。", NamedTextColor.GREEN));
+        return true;
     }
 
     private boolean giveGuide(CommandSender sender) {
@@ -634,9 +660,13 @@ public class Commands implements TabExecutor {
         var baseTalex = TalexSoulTech.getInstance().getBaseTalex();
         int legacyCount = baseTalex.getMachineManager().getMachinesClone().size();
         int poweredCount = baseTalex.getCategoryManager().getPoweredMachines().size();
+        int manifestCount = TalexSoulTech.getInstance().getContentBehaviorService() == null
+                ? 0
+                : TalexSoulTech.getInstance().getContentBehaviorService().facilityDefinitionCount();
         sender.sendMessage(status(
                 "机器目录：旧式 " + legacyCount + " 台，多方块 " + poweredCount
-                        + " 台，总计 " + (legacyCount + poweredCount) + " 台。",
+                        + " 台，Manifest 设施 " + manifestCount
+                        + " 台，总计 " + (legacyCount + poweredCount + manifestCount) + " 台。",
                 NamedTextColor.GREEN
         ));
 
@@ -799,6 +829,7 @@ public class Commands implements TabExecutor {
         if (sender.hasPermission(ADMIN_PERMISSION)) {
             sendHelpLine(sender, label, "blood-moon", "在当前世界启动血月", false);
             sendHelpLine(sender, label, "give ", "向在线玩家发放指定物品", false);
+            sendHelpLine(sender, label, "guide ", "为在线玩家打开完整向导", false);
             sendHelpLine(sender, label, "unlock ", "为在线玩家解锁指定学科", false);
             sendHelpLine(sender, label, "datalist", "查看已加载玩家数据", true);
             sendHelpLine(sender, label, "cloud status", "查看云同步状态", true);

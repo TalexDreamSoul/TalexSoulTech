@@ -1,0 +1,699 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.automation_block_placer_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_block_placer_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_block_placer_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_block_placer_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_fault_isolation_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_fault_isolation_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_fault_isolation_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_fault_isolation_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_field_drone_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_field_drone_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_field_drone_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_field_drone_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_harvester_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_harvester_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_harvester_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_harvester_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_recipe_control_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_recipe_control_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_recipe_control_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_recipe_control_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_scheduler_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_scheduler_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_scheduler_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_scheduler_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_thresholds_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_thresholds_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_thresholds_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_thresholds_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_sieving_mesh_repair_clamp",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_sieving_mesh_repair_clamp"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_tool_service_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_tool_service_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_tool_service_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_tool_service_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_chrono_clock_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_chrono_clock_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_chrono_clock_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_chrono_clock_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_maintenance_window_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_maintenance_window_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_maintenance_window_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_maintenance_window_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_task_buffer_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_task_buffer_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_task_buffer_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_task_buffer_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_temporal_anchor_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_temporal_anchor_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_temporal_anchor_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_temporal_anchor_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_excavation_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_excavation_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.construction_excavation_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/construction_excavation_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_foreign_material_block",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_foreign_material_block"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_end_lab_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_end_lab_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_end_lab_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_end_lab_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_endstone_block",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_endstone_block"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_obsidian_tools_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_obsidian_tools_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_obsidian_tools_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_obsidian_tools_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_waste_processing_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_waste_processing_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_waste_processing_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_waste_processing_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_crystal_growth_block",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_crystal_growth_block"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_deep_core_block",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_deep_core_block"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_fault_extraction_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_fault_extraction_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_fault_extraction_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_fault_extraction_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_anchor_weight_field",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_anchor_weight_field"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_anchor_weight_gauntlet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_anchor_weight_gauntlet"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_anchor_weight_mass",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_anchor_weight_mass"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_fall_buffer_field",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_fall_buffer_field"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_fall_buffer_gauntlet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_fall_buffer_gauntlet"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_fall_buffer_mass",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_fall_buffer_mass"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_item_pull_field",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_item_pull_field"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_item_pull_gauntlet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_item_pull_gauntlet"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_item_pull_mass",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_item_pull_mass"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_lift_column_field",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_lift_column_field"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_lift_column_gauntlet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_lift_column_gauntlet"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_lift_column_mass",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_lift_column_mass"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_load_platform_field",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_load_platform_field"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_load_platform_gauntlet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_load_platform_gauntlet"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_load_platform_mass",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_load_platform_mass"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_mass_reading_field",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_mass_reading_field"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_mass_reading_gauntlet",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_mass_reading_gauntlet"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_mass_reading_mass",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_mass_reading_mass"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_ore_separation_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_ore_separation_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_ore_separation_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_ore_separation_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_metal_grain_block",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_metal_grain_block"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_reinforced_thread_thread_mesh",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_reinforced_thread_thread_mesh"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_scrap_recovery_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_scrap_recovery_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_scrap_recovery_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_scrap_recovery_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_bearing_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_bearing_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_bearing_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_bearing_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_conveyor_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_conveyor_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_conveyor_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_conveyor_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_crusher_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_crusher_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_crusher_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_crusher_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_cutter_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_cutter_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_cutter_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_cutter_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_drive_shaft_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_drive_shaft_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_drive_shaft_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_drive_shaft_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_gear_train_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_gear_train_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_gear_train_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_gear_train_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_milling_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_milling_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_milling_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_milling_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_press_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_press_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_press_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_press_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_robot_arm_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_robot_arm_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_robot_arm_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_robot_arm_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_alloying_block",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_alloying_block"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_casting_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_casting_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_casting_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_casting_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_forging_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_forging_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_forging_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_forging_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_precision_parts_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_precision_parts_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_precision_parts_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_precision_parts_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_recycling_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_recycling_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_recycling_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_recycling_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_cobble_production_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_cobble_production_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_cobble_production_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_cobble_production_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_machine_core_drive",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_machine_core_drive"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_machine_core_part",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_machine_core_part"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_registered_machines_a_advanced_workbench",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_registered_machines_a_advanced_workbench"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_registered_machines_a_break_hammer_machine",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_registered_machines_a_break_hammer_machine"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_registered_machines_b_filtering_sieve",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_registered_machines_b_filtering_sieve"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_registered_machines_b_furnace_cauldron",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_registered_machines_b_furnace_cauldron"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/iron_block"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech:geological_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geological_analyzer"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/clock_00"
+    }
+  }
+}

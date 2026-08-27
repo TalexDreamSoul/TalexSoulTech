@@ -32,9 +32,9 @@ public abstract class BaseGriddleMesh extends SoulTechItem {
 
     private Short maxDurability;
 
-    public BaseGriddleMesh(ItemBuilder stack, short maxDurability) {
+    public BaseGriddleMesh(String id, ItemBuilder stack, short maxDurability) {
 
-        super("griddle_mesh", stack.toItemStack());
+        super(id, stack.toItemStack());
 
         this.maxDurability = maxDurability;
 

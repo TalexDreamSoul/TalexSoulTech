@@ -1,0 +1,202 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.dimensional_border_transit_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_border_transit_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_dimensional_anchor_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_dimensional_anchor_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_gateway_frame_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_gateway_frame_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_phase_stabilizer_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_phase_stabilizer_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_return_protocol_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_return_protocol_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_rift_chart_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_rift_chart_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_ender_pearl_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_ender_pearl_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_gateway_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_gateway_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_portal_finder_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_portal_finder_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_data_compression_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_data_compression_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_decoder_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_decoder_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_decoherence_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_decoherence_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_entanglement_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_entanglement_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_fabrication_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_fabrication_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_schedule_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_schedule_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_sensor_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_sensor_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_storage_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_storage_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_qubit_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_qubit_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_teleport_control_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_teleport_control_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_cargo_folding_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_cargo_folding_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_local_anchor_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_local_anchor_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_portal_frame_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_portal_frame_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_return_signal_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_return_signal_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_rift_safety_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_rift_safety_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_space_cache_gate",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_space_cache_gate"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_space_dust_coordinate_chalk",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_space_dust_coordinate_chalk"
+        }
+      },
+      {
+        "when": "talexsoultech:quantum_charge_pylon",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_charge_pylon"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/lodestone"
+    }
+  }
+}

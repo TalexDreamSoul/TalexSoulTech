@@ -1,0 +1,979 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.agroecology_animal_breeding_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_animal_breeding_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_animal_breeding_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_animal_breeding_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_crop_rotation_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_crop_rotation_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.agroecology_crop_rotation_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_crop_rotation_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_astral_navigation_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_astral_navigation_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_astral_navigation_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_astral_navigation_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_constellation_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_constellation_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_constellation_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_constellation_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_lunar_cycle_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_lunar_cycle_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_lunar_cycle_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_lunar_cycle_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_meteor_watch_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_meteor_watch_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_meteor_watch_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_meteor_watch_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_solar_chart_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_solar_chart_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_solar_chart_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_solar_chart_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_star_map_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_star_map_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_star_map_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_star_map_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_telescope_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_telescope_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.astral_telescope_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/astral_telescope_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_inventory_watch_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_inventory_watch_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_inventory_watch_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_inventory_watch_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_recovery_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_recovery_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_recovery_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_recovery_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_sensors_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_sensors_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.automation_sensors_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/automation_sensors_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_crafting_record_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_crafting_record_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_crafting_record_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_crafting_record_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_field_storage_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_field_storage_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.basic_field_storage_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/basic_field_storage_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_canopy_cycle_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_canopy_cycle_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.botany_canopy_cycle_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/botany_canopy_cycle_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_lab_safety_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_lab_safety_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_lab_safety_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_lab_safety_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_water_analysis_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_water_analysis_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_water_analysis_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_water_analysis_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_aging_monitor_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_aging_monitor_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_aging_monitor_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_aging_monitor_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_history_archive_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_history_archive_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_history_archive_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_history_archive_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_phase_calendar_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_phase_calendar_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_phase_calendar_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_phase_calendar_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_time_shard_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_time_shard_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_time_shard_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_time_shard_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_weather_timeline_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_weather_timeline_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chronology_weather_timeline_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chronology_weather_timeline_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_graduation_station_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_graduation_station_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_graduation_station_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_graduation_station_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_knowledge_archive_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_knowledge_archive_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_knowledge_archive_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_knowledge_archive_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_public_inventory_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_public_inventory_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_public_inventory_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_public_inventory_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_transit_authority_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_transit_authority_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_transit_authority_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_transit_authority_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_artisan_guild_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_artisan_guild_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_artisan_guild_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_artisan_guild_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_reputation_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_reputation_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.commerce_reputation_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/commerce_reputation_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_ward_training_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_ward_training_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_ward_training_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_ward_training_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_coordinate_converter_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_coordinate_converter_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_coordinate_converter_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_coordinate_converter_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_ender_ecology_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_ender_ecology_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.dimensional_ender_ecology_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/dimensional_ender_ecology_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_dragon_breath_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_dragon_breath_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_dragon_breath_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_dragon_breath_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_shulker_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_shulker_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_shulker_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_shulker_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_void_resonance_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_void_resonance_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_void_resonance_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_void_resonance_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_air_quality_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_air_quality_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_air_quality_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_air_quality_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_biome_balance_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_biome_balance_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_biome_balance_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_biome_balance_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_impact_report_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_impact_report_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_impact_report_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_impact_report_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_weather_tower_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_weather_tower_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_weather_tower_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_weather_tower_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_cave_nav_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_cave_nav_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_cave_nav_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_cave_nav_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_compass_route_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_compass_route_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_compass_route_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_compass_route_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_ruin_scan_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_ruin_scan_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_ruin_scan_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_ruin_scan_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_supply_pack_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_supply_pack_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_supply_pack_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_supply_pack_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_survey_map_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_survey_map_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_survey_map_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_survey_map_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_threat_sense_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_threat_sense_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_threat_sense_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_threat_sense_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_fossil_reading_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_fossil_reading_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_fossil_reading_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_fossil_reading_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_ore_prospecting_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_ore_prospecting_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_ore_prospecting_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_ore_prospecting_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_strata_survey_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_strata_survey_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_strata_survey_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_strata_survey_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_terrain_model_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_terrain_model_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_terrain_model_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_terrain_model_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_field_calibration_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_field_calibration_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_field_calibration_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_field_calibration_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_gravity_lens_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_gravity_lens_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.gravity_gravity_lens_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/gravity_gravity_lens_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_leak_monitor_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_leak_monitor_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_leak_monitor_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_leak_monitor_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_belt_line_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_belt_line_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_belt_line_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_belt_line_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_dispatch_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_dispatch_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_dispatch_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_dispatch_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_inventory_ledger_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_inventory_ledger_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_inventory_ledger_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_inventory_ledger_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_jam_alarm_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_jam_alarm_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_jam_alarm_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_jam_alarm_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_pneumatic_tube_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_pneumatic_tube_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_pneumatic_tube_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_pneumatic_tube_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_portal_logistics_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_portal_logistics_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_portal_logistics_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_portal_logistics_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_rail_cargo_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_rail_cargo_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_rail_cargo_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_rail_cargo_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_return_route_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_return_route_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_return_route_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_return_route_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_sort_tags_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_sort_tags_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_sort_tags_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_sort_tags_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_warehouse_sorter",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_warehouse_sorter"
+        }
+      },
+      {
+        "when": "talexsoultech.item.logistics_warehouse_tag",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/logistics_warehouse_tag"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_spell_practice_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_spell_practice_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_spell_practice_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_spell_practice_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_glass_optics_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_glass_optics_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.materials_glass_optics_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/materials_glass_optics_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_maintenance_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_maintenance_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.mechanics_maintenance_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/mechanics_maintenance_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_corrosion_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_corrosion_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.metallurgy_corrosion_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/metallurgy_corrosion_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_dimension_map_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_dimension_map_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_dimension_map_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_dimension_map_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_route_record_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_route_record_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_route_record_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_route_record_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_void_observer_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_void_observer_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.space_void_observer_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/space_void_observer_probe"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_machine_network_analyzer",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_machine_network_analyzer"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_machine_network_probe",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_machine_network_probe"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/paper"
+    }
+  }
+}

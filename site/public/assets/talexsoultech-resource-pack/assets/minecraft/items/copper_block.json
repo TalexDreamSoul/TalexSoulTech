@@ -1,0 +1,97 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.agroecology_irrigation_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/agroecology_irrigation_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_gas_capture_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_gas_capture_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.chemistry_solvent_cycle_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/chemistry_solvent_cycle_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.environment_water_cleanup_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/environment_water_cleanup_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.geology_karst_water_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/geology_karst_water_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_canal_routing_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_canal_routing_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_filtration_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_filtration_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_ice_storage_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_ice_storage_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_pressure_pump_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_pressure_pump_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_reservoir_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_reservoir_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.hydrology_source_capture_network",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/hydrology_source_capture_network"
+        }
+      },
+      {
+        "when": "talexsoultech.item.technology_fluid_tank_spill_tray",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/technology_fluid_tank_spill_tray"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/copper_block"
+    }
+  }
+}

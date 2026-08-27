@@ -1,0 +1,104 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.civic_defense_alert_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_defense_alert_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.civic_disaster_response_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/civic_disaster_response_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_alarm_grid_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_alarm_grid_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_hazard_suit_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_hazard_suit_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_healing_post_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_healing_post_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_heat_armor_fire_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_heat_armor_fire_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_mobility_armor_escape_beacon",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_mobility_armor_escape_beacon"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_rescue_line_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_rescue_line_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.defense_shielding_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/defense_shielding_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.ender_void_guard_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/ender_void_guard_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_climbing_kit_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_climbing_kit_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech.item.exploration_rescue_beacon_bastion",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/exploration_rescue_beacon_bastion"
+        }
+      },
+      {
+        "when": "talexsoultech:area_charge_beacon",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/area_charge_beacon"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:block/beacon"
+    }
+  }
+}

@@ -21,7 +21,7 @@ public class NormalMesh extends BaseGriddleMesh {
 
     public NormalMesh() {
 
-        super(new ItemBuilder(Material.OAK_TRAPDOOR).setName("§f普通筛网").setLore("", "§8> §a普通的筛网.", "", "§f耐久: §c20", ""), (short) 20);
+        super("basic_sieving_normal_mesh", new ItemBuilder(Material.OAK_TRAPDOOR).setName("§f普通筛网").setLore("", "§8> §a普通的筛网.", "", "§f耐久: §c20", ""), (short) 20);
     }
 
     @Override

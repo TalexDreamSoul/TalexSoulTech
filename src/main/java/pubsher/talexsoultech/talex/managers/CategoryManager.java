@@ -25,7 +25,6 @@ import pubsher.talexsoultech.talex.items.maker.CobbleStoneMaker1;
 import pubsher.talexsoultech.talex.items.maker.CobbleStoneMaker2;
 import pubsher.talexsoultech.talex.items.material.blocks.FireIngotBlock;
 import pubsher.talexsoultech.talex.items.material.ingots.FireIngot;
-import pubsher.talexsoultech.talex.items.material.mesh.NormalMesh;
 import pubsher.talexsoultech.talex.items.material.mesh.NormalMeshPlus;
 import pubsher.talexsoultech.talex.items.material.others.SuperString;
 import pubsher.talexsoultech.talex.items.equipment.ElectricalEquipmentCatalog;
@@ -51,10 +50,19 @@ import pubsher.talexsoultech.utils.item.MineCraftItem;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 import pubsher.talexsoultech.utils.item.TalexItem;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -76,33 +84,355 @@ public class CategoryManager {
     }
 
     public CategoryManager(BaseTalex baseTalex) {
-
         this.baseTalex = baseTalex;
+        rootCategory.setGuideIdentity(
+                CategoryObject.GuideNodeType.ROOT,
+                rootCategory.getID(),
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        categories.put(rootCategory.getID(), rootCategory);
+    }
+/**
+     * Replaces the legacy flat view with the validated manifest graph.
+     * ContentRegistry is intentionally queried through its stable public methods
+     * only; no item is constructed by the guide layer.
+     */
+    public void buildGuideGraph(Object registry) {
+        Objects.requireNonNull(registry, "registry");
+        Object installed = invoke(registry, "isInstalled");
+        if (installed instanceof Boolean ready && !ready) {
+            throw new IllegalStateException("content registry is not installed");
+        }
+        Object rawEntries = invoke(registry, "entries");
+        if (!(rawEntries instanceof Iterable<?> iterable)) {
+            throw new IllegalStateException("content registry did not provide iterable entries");
+        }
+        List<GuideEntry> entries = new ArrayList<>();
+        for (Object rawEntry : iterable) {
+            entries.add(GuideEntry.fromContent(rawEntry));
+        }
+        buildGuideGraph(entries, runtimeId -> {
+            Object prototype = invoke(registry, "prototypeByRuntimeId", runtimeId);
+            if (prototype instanceof java.util.Optional<?> optional) {
+                prototype = optional.orElse(null);
+            }
+            if (prototype instanceof ItemStack stack) {
+                return stack.clone();
+            }
+            if (prototype != null) {
+                Object builder = invoke(prototype, "getItemBuilder");
+                Object stack = invoke(builder, "toItemStack");
+                if (stack instanceof ItemStack itemStack) {
+                    return itemStack.clone();
+                }
+            }
+            return null;
+        });
+    }
 
+    /**
+     * Pure fixture seam used by tests and importers that already decoded the
+     * manifest. It has the same fail-fast shape as the registry adapter.
+     */
+    public void buildGuideGraph(Collection<GuideEntry> entries) {
+        buildGuideGraph(entries, runtimeId -> null);
+    }
+
+    private void buildGuideGraph(Collection<GuideEntry> source, PrototypeResolver prototypes) {
+        Objects.requireNonNull(source, "entries");
+        Objects.requireNonNull(prototypes, "prototypes");
+        List<GuideEntry> entries = List.copyOf(source);
+        if (entries.size() != 810) {
+            throw new IllegalStateException("guide manifest must contain exactly 810 entries, got " + entries.size());
+        }
+
+        Map<String, GuideEntry> byPlanning = new LinkedHashMap<>();
+        Map<String, GuideEntry> byRuntime = new LinkedHashMap<>();
+        Map<String, GuideEntry> byLegacy = new LinkedHashMap<>();
+        Map<String, List<GuideEntry>> byWave = new LinkedHashMap<>();
+        Map<String, List<GuideEntry>> byDiscipline = new LinkedHashMap<>();
+        Map<String, List<GuideEntry>> byFamily = new LinkedHashMap<>();
+
+        for (GuideEntry entry : entries) {
+            requireText(entry.planningId(), "planningId");
+            requireText(entry.runtimeId(), "runtimeId");
+            requireText(entry.waveId(), "waveId");
+            requireText(entry.disciplineId(), "disciplineId");
+            requireText(entry.familyId(), "familyId");
+            putUnique(byPlanning, entry.planningId(), entry, "planning id");
+            putUnique(byRuntime, entry.runtimeId(), entry, "runtime id");
+            if (entry.legacyRuntimeId() != null && !entry.legacyRuntimeId().isBlank()) {
+                putUnique(byLegacy, entry.legacyRuntimeId(), entry, "legacy runtime id");
+            }
+            byWave.computeIfAbsent(entry.waveId(), ignored -> new ArrayList<>()).add(entry);
+            byDiscipline.computeIfAbsent(entry.disciplineId(), ignored -> new ArrayList<>()).add(entry);
+            byFamily.computeIfAbsent(entry.familyId(), ignored -> new ArrayList<>()).add(entry);
+        }
+
+        if (byWave.size() != 9 || byDiscipline.size() != 27 || byFamily.size() != 270) {
+            throw new IllegalStateException("invalid guide shape: waves=" + byWave.size()
+                    + ", disciplines=" + byDiscipline.size() + ", families=" + byFamily.size());
+        }
+        for (Map.Entry<String, List<GuideEntry>> discipline : byDiscipline.entrySet()) {
+            String wave = discipline.getValue().get(0).waveId();
+            if (discipline.getValue().stream().anyMatch(entry -> !wave.equals(entry.waveId()))) {
+                throw new IllegalStateException("discipline spans multiple waves: " + discipline.getKey());
+            }
+            if (discipline.getValue().size() != 30) {
+                throw new IllegalStateException("discipline must contain 30 entries: " + discipline.getKey());
+            }
+        }
+        for (Map.Entry<String, List<GuideEntry>> family : byFamily.entrySet()) {
+            String discipline = family.getValue().get(0).disciplineId();
+            if (family.getValue().stream().anyMatch(entry -> !discipline.equals(entry.disciplineId()))) {
+                throw new IllegalStateException("family spans multiple disciplines: " + family.getKey());
+            }
+            if (family.getValue().size() != 3) {
+                throw new IllegalStateException("family must contain 3 entries: " + family.getKey());
+            }
+        }
+
+        rootCategory.clearChildren();
+        categories.clear();
+        categories.put(rootCategory.getID(), rootCategory);
+
+        Map<String, CategoryObject> waves = new LinkedHashMap<>();
+        for (String waveId : orderedIds(byWave.keySet())) {
+            CategoryObject wave = new CategoryObject(guidePriority(waveId), waveId, rootCategory,
+                    display(Material.LECTERN, waveId));
+            wave.setGuideIdentity(CategoryObject.GuideNodeType.WAVE, waveId, null, null, waveId, null, null);
+            rootCategory.addChild(wave);
+            addToCategoryMap(wave);
+            waves.put(waveId, wave);
+        }
+        CategoryObject previousWave = null;
+        for (String waveId : orderedIds(byWave.keySet())) {
+            CategoryObject wave = waves.get(waveId);
+            if (previousWave != null) {
+                wave.addPreposition(previousWave);
+            }
+            previousWave = wave;
+        }
+
+        Map<String, CategoryObject> disciplines = new LinkedHashMap<>();
+        for (String disciplineId : orderedIds(byDiscipline.keySet())) {
+            GuideEntry representative = byDiscipline.get(disciplineId).get(0);
+            CategoryObject wave = waves.get(representative.waveId());
+            CategoryObject discipline = new CategoryObject(guidePriority(disciplineId), disciplineId, wave,
+                    display(Material.COMPASS, disciplineId));
+            discipline.setGuideIdentity(CategoryObject.GuideNodeType.DISCIPLINE, disciplineId, null, null,
+                    representative.waveId(), disciplineId, null);
+            wave.addChild(discipline);
+            addToCategoryMap(discipline);
+            discipline.addPreposition(wave);
+            disciplines.put(disciplineId, discipline);
+        }
+
+        Map<String, CategoryObject> families = new LinkedHashMap<>();
+        for (String familyId : orderedIds(byFamily.keySet())) {
+            GuideEntry representative = byFamily.get(familyId).get(0);
+            CategoryObject discipline = disciplines.get(representative.disciplineId());
+            CategoryObject family = new CategoryObject(guidePriority(familyId), familyId, discipline,
+                    display(Material.CHEST, familyId));
+            family.setGuideIdentity(CategoryObject.GuideNodeType.FAMILY, familyId, null, null,
+                    representative.waveId(), representative.disciplineId(), familyId);
+            discipline.addChild(family);
+            addToCategoryMap(family);
+            family.addPreposition(discipline);
+            families.put(familyId, family);
+        }
+
+        for (GuideEntry entry : entries) {
+            CategoryObject family = families.get(entry.familyId());
+            ItemStack prototype = prototypes.resolve(entry.runtimeId());
+            if (prototype == null || prototype.getType() == Material.AIR) {
+                prototype = display(Material.PAPER, entry.name() == null ? entry.planningId() : entry.name());
+            }
+            CategoryObject item = new CategoryObject(entry.tier(), entry.planningId(), family, prototype);
+            item.setGuideIdentity(CategoryObject.GuideNodeType.ITEM, entry.planningId(), entry.runtimeId(),
+                    entry.legacyRuntimeId(), entry.waveId(), entry.disciplineId(), entry.familyId());
+            family.addChild(item);
+            addToCategoryMap(item);
+            item.addPreposition(family);
+        }
+
+        List<CategoryObject> all = deepCategories(rootCategory);
+        if (all.size() != 1117) {
+            throw new IllegalStateException("guide graph reachability mismatch: " + all.size());
+        }
+        for (GuideEntry entry : entries) {
+            CategoryObject item = categories.get(entry.planningId());
+            if (item == null || resolveDisciplineAncestor(item) == null) {
+                throw new IllegalStateException("unreachable guide entry: " + entry.planningId());
+            }
+        }
+    }
+
+    public CategoryObject resolveDisciplineAncestor(CategoryObject category) {
+        CategoryObject current = category;
+        int steps = 0;
+        while (current != null && steps++ <= 16) {
+            if (current.getGuideNodeType() == CategoryObject.GuideNodeType.DISCIPLINE) {
+                return current;
+            }
+            current = current.getFatherCategory();
+        }
+        if (steps > 16) {
+            throw new IllegalStateException("guide ancestor chain exceeds safety bound");
+        }
+        return null;
+    }
+
+    public CategoryObject disciplineAncestor(CategoryObject category) {
+        return resolveDisciplineAncestor(category);
+    }
+
+    private static void requireText(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("guide entry " + field + " must not be blank");
+        }
+    }
+
+    private static void putUnique(Map<String, GuideEntry> map, String key, GuideEntry value, String label) {
+        if (map.putIfAbsent(key, value) != null) {
+            throw new IllegalStateException("duplicate " + label + ": " + key);
+        }
+    }
+
+    private static List<String> orderedIds(Set<String> ids) {
+        return ids.stream().sorted(Comparator.comparingInt(CategoryManager::guidePriority).thenComparing(String::compareTo)).toList();
+    }
+
+    private static int guidePriority(String id) {
+        if (id == null) return Integer.MAX_VALUE;
+        int end = id.length();
+        int start = end;
+        while (start > 0 && Character.isDigit(id.charAt(start - 1))) start--;
+        if (start == end) return Integer.MAX_VALUE;
+        try {
+            return Integer.parseInt(id.substring(start));
+        } catch (NumberFormatException ignored) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
+    private ItemStack display(Material material, String name) {
+        return baseTalex == null ? null : new ItemBuilder(material).setName("§e" + name).toItemStack();
+    }
+
+    private static Object invoke(Object target, String name, Object... args) {
+        try {
+            for (Method method : target.getClass().getMethods()) {
+                if (!method.getName().equals(name) || method.getParameterCount() != args.length) continue;
+                return method.invoke(target, args);
+            }
+            throw new IllegalStateException("missing ContentRegistry method: " + name);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("cannot read ContentRegistry method: " + name, exception);
+        }
+    }
+
+    private interface PrototypeResolver {
+        ItemStack resolve(String runtimeId);
+    }
+
+    public record GuideEntry(
+            String planningId,
+            String runtimeId,
+            String legacyRuntimeId,
+            String waveId,
+            String disciplineId,
+            String familyId,
+            String slug,
+            int tier,
+            String name,
+            String type
+    ) {
+        public static GuideEntry fromContent(Object entry) {
+            Objects.requireNonNull(entry, "entry");
+            return new GuideEntry(
+                    readText(entry, "planningId", "catalogId"),
+                    readText(entry, "runtimeId"),
+                    readTextOrNull(entry, "legacyRuntimeId"),
+                    readText(entry, "waveId", "wave"),
+                    readText(entry, "disciplineId", "discipline"),
+                    readText(entry, "familyId", "familyKey", "family"),
+                    readTextOrNull(entry, "slug"),
+                    readInt(entry, "tier"),
+                    readTextOrNull(entry, "name"),
+                    readTextOrNull(entry, "type")
+            );
+        }
+
+        private static String readText(Object target, String... names) {
+            for (String name : names) {
+                Object value = read(target, name);
+                if (value != null && !value.toString().isBlank()) return value.toString();
+            }
+            return null;
+        }
+
+        private static String readTextOrNull(Object target, String... names) {
+            String value = readText(target, names);
+            return value == null || value.isBlank() ? null : value;
+        }
+
+        private static int readInt(Object target, String name) {
+            Object value = read(target, name);
+            if (value instanceof Number number) return number.intValue();
+            if (value != null) {
+                try { return Integer.parseInt(value.toString()); } catch (NumberFormatException ignored) { }
+            }
+            return 0;
+        }
+
+        private static Object read(Object target, String name) {
+            try {
+                Method method = target.getClass().getMethod(name);
+                return method.invoke(target);
+            } catch (ReflectiveOperationException ignored) {
+                try {
+                    Field field = target.getClass().getDeclaredField(name);
+                    field.setAccessible(true);
+                    return field.get(target);
+                } catch (ReflectiveOperationException ignoredField) {
+                    return null;
+                }
+            }
+        }
     }
 
     public Set<CategoryObject> getCategories() {
-        Set<CategoryObject> result = new HashSet<>();
+        List<CategoryObject> ordered = new ArrayList<>();
         for (CategoryObject categoryObject : categories.values()) {
-            result.addAll(deepCategories(categoryObject));
+            if (categoryObject != rootCategory) {
+                ordered.add(categoryObject);
+            }
         }
-        return result;
+        ordered.sort(Comparator.comparingInt(CategoryObject::getPriority).thenComparing(CategoryObject::getID));
+        return Collections.unmodifiableSet(new LinkedHashSet<>(ordered));
     }
 
-    private Set<CategoryObject> deepCategories(CategoryObject categoryObject) {
+    public List<CategoryObject> deepCategories(CategoryObject categoryObject) {
+        Objects.requireNonNull(categoryObject, "categoryObject");
+        List<CategoryObject> result = new ArrayList<>();
+        Set<CategoryObject> visited = new LinkedHashSet<>();
+        collectCategories(categoryObject, visited);
+        result.addAll(visited);
+        return Collections.unmodifiableList(result);
+    }
 
-        Set<CategoryObject> sets = new HashSet<>();
-
-        sets.add(categoryObject);
-
-        for ( CategoryObject categoryObject1 : categoryObject.getChildren() ) {
-
-            sets.addAll(deepCategories(categoryObject1));
-
+    private void collectCategories(CategoryObject categoryObject, Set<CategoryObject> visited) {
+        if (!visited.add(categoryObject)) {
+            throw new IllegalStateException("guide graph cycle or duplicate node: " + categoryObject.getID());
         }
-
-        return sets;
-
+        for (CategoryObject child : categoryObject.getChildren()) {
+            collectCategories(child, visited);
+        }
     }
 
     public void enable() {
@@ -149,7 +479,6 @@ public class CategoryManager {
         initChestplates(chestplates);
         initMultiblockDisciplines(industry, magic, space, gravitation);
 
-        base.addChild(new CategoryObject(6, "st_mesh_normal", new NormalMesh().getRecipe()));
         base.addChild(new CategoryObject(6, "st_mesh_normal_plus", new NormalMeshPlus().getRecipe()));
 
         space.addChild(new CategoryObject(0, "st_normal_tank", new NormalTank().getRecipe()));
@@ -375,7 +704,7 @@ public class CategoryManager {
         base.addChild(new CategoryObject(2, "st_gravel", new BreakHammerRecipe("st_hammer_recipe_gravel", Material.COBBLESTONE, Material.GRAVEL)));
         base.addChild(new CategoryObject(2, "st_sand", new BreakHammerRecipe("st_hammer_recipe_sand", Material.GRAVEL, Material.SAND)).addPreposition("st_gravel"));
         base.addChild(new CategoryObject(2, "st_red_sand", new BreakHammerRecipe("st_hammer_recipe_red_sand", Material.SAND, new ItemBuilder(Material.RED_SAND).toItemStack())).addPreposition("st_sand"));
-        base.addChild(new CategoryObject(2, "st_soul_sand", new BreakHammerRecipe("st_hammer_recipe_soul_sand", Material.NETHERRACK, Material.SOUL_SAND).setDisplayRequireHammerTool(new IronHammer(new StoneHammer()))).addPreposition("st_red_sand"));
+        base.addChild(new CategoryObject(2, "st_soul_sand", new BreakHammerRecipe("st_hammer_recipe_soul_sand", Material.NETHERRACK, Material.SOUL_SAND).setDisplayRequireHammerTool(ironHammer)).addPreposition("st_red_sand"));
 
         base.addChild(new CategoryObject(3, "st_coal", new BreakHammerRecipe("st_hammer_recipe_coal", Material.COBBLESTONE, new ItemBuilder(Material.COAL).setLore("", "§8> §b较小几率产出随机 1 - 6 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
         base.addChild(new CategoryObject(3, "st_red_stone", new BreakHammerRecipe("st_hammer_recipe_red_stone", Material.COBBLESTONE, new ItemBuilder(Material.REDSTONE).setLore("", "§8> §b较小几率产出随机 1 - 5 个.", "§e高级的破碎锤可增加概率与数量", "").toItemStack())));
@@ -385,13 +714,10 @@ public class CategoryManager {
 
         base.addChild(new CategoryObject(4, "st_machine_core", MachineCore.INSTANCE.getRecipe()));
 
-        base.addChild(new CategoryObject(0, "st_compress_stick", new CompressStick().getRecipe()));
 
         base.addChild(new CategoryObject(5, "st_nether_rack", new FurnaceCauldronRecipe("nether_rack", new MineCraftItem(Material.NETHERRACK), 4000).setAmount(2)
                 .setExport(new MineCraftItem(Material.NETHERRACK)).setNeed(new MineCraftItem(Material.COBBLESTONE))));
 
-        base.addChild(new CategoryObject(5, "st_nether_rack", new FurnaceCauldronRecipe("nether_rack", new MineCraftItem(Material.NETHERRACK), 4000).setAmount(2)
-                .setExport(new MineCraftItem(Material.NETHERRACK)).setNeed(new MineCraftItem(Material.COBBLESTONE))));
 
     }
 
@@ -402,26 +728,38 @@ public class CategoryManager {
     }
 
     @Deprecated
-    public void addToCategoryMap(CategoryObject categoryObject) {
-
-        if ( "talex_soul_tech_root".equalsIgnoreCase(categoryObject.getID()) ) {
-            throw new UnsupportedOperationException("你不可以这么做! 你只能 获取这个 CategoryObject 然后修改它!");
+public void addToCategoryMap(CategoryObject categoryObject) {
+        Objects.requireNonNull(categoryObject, "categoryObject");
+        if (rootCategory.equals(categoryObject)) {
+            categories.put(rootCategory.getID(), rootCategory);
+            return;
         }
+        registerCategoryIdentity(categoryObject.getID(), categoryObject);
+        registerCategoryIdentity(categoryObject.getPlanningId(), categoryObject);
+        registerCategoryIdentity(categoryObject.getRuntimeId(), categoryObject);
+        registerCategoryIdentity(categoryObject.getLegacyRuntimeId(), categoryObject);
+    }
 
-        categories.put(categoryObject.getID(), categoryObject);
-
+    private void registerCategoryIdentity(String id, CategoryObject categoryObject) {
+        if (id == null || id.isBlank()) {
+            return;
+        }
+        CategoryObject existing = categories.putIfAbsent(id, categoryObject);
+        if (existing != null && existing != categoryObject) {
+            throw new IllegalStateException("duplicate guide identity: " + id);
+        }
     }
 
     public CategoryObject getCategoryObject(String ID) {
-
+        if (ID == null || ID.isBlank()) {
+            return null;
+        }
         return categories.get(ID);
-
     }
 
     public CategoryObject getCategoryObject(String ID, CategoryObject defaultValue) {
-
-        return categories.getOrDefault(ID, defaultValue);
-
+        CategoryObject result = getCategoryObject(ID);
+        return result == null ? defaultValue : result;
     }
 
     public record PoweredMachineEntry(

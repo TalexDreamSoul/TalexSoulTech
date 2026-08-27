@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Verification and forbidden behavior checklist"}
+{"file": ".trellis/tasks/08-25-full-catalog-runtime/prd.md", "reason": "Acceptance criteria for full implementation"}
+{"file": ".trellis/tasks/08-25-full-catalog-runtime/implement.md", "reason": "Ordered gates and rollback points"}

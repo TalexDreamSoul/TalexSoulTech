@@ -1,0 +1,265 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "talexsoultech.item.magic_arcane_garden_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_arcane_garden_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_arcane_garden_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_arcane_garden_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_display_ritual_glyph_lens",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_display_ritual_glyph_lens"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_elemental_runes_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_elemental_runes_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_elemental_runes_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_elemental_runes_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_enchanted_tools_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_enchanted_tools_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_enchanted_tools_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_enchanted_tools_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_magic_storage_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_magic_storage_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_magic_storage_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_magic_storage_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_mana_measurement_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_mana_measurement_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_mana_measurement_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_mana_measurement_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_soul_binding_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_soul_binding_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_soul_binding_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_soul_binding_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_wand_core_mystery_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_wand_core_mystery_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_ward_circle_rune",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_ward_circle_rune"
+        }
+      },
+      {
+        "when": "talexsoultech.item.magic_ward_circle_wand",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/magic_ward_circle_wand"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_data_compression_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_data_compression_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_data_compression_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_data_compression_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_decoder_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_decoder_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_decoder_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_decoder_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_decoherence_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_decoherence_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_decoherence_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_decoherence_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_entanglement_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_entanglement_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_entanglement_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_entanglement_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_fabrication_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_fabrication_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_fabrication_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_fabrication_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_schedule_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_schedule_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_schedule_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_schedule_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_sensor_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_sensor_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_sensor_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_sensor_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_storage_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_storage_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_quantum_storage_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_quantum_storage_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_qubit_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_qubit_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_qubit_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_qubit_core"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_teleport_control_bit",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_teleport_control_bit"
+        }
+      },
+      {
+        "when": "talexsoultech.item.quantum_teleport_control_core",
+        "model": {
+          "type": "minecraft:model",
+          "model": "talexsoultech:item/quantum_teleport_control_core"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/amethyst_shard"
+    }
+  }
+}

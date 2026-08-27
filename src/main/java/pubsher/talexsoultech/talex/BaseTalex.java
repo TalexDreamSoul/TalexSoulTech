@@ -11,6 +11,8 @@ import pubsher.talexsoultech.TalexSoulTech;
 import pubsher.talexsoultech.builder.SqlTableBuilder;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.mysql.MysqlManager;
+import pubsher.talexsoultech.talex.content.items.ContentRegistry;
+import pubsher.talexsoultech.talex.content.items.ContentRegistryLifecycle;
 import pubsher.talexsoultech.talex.machine.BaseMachine;
 import pubsher.talexsoultech.talex.machine.advanced_workbench.AdvancedWorkBench;
 import pubsher.talexsoultech.talex.machine.break_hammer.BreakHammerMachine;
@@ -41,6 +43,7 @@ public class BaseTalex {
     private final HashMap<String, PlayerData> playerManager = new HashMap<>(32);
     private final HashMap<UUID, PlayerSession> playerSessions = new HashMap<>(32);
     private final ElectricityManager electricityManager = ElectricityManager.INSTANCE;
+    private ContentRegistry contentRegistry;
 
     private MachineManager machineManager;
     private BlockManager blockManager;
@@ -97,6 +100,8 @@ public class BaseTalex {
 
         this.categoryManager = new CategoryManager(this);
         this.categoryManager.enable();
+        this.contentRegistry = ContentRegistryLifecycle.installBundled();
+        this.categoryManager.buildGuideGraph(contentRegistry);
 
         this.machineManager = new MachineManager(this);
         this.blockManager = new BlockManager(this);
