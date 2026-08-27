@@ -13,6 +13,7 @@ const TOP_LABELS = [
   ["tool_use", "装备使用 Top 10"],
 ];
 const EMPTY_STATE_TEXT = "等待生产插件上报";
+const PANEL_TITLE_ID = "telemetry-panel-title";
 
 const panel = document.getElementById("telemetry-panel");
 
@@ -65,18 +66,33 @@ function readNumber(value) {
   return Number.isFinite(value) ? String(value) : "0";
 }
 
+// The SSR mount is a bare <section> by contract, so the panel adopts the page's own container and
+// heading classes here instead; without them the tables break out of the admin page shell.
+function renderPanel(...children) {
+  panel.className = "section shell route-section";
+  panel.setAttribute("aria-labelledby", PANEL_TITLE_ID);
+
+  const heading = document.createElement("header");
+  heading.className = "section-heading compact-heading";
+  const title = createTextElement("h2", "玩家遥测");
+  title.id = PANEL_TITLE_ID;
+  heading.append(title, createTextElement("p", "生产服上报的聚合计数，按 UTC 日期分桶；不含任何单个玩家数据。"));
+
+  panel.replaceChildren(heading, ...children);
+}
+
 function renderEmpty() {
   const empty = document.createElement("div");
   empty.className = "empty-state compact-empty";
   empty.append(createTextElement("p", EMPTY_STATE_TEXT, "state-copy"));
-  panel.replaceChildren(empty);
+  renderPanel(empty);
 }
 
 function renderError(message) {
   const failure = document.createElement("div");
   failure.className = "inline-error";
   failure.append(createTextElement("p", message, "state-copy"));
-  panel.replaceChildren(failure);
+  renderPanel(failure);
 }
 
 function renderTelemetry(data) {
@@ -121,7 +137,7 @@ function renderTelemetry(data) {
     ),
   );
 
-  panel.replaceChildren(...sections);
+  renderPanel(...sections);
 }
 
 async function loadTelemetry(endpoint) {

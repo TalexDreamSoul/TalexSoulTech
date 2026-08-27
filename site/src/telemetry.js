@@ -197,7 +197,7 @@ function validateTelemetry(raw) {
         return { ok: false, reason: "too_many_keys" };
       }
 
-      const values = {};
+      const values = Object.create(null);
       for (const key of keys) {
         if (key !== TELEMETRY_OVERFLOW_KEY && !TELEMETRY_KEY_PATTERN.test(key)) {
           return { ok: false, reason: "invalid_key" };
