@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "authoringHash": "63ca7ba61d627261f119b6cbe60c870f026662befa7c8d53d3a62ddf799477a6",
+  "authoringHash": "18ec7342d3ce6b5cf66feb6e82ea342247ec249370e4cc8084efa995f096910b",
   "counts": {
     "catalog": 810,
     "baseline": 150,
@@ -7803,7 +7803,7 @@
       "isNarrativeAnchor": true,
       "story": {
         "order": 3,
-        "text": "规划把 25 点筛网耐久恢复做成维护回路；在它尚未实装时，恢复路径只能是更换普通/高级筛网、回到上一批次并保留未筛原料，不能把修复夹写入当前门禁。",
+        "text": "筛网修复夹把 25 点耐久恢复做成有限维护事务：玩家须核对修复材料、维护前后耐久和冷却状态；失败时保留未筛原料，重复点击不得重复恢复。",
         "anchorReason": "真实 family `sieving`（筛分工具）把资源回收与可见磨损绑在一起，给“材料守恒”一个会失败、能恢复的玩家行为，而不是收集更多目录条目。"
       },
       "previousItemId": "basic.sieving.advanced-mesh",

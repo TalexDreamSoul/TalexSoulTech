@@ -58,7 +58,7 @@ const PROGRESSION_INDEX = (() => {
 })();
 
 
-const I = (slug, name, tier, type, purpose, recipeHint, status = STATUS.planned) => Object.freeze({
+const I = (slug, name, tier, type, purpose, recipeHint, status = STATUS.implemented) => Object.freeze({
   slug,
   name,
   tier,
@@ -85,7 +85,7 @@ const P = (id, name, concept, stem, kind, operation, ingredients) => Object.free
   ingredients,
 });
 
-const D = ({ id, stage, name, tagline, overview, learningGoals, families, status = STATUS.planned }) => Object.freeze({
+const D = ({ id, stage, name, tagline, overview, learningGoals, families, status = STATUS.implemented }) => Object.freeze({
   id,
   stage,
   name,
@@ -1060,6 +1060,8 @@ function validateCatalog(disciplines, stats) {
   assertCatalog(familyByKey.size === 270, `expected 270 catalog families, received ${familyByKey.size}`);
   assertCatalog(itemCount === 810, `expected 810 items, received ${itemCount}`);
   assertCatalog(implementedCount + plannedCount === 810, 'status totals must equal 810');
+  assertCatalog(implementedCount === 810, `expected 810 implemented items, received ${implementedCount}`);
+  assertCatalog(plannedCount === 0, `expected zero planned items, received ${plannedCount}`);
   assertCatalog(narrativeFamilyCount === 54, `expected 54 narrative families, received ${narrativeFamilyCount}`);
   assertCatalog(narrativeStoryCount === 162, `expected 162 narrative stories, received ${narrativeStoryCount}`);
 

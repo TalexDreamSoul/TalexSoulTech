@@ -366,6 +366,8 @@ function validateManifest(manifest, sourceItems, mappingIndex) {
   assert(CATALOG_STATS.itemCount === 810 && sourceItems.length === 810, 'catalog must contain exactly 810 entries');
   assert(CATALOG_STATS.familyCount === 270, 'catalog must contain exactly 270 families');
   assert(CATALOG_STATS.waveCount === 9, 'catalog must contain exactly 9 waves');
+  assert(CATALOG_STATS.implementedCount === 810, 'catalog must mark all 810 entries implemented');
+  assert(CATALOG_STATS.plannedCount === 0, 'catalog must not retain planned entries after runtime cutover');
   assert(new Set(LEGACY_BASELINE_RUNTIME_IDS).size === 150 && LEGACY_BASELINE_RUNTIME_IDS.length === 150, 'baseline runtime snapshot must contain 150 unique IDs');
   assert(LEGACY_RUNTIME_MAPPINGS.length === 34, 'legacy mapping table must contain 34 entries');
   validateStoryAndWaveIdentity(sourceItems);

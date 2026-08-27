@@ -16786,8 +16786,8 @@ const RAW_RUNTIME_ITEMS = [
 
 export const RUNTIME_RELEASE = Object.freeze({
   "version": "3.0.0-SNAPSHOT",
-  "jarSha256": "cc0957ae585f477e709ff46f4ab58b4ebb5b5fa1a5e12f11e630b22ef789e30b",
-  "sourceManifestHash": "09773a967045f70a4cc9796ce550339250bc6642cd86bb7d5c97a511b95dba83",
+  "jarSha256": "a698bd5842a94bea6b84d7aa1aec3e96fc4b99bf9429e07183f9860dbc95b69c",
+  "sourceManifestHash": "4ee8d4ac244ce2a25041ef6b9ce889cc1e7d30087c3d850735b428e6909b4fa9",
   "observedAt": "2026-08-25",
   "itemCount": 926,
   "catalogCount": 810,

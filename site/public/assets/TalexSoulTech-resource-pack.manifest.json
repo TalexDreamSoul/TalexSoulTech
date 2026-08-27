@@ -8,8 +8,8 @@
   },
   "sourceManifest": {
     "path": "src/main/resources/talexsoultech/content/catalog-runtime.json",
-    "sha256": "09773a967045f70a4cc9796ce550339250bc6642cd86bb7d5c97a511b95dba83",
-    "authoringHash": "63ca7ba61d627261f119b6cbe60c870f026662befa7c8d53d3a62ddf799477a6"
+    "sha256": "4ee8d4ac244ce2a25041ef6b9ce889cc1e7d30087c3d850735b428e6909b4fa9",
+    "authoringHash": "18ec7342d3ce6b5cf66feb6e82ea342247ec249370e4cc8084efa995f096910b"
   },
   "counts": {
     "mapped": 810,

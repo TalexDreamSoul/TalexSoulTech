@@ -62,7 +62,7 @@ const RAW_CAMPAIGN = {
       "id": "W1",
       "order": 1,
       "title": "W1 工业奠基：把第一条守恒线接上电",
-      "state": "mixed",
+      "state": "implemented",
       "disciplineIds": [
         "basic",
         "materials",
@@ -71,10 +71,10 @@ const RAW_CAMPAIGN = {
       "purpose": "用 basic、materials、technology 三条相互咬合的证据建立工业底线：原料可整理且可回退，热与韧性有代价，供能能看见、能停机、能恢复。",
       "motivation": "玩家不是为了填满目录，而是要让一处工坊第一次可靠地产出：能把木材压进可运输批次，能从筛分中知道代价，能把耐热/韧性材料送到正确工位，并在供能异常时亲手停机和恢复。完成这条证据链，才值得把生产规模交给后续的农业和水利系统。",
       "crisis": "旧文明把无限抽取、无界自动化和跨域联动当成增长，直到库存无法解释、热工失控、设备在无反馈状态下持续吞料，城邦因此崩解。复原者面对的第一场危机不是缺一件高级装备，而是一次失败作业会让人无法回答“投入去了哪里、谁在耗电、怎样安全停下来”；若不能建立守恒和回退证据，后续每门学科都会把同一错误放大。",
-      "continuityIn": "玩家从原版生存资源和一处尚未整理的工位进入本章；`catalog.js` 的 810 项只是 27×10×3 的策划容量，当前生产运行目录仍以 150 项为边界。本章只把 catalog 中标为 implemented 且能在当前运行范围观察到的行为作为门禁证据，所有 planned item 只用于叙事方向。",
-      "continuityOut": "玩家离开 W1 时带走的不是“集齐了多少物品”，而是一份可复核的原料账、一个能重复作业的筛分/压缩工位和一条能观察供能、主动停机并恢复的最小工作回路。W2 的 `botany`、`agroecology`、`hydrology` 可以在此基础上接入可再生原料与水流；它不得假定 W1 的 planned 锚点已经实装。",
-      "gate": "门禁不检查玩家是否持有或收集齐 810 项，也不要求任何 planned item。玩家需在当前 150 项运行范围完成一段可复核行为证据：1）用 `basic.wood-compression.plank-9` 对 9 块木板执行压缩并潜行丢弃还原，前后清点相等；2）使用当前运行目录可观察的高级筛网行为（catalog 对应 `basic.sieving.advanced-mesh`）完成一轮筛分，记录输入、产出和耐久/停机结果；3）用已实装的火力发电机、铁质导线、基础蓄电池和已注册机器（可用压缩机作样本）完成一次有燃料运行、断开燃料或导线后停止的供能演示；4）以实体断电、送料停止和现有维护/拆卸步骤结束，证明工位可以回到可重启状态。只有同时具备库存前后账、机器运行/停止证据和失败后的恢复路径才通过；`normal-mesh`、`mesh-repair-clamp`、`thread-spool`、`thread-mesh`、`machine-network.*`、`signal-basics.*` 等未被当前运行范围证实的条目不能作为通过条件。",
-      "verificationGate": "当前 runtime 门禁：对任一已注册压缩配方完成一次压缩→还原事务，账本证明输入与返回守恒；再用当前已注册发电机、导线、储能和机器完成一次有源供能作业，记录 milli-SE source debit、delivery、line loss 与机器输入/输出。作业中断开供给，必须观察到停机、未提交输入保留；恢复连接后以同一 operationId 续作一次。不得依赖 planned item、catalog 收集数量、voltage 或免费魔能。",
+      "continuityIn": "玩家从原版生存资源和一处尚未整理的工位进入本章；810 个策划条目已全部绑定到可操作运行记录，生产目录共 926 个唯一 runtime。W1 门禁只采信可观察的配方、耐久、能量与恢复证据，不以收集数量代替行为验收。",
+      "continuityOut": "玩家离开 W1 时带走的不是“集齐了多少物品”，而是一份可复核的原料账、一个能重复作业的筛分/压缩工位和一条能观察供能、主动停机并恢复的最小工作回路。W1 的维护与信号锚点均可实际使用，W2 的 `botany`、`agroecology`、`hydrology` 据此前置票据接入可再生原料与水流。",
+      "gate": "门禁不检查玩家是否持有或收集齐 810 项。玩家需完成一段可复核行为证据：1）用 `basic.wood-compression.plank-9` 对 9 块木板执行压缩并潜行丢弃还原，前后清点相等；2）使用筛网完成一轮筛分，记录输入、产出和耐久/停机结果，并验证维护夹只恢复有限耐久；3）用火力发电机、铁质导线、基础蓄电池、保护/信号单元和已注册机器完成一次有燃料运行、断开供给后停机的演示；4）清除故障后从同一 operationId 恢复，证明未提交输入保留且只结算一次。只有同时具备库存前后账、机器运行/停止证据和失败后的恢复路径才通过。",
+      "verificationGate": "运行门禁：对任一已注册压缩配方完成一次压缩→还原事务，账本证明输入与返回守恒；再用发电机、导线、储能、信号保护和机器完成一次有源供能作业，记录 milli-SE source debit、delivery、line loss 与机器输入/输出。作业中断开供给，必须观察到停机、未提交输入保留；恢复连接后以同一 operationId 续作一次。门禁不得依赖 catalog 收集数量、voltage 或免费魔能。",
       "disciplineArcs": [
         {
           "id": "basic",
@@ -82,23 +82,23 @@ const RAW_CAMPAIGN = {
           "whyNow": "开局背包和工位容量有限，若不先证明压缩的可逆性与筛分的损耗边界，后续材料和供能投入只会把不可解释的浪费放大。",
           "input": "原版木板、木棒、筛分输入和可用工作台；叙事主线绑定 `basic.wood-compression.*` 与 `basic.sieving.*`，不把其余 8 个 family 误写成 W1 必修。",
           "output": "一个可复核的密度阶梯（×9、×81、×729）和一个带输入/产出/耐久记录的筛分工位，为材料与机器提供有来源的基础库存。",
-          "recovery": "`basic.wood-compression.plank-9` 允许用潜行丢弃验证还原；高阶压缩只在需求已证实后进行，缺料就回到低阶库存。筛分到耐久边界立即停止并更换已有筛网；`basic.sieving.mesh-repair-clamp` 仍为 planned，不能拿它假设自动修复。"
+          "recovery": "`basic.wood-compression.plank-9` 允许用潜行丢弃验证还原；高阶压缩只在需求已证实后进行，缺料就回到低阶库存。筛分到耐久边界立即停机，使用 `basic.sieving.mesh-repair-clamp` 执行有限维护；材料或冷却不满足时保留未筛原料并更换备用筛网。"
         },
         {
           "id": "materials",
           "role": "材料属性与代价层：把热耐受、韧性和可回收性变成机器选择的前置条件，而不是装饰标签。",
           "whyNow": "基础资源开始进入火力和设备，材料选错会以高温损坏、筛网停机或共享库存枯竭的形式反复出现。",
-          "input": "basic 的压缩库存、筛分产物、木棒、铁材和强力丝线，以及真实存在的冶炼锅炉路径；`materials.fire-materials.*` 的三档材料可用于解释热边界，`materials.reinforced-thread.*` 的后两档仍是 planned。",
+          "input": "basic 的压缩库存、筛分产物、木棒、铁材和强力丝线，以及冶炼锅炉路径；`materials.fire-materials.*` 与 `materials.reinforced-thread.*` 的完整三档材料共同约束热边界、韧性与维护成本。",
           "output": "一张按热、韧性和库存机会成本作出的材料选择记录：火焰棒→火焰锭→火焰块对应不同承诺，强力丝线明确哪些库存应留给筛网、护具或维护。",
-          "recovery": "工位拒绝或材料不匹配时回到上一档材料和未处理库存，不引入 catalog 未声明的替代配方。强力丝线卷与韧性编织网尚未实装时，恢复只能使用 `materials.reinforced-thread.super-string`、已有防护和人工更换。"
+          "recovery": "工位拒绝或材料不匹配时回到上一档材料和未处理库存，不引入 catalog 未声明的替代配方。强力丝线、线卷与韧性编织网按配方和有限库存参与修复，任何失败都不得无源补料。"
         },
         {
           "id": "technology",
           "role": "可审计供能与安全停机：把材料工位接到一条有来源、有负载、有回退的灵魂电能回路。",
           "whyNow": "机器一旦接电，错误就会从单件材料浪费升级为持续吞料和隐性停机；W1 必须先建立“看得见、关得掉、恢复得了”的边界。",
-          "input": "当前运行范围内可观察的火力发电、铁质导线、基础蓄电池、已注册压缩机与既有机器工位；`technology.machine-network.*` 和 `technology.signal-basics.*` 仅作为 planned 的审计/停机方向。",
-          "output": "一条最小供能闭环：有燃料时负载运行、断开来源后能明确停机、玩家能记录输入/输出/能量状态并按步骤恢复；它不等于已部署机器网络或信号单元。",
-          "recovery": "供能或状态异常时先停止送料，再断开燃料/导线并检查实体连接，用当前可用的维护或拆卸动作恢复到可重启状态。不得用 planned 的 `technology.machine-network.*`、`technology.signal-basics.*` 充当现有遥测或隔离能力。"
+          "input": "火力发电、铁质导线、基础蓄电池、压缩机与既有机器工位，以及 `technology.machine-network.*` 和 `technology.signal-basics.*` 提供的审计、隔离与停机记录。",
+          "output": "一条最小供能闭环：有燃料时负载运行，保护与信号单元能报告状态并隔离故障，断开来源后明确停机，玩家能按步骤恢复且同一输入只结算一次。",
+          "recovery": "供能或状态异常时先停止送料，由 machine-network 记录故障，再由 signal-basics 隔离非关键支路；检查燃料、导线和实体连接后按 checkpoint 复位，未提交输入与未用能量预留必须保留或释放。"
         }
       ],
       "familyLinks": [
@@ -136,7 +136,7 @@ const RAW_CAMPAIGN = {
           "from": "materials.reinforced-thread",
           "to": "basic.sieving",
           "kind": "supports",
-          "reason": "规划中的韧性编织网与筛网修复夹共同表达“磨损可以维护”的方向；二者未实装前都不能成为事故恢复依赖。"
+          "reason": "韧性编织网与筛网修复夹共同构成有限维护链：前者提供可追溯材料，后者恢复有上限的耐久，事故恢复必须实际扣除对应输入。"
         },
         {
           "from": "technology.electric-components",
@@ -148,25 +148,25 @@ const RAW_CAMPAIGN = {
           "from": "technology.signal-basics",
           "to": "technology.electric-components",
           "kind": "supports",
-          "reason": "规划中的信号线圈应建立在已实装导线的连接边界上，不能把计划中的安全停机能力倒写成现有运行能力。"
+          "reason": "信号线圈建立在铁质导线的连接边界上，负责把过载与停机原因变成可读状态，不能替代实际断路与维修。"
         },
         {
           "from": "technology.signal-basics",
           "to": "technology.energy-storage",
           "kind": "supports",
-          "reason": "规划中的控制状态与已实装基础蓄电池是两种不同证据：一个负责停机语义，一个负责能量缓冲，不能相互替代。"
+          "reason": "控制状态与基础蓄电池是两种独立运行证据：一个负责停机语义，一个负责能量缓冲，任何恢复流程都必须分别核对。"
         },
         {
           "from": "technology.machine-network",
           "to": "technology.registered-machines-a",
           "kind": "supports",
-          "reason": "规划中的观察入口以已实装压缩机的运行/停机作为行为样本，先记录状态再扩大自动化范围。"
+          "reason": "机器观测入口以压缩机的运行/停机作为行为样本，记录负载、输入与故障后再允许自动化继续投料。"
         },
         {
           "from": "technology.machine-network",
           "to": "technology.signal-basics",
           "kind": "supports",
-          "reason": "机器观测站与信号单元都属于高阶规划容量，二者关系是未来的“看见异常后安全停机”，不是当前可部署设施。"
+          "reason": "机器观测站与信号单元组成“看见异常后安全停机”的已实装链路；重复告警不得重复扣能或重放已提交输入。"
         }
       ],
       "anchors": [
@@ -212,7 +212,7 @@ const RAW_CAMPAIGN = {
             {
               "itemId": "basic.sieving.mesh-repair-clamp",
               "order": 3,
-              "text": "规划把 25 点筛网耐久恢复做成维护回路；在它尚未实装时，恢复路径只能是更换普通/高级筛网、回到上一批次并保留未筛原料，不能把修复夹写入当前门禁。"
+              "text": "筛网修复夹把 25 点耐久恢复做成有限维护事务：玩家须核对修复材料、维护前后耐久和冷却状态；失败时保留未筛原料，重复点击不得重复恢复。"
             }
           ]
         },
@@ -314,7 +314,7 @@ const RAW_CAMPAIGN = {
       "id": "W2",
       "order": 2,
       "title": "W2｜回到田里：水土作物的可再生生计",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "botany",
         "agroecology",
@@ -326,7 +326,7 @@ const RAW_CAMPAIGN = {
       "continuityIn": "W1 的 basic/materials/technology 提供工作台、材料加工、初级能量和容器边界，但其生存产出仍偏一次性消耗。W2 从这些已知输入/输出接上可观测田块状态、有限水路和副产物回流，不预设新增学科。",
       "continuityOut": "玩家交付一块有来源登记、土壤读数、过滤与灌溉分配、作物副产物回流和故障恢复记录的农区；它为 W3 defense/construction/energy 提供可审计的生物质、木材与水管理接口，但不提前实现 W3 机制。",
       "gate": "完成两条可重放的守恒行为链：有来源水→过滤→按土壤缺口灌溉→土壤复测，以及植物副产物→堆肥成熟→回田→肥力复测。注入空源、堵滤芯、污染或批次失败时，系统必须停机、保留未结算输入和失败原因；修复后从同一 batch 继续，不能无源增加水、种子或肥力。18 个故事条目只用于叙事覆盖，不参与解锁或通过计数。",
-      "verificationGate": "规划行为门禁：对任意一个持久 sourceId 的有限水批次执行 source debit→过滤→按土壤缺口灌溉→土壤复测，同时将一个有来源植物副产物批次执行堆肥成熟→回田→肥力复测。注入空源或堵滤芯后支路必须停机并保留水、种苗、残渣与失败原因；修复后同一 batchId 续作且水、种子、肥力均无无源 credit。通过不要求获得或完成 18 个 anchor item。",
+      "verificationGate": "运行行为门禁：对任意一个持久 sourceId 的有限水批次执行 source debit→过滤→按土壤缺口灌溉→土壤复测，同时将一个有来源植物副产物批次执行堆肥成熟→回田→肥力复测。注入空源或堵滤芯后支路必须停机并保留水、种苗、残渣与失败原因；修复后同一 batchId 续作且水、种子、肥力均无无源 credit。通过不要求获得或完成 18 个 anchor item。",
       "disciplineArcs": [
         {
           "id": "botany",
@@ -548,7 +548,7 @@ const RAW_CAMPAIGN = {
       "id": "W3",
       "order": 3,
       "title": "W3·守住火线：护身、承重与有界能源",
-      "state": "mixed",
+      "state": "implemented",
       "disciplineIds": [
         "defense",
         "construction",
@@ -560,7 +560,7 @@ const RAW_CAMPAIGN = {
       "continuityIn": "W2 已让水、农业副产物和蒸汽拥有来源与循环：agroecology.compost-loop 提供可追溯的生物质输入，hydrology.steam-loop 与 hydrology.reservoir 让水/蒸汽有容量和回流边界。W3 接手这些可计量输入，先建立个人撤离窗口，再把它们安置进可修复结构和有保护的能源支路；materials.fire-materials 与 materials.conductive-alloy 是跨波次的既有材料接口，但不改变本波的六个 anchor 计数。",
       "continuityOut": "W3 结束时，聚落拥有能显示“正常、降载、隔离、待修复、可复工”的工作区，而不是无条件增益。W4 可用 logistics.warehouse/dispatch 管理维修件与燃料、automation.thresholds/fault-isolation 消费能源和结构状态、commerce.public-works 把公共电网与修复投入纳入可审计协作；任何自动化都只能在 W3 的负载边界和手动恢复路径上继续。",
       "gate": "W3 生存基础设施门禁：完成一次可恢复能源故障演练。将 energy.solid-fuel.unit 接到 energy.grid-protection.unit 保护的支路上，在不固定最终 tick/比例的前提下制造“持续超过额定输入”的超载；保护机组必须隔离故障支路、保留关键负载并显示可读原因，不能静默损坏或无限重试。玩家随后关闭非关键设备，使用 technology.electric-components.wrench 检查/维护，清除过载源并补充 solid-fuel 输入，手动复位保护后逐级恢复关键工坊；验证未丢失未完成输入、停机原因和维修状态仍可追溯。最后移除一处 construction.modular-wall 的受损模块，确认相邻结构/维修坐标仍存在并在补回墙体与复检承重后恢复工作。该门禁只证明“故障可隔离且可复工”，不把防具、蓄能或能源产出当作无代价永久增益。",
-      "verificationGate": "规划行为门禁：用有限燃料和 no-voltage milli-SE 电网运行一个受保护工坊支路，注入超过共享通量/负载容量的故障；`energy.grid-protection` 必须隔离非关键支路、保留关键负载和未完成输入。随后修复一处结构缺口、清除过载、人工复验并逐级复位，同一 workId 只结算一次。观察项是通量、损耗、隔离原因、结构坐标和恢复状态，不是装备或设施收集数。",
+      "verificationGate": "运行行为门禁：用有限燃料和 no-voltage milli-SE 电网运行一个受保护工坊支路，注入超过共享通量/负载容量的故障；`energy.grid-protection` 必须隔离非关键支路、保留关键负载和未完成输入。随后修复一处结构缺口、清除过载、人工复验并逐级复位，同一 workId 只结算一次。观察项是通量、损耗、隔离原因、结构坐标和恢复状态，不是装备或设施收集数。",
       "disciplineArcs": [
         {
           "id": "defense",
@@ -806,7 +806,7 @@ const RAW_CAMPAIGN = {
       "id": "W4",
       "order": 4,
       "title": "W4 · 有界协同生产：让物资回家",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "logistics",
         "automation",
@@ -817,8 +817,8 @@ const RAW_CAMPAIGN = {
       "crisis": "跨站批次在满载、错配、断线和区块暂停时失去去向；若把送出当完成，库存会出现无主货物，自动重试还会重复扣料。玩家必须让停机、退货、合约取消和公共储备各有记录。",
       "continuityIn": "W3 留下了有能量预算、结构保护和加工状态的生产节点，但只证明单点可以安全运行，尚未解决跨节点可见流动、机器决策边界或多人承诺。W4 必须从 W3 已产出的真实材料和有限电力开始，不创造前段输入，不把未来的经济设施写成当前生产能力。",
       "continuityOut": "W4 交付一条可审计协作链：每件物品有来源、去向和回程，机器能停机、隔离并从检查点恢复，订单与公共工程都有贡献、履约、退回和归属记录。W5 可以把这套守恒路由当作矿物、构件和合金的输入边界，但仍必须经过勘探、分选、冶炼和装配，不能由自动化直达。",
-      "gate": "规划验收门槛（不是当前生产功能承诺）：使用 W3 已有的有限材料与能量搭一条跨三台加工机的链路，同时运行一笔私人合约和一项公共工程。必须能从 logistics.belt-line 看见来源到目的地并在停滞时触发 logistics.jam-alarm；错配或满载经 logistics.return-route 原路保留/退回；automation.thresholds 在输入、输出、能量或路线任一缺失时停投，automation.fault-isolation 隔离故障并由 automation.recovery 无重复地续作；commerce.work-contract 只有交付证据成立才结算，commerce.cargo-insurance 在运输失败时保留原归属，commerce.public-works 与私人收益的分账、延期和公共回收可审计。全程保持物品守恒、有限并发和前段材料/能源依赖，不出现一步直达或无限免费资源；通过后才把这条协作链交给 W5。",
-      "verificationGate": "规划行为门禁：让一个有 owner、recipe、source/target 与公共储备约束的批次经过至少一个多步骤机器链和一项合约结算；注入满载、错配或区块暂停，必须停止新投料、触发可定位告警、把未承诺物留在 escrow/return-route，并以持久且有限 attempt 从 checkpoint 续作。最终验证同一物品总量与唯一 owner 不变、输入/产出各结算一次、私人任务不能越过公共储备底线；不按机器或物品收集数量判定。",
+      "gate": "运行验收门槛：使用 W3 已有的有限材料与能量搭一条跨三台加工机的链路，同时运行一笔私人合约和一项公共工程。必须能从 logistics.belt-line 看见来源到目的地并在停滞时触发 logistics.jam-alarm；错配或满载经 logistics.return-route 原路保留/退回；automation.thresholds 在输入、输出、能量或路线任一缺失时停投，automation.fault-isolation 隔离故障并由 automation.recovery 无重复地续作；commerce.work-contract 只有交付证据成立才结算，commerce.cargo-insurance 在运输失败时保留原归属，commerce.public-works 与私人收益的分账、延期和公共回收可审计。全程保持物品守恒、有限并发和前段材料/能源依赖，不出现一步直达或无限免费资源；通过后才把这条协作链交给 W5。",
+      "verificationGate": "运行行为门禁：让一个有 owner、recipe、source/target 与公共储备约束的批次经过至少一个多步骤机器链和一项合约结算；注入满载、错配或区块暂停，必须停止新投料、触发可定位告警、把未承诺物留在 escrow/return-route，并以持久且有限 attempt 从 checkpoint 续作。最终验证同一物品总量与唯一 owner 不变、输入/产出各结算一次、私人任务不能越过公共储备底线；不按机器或物品收集数量判定。",
       "disciplineArcs": [
         {
           "id": "logistics",
@@ -1064,7 +1064,7 @@ const RAW_CAMPAIGN = {
       "id": "W5",
       "order": 5,
       "title": "W5·深层材料：证据成矿，性质成器",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "geology",
         "metallurgy",
@@ -1076,7 +1076,7 @@ const RAW_CAMPAIGN = {
       "continuityIn": "W4 的 `logistics.inventory-ledger`、`automation.recipe-control`、`commerce.work-contract` 已经把需求、批次去向和交付条件写清；W5 从一条带来源标签的材料需求与库存短缺开始，不接受“任意矿石都能喂给终局配方”的隐式捷径。当前生产端仍只有 150 件，27 学科与 810 条物品是 `catalog.js` 的规划容量，W5 不应被描述为已落地功能。",
       "continuityOut": "W5 输出带勘探来源、分选结果、热处理历史、性质证书和维修记录的可追溯材料批次，并把可用金属、残渣、损坏件分别送往明确出口；后续 `chemistry`、`environment`、`exploration` 可以接手反应、环境与远征语义，但不得重新发明材料来源、属性或维护状态。",
       "gate": "门禁是一次可重放且可观察的 `geology.ore-prospecting.station → metallurgy.ore-washing.vat → metallurgy.smelting-control.vat → mechanics.drive-shaft.workstation → mechanics.maintenance.station → metallurgy.recycling.workstation` 闭环。界面与日志必须展示同一批次的 source ID、输入、净料、残渣/返工/拒收、性质证书、维修前后状态和回收去向；无勘探证据时分选拒收，无性质证书时机械装配拒收，磨损或故障触发安全停机。拆下件回收后必须重新经过分选/熔炼与认证才能回装，恢复作业时同一输入只结算一次。该门禁只验收规划契约的可观察性，不把 810 条策划物品或任何 W5 家族宣称为当前生产功能。",
-      "verificationGate": "规划行为门禁：选取任意一个带 sourceId 的批准原矿批次，依次产生勘探 proof、分选守恒账、热史/性质证书和机械装配记录；注入无证据输入、混批或磨损，入口必须拒收/停机且不预扣不可恢复材料。维护后把拆件送回收，回收物以 returns 重新进入分选而不绕过认证，并从 checkpoint 完成原工单一次。门禁看完整 batch lineage，不看采集了多少矿或物品。",
+      "verificationGate": "运行行为门禁：选取任意一个带 sourceId 的批准原矿批次，依次产生勘探 proof、分选守恒账、热史/性质证书和机械装配记录；注入无证据输入、混批或磨损，入口必须拒收/停机且不预扣不可恢复材料。维护后把拆件送回收，回收物以 returns 重新进入分选而不绕过认证，并从 checkpoint 完成原工单一次。门禁看完整 batch lineage，不看采集了多少矿或物品。",
       "disciplineArcs": [
         {
           "id": "geology",
@@ -1286,7 +1286,7 @@ const RAW_CAMPAIGN = {
       "id": "W6",
       "order": 6,
       "title": "W6 野外科学：把代价带回实验台",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "chemistry",
         "environment",
@@ -1298,7 +1298,7 @@ const RAW_CAMPAIGN = {
       "continuityIn": "承接 W5 的勘探结果、材料批次与可维护工位；本波先以 `chemistry.water-analysis` 对本地工位/储液样本建立基线，再以这份记录放行有限远征。",
       "continuityOut": "完成返程样本复测、化学处理、废液与残渣回收、空气影响复测并封存远征记录后，向 W7 交出带 sourceId 的有限样本、影响状态与回程证据。",
       "gate": "先完成本地基线分析→有限远征→返程样本封存与复测→酸碱处理→废液/残渣回收→环境修复与复测→下一次放行；任一步失败都保留批次和停点。",
-      "verificationGate": "规划行为门禁：先以一个既有带来源样本形成 `chemistry.water-analysis` 基线准入，再完成有安全节点与返程记录的有限远征；重复扫描同一地点必须返回同一领取状态而不新增样本。任一许可内样本批次进入 acid-base 处理时，错配可锁定恢复；全部废液、回用水、残渣和空气影响有明确出口与复测。修复污染后同一 expeditionId 才可再次开放，判定不依赖样本数量。",
+      "verificationGate": "运行行为门禁：先以一个既有带来源样本形成 `chemistry.water-analysis` 基线准入，再完成有安全节点与返程记录的有限远征；重复扫描同一地点必须返回同一领取状态而不新增样本。任一许可内样本批次进入 acid-base 处理时，错配可锁定恢复；全部废液、回用水、残渣和空气影响有明确出口与复测。修复污染后同一 expeditionId 才可再次开放，判定不依赖样本数量。",
       "disciplineArcs": [
         {
           "id": "chemistry",
@@ -1538,7 +1538,7 @@ const RAW_CAMPAIGN = {
       "id": "W7",
       "order": 7,
       "title": "W7 · 灵魂共振：有主的意图、可返航的路径",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "magic",
         "space",
@@ -1549,30 +1549,30 @@ const RAW_CAMPAIGN = {
       "crisis": "残留共振接受无主意图、过期路线或超重货物；任何一项证明缺失都可能让修复物资与责任人失联。玩家必须以同一 transitId 绑定意图、路径、载荷和成本，并为过境失败保留回源或恢复仓。",
       "continuityIn": "消费 W6 交出的有限样本、sourceId、影响复测与返程记录；W7 只处理已知端点之间有主、有预算、可恢复的货运，不把“独立信号”或魔法权限当成免费成本。",
       "continuityOut": "输出带 transitId、owner、用途、source/target、routeVersion、payloadDigest、loadUnits、typed cost ledger、阶段状态和 recoveryKey 的运输记录，供 W8 作为已知端点交接证据。",
-      "gate": "提案 Gate（不是当前实装承诺）：一次真实验收必须由同一 transitId 关联 intentReceipt、routeReceipt、loadReceipt；成本按“路线基础/距离与维度因子 + loadUnits 载荷因子 + 完整返航预留”确定性计算，magicSpent、spaceSpent、gravityReserved 及每次释放都写入账本。只有三证齐全、目标安全、平台未超载、源点和返航端点仍可用时，才允许 prepare→open→arrive→confirm。必须分别注入无主/过期意图、路线过期或落点不安全、超载/余额不足、断能/结构损坏四类故障：前三类不得开启且不得产生未授权扣款，过境故障必须回源或进入按 source anchor 索引的 recovery escrow；重复请求、载荷变更、重试和回收后重放均不得复制货物或能量。仅在这一闭环通过后，才可把章节交给 W8；数值平衡、具体配方和生产注册另行评审。",
-      "verificationGate": "规划行为门禁：同一 transitId 必须关联有 owner/nonce/payloadDigest 的 intentReceipt、带 routeVersion/双锚/返航点的 routeReceipt、带 loadUnits/容量的 loadReceipt，以及由有限账户实际支持的 typed cost ledger；电力成本使用 milli-SE，预留、已花费、损耗和释放可对账。未授权/过期、落点失效、超载/余额不足、在途断能分别 fail closed；在途失败只能回源或进入单一 recovery escrow。重复请求、改载荷、重试与恢复均不得复制货物或跳过成本。",
+      "gate": "运行 Gate：一次真实验收必须由同一 transitId 关联 intentReceipt、routeReceipt、loadReceipt；成本按“路线基础/距离与维度因子 + loadUnits 载荷因子 + 完整返航预留”确定性计算，magicSpent、spaceSpent、gravityReserved 及每次释放都写入账本。只有三证齐全、目标安全、平台未超载、源点和返航端点仍可用时，才允许 prepare→open→arrive→confirm。必须分别注入无主/过期意图、路线过期或落点不安全、超载/余额不足、断能/结构损坏四类故障：前三类不得开启且不得产生未授权扣款，过境故障必须回源或进入按 source anchor 索引的 recovery escrow；重复请求、载荷变更、重试和回收后重放均不得复制货物或能量。仅在这一闭环通过后，才可把章节交给 W8；数值平衡只在真实生存数据证明瓶颈后调整，运行注册与配方以当前 manifest 为准。",
+      "verificationGate": "运行行为门禁：同一 transitId 必须关联有 owner/nonce/payloadDigest 的 intentReceipt、带 routeVersion/双锚/返航点的 routeReceipt、带 loadUnits/容量的 loadReceipt，以及由有限账户实际支持的 typed cost ledger；电力成本使用 milli-SE，预留、已花费、损耗和释放可对账。未授权/过期、落点失效、超载/余额不足、在途断能分别 fail closed；在途失败只能回源或进入单一 recovery escrow。重复请求、改载荷、重试与恢复均不得复制货物或跳过成本。",
       "disciplineArcs": [
         {
           "id": "magic",
           "role": "意图与绑定 authority：把灵魂共振落成可归属、可限时、可撤销的责任票据。",
-          "whyNow": "catalog.js 已有部分法杖、展示和注魔条目，但它们只证明魔能有载体，不证明跨域请求有主人；W7 需要用仍属 planned 的 ward-circle 与 soul-binding 先补齐授权边界，不能把根目录 implemented 误读成完整章节。",
-          "input": "提案输入为 owner UUID、用途代码、目标 anchor ID、payloadDigest、有效期、nonce 与可用魔能预留；不接受只有一句愿望的匿名请求。",
+          "whyNow": "法杖、ward-circle 与 soul-binding 已形成可执行授权链；W7 用 owner、nonce、有效期和撤销状态证明跨域请求有明确责任人，而不是只证明魔能有载体。",
+          "input": "运行输入为 owner UUID、用途代码、目标 anchor ID、payloadDigest、有效期、nonce 与可用魔能预留；不接受只有一句愿望的匿名请求。",
           "output": "输出 intentReceipt：明确责任主体、用途、目标、有效期、撤销状态和载荷摘要；魔法只证明“谁有权发起什么”，不替空间选择路线，也不替引力决定成本。",
           "recovery": "owner 不存在、权限不符、票据过期、被撤销或载荷摘要变化时，拒绝开放且不消耗未结算资源；已签发但未启程的意图可撤销，途中故障则冻结 receipt 并转入 recovery，不静默换目标。"
         },
         {
           "id": "space",
           "role": "路径与返航 authority：把坐标移动变成版本化、可验证、可回退的路线。",
-          "whyNow": "catalog.js 的 space-dust 有部分显式已实装材料，但 local-anchor 与 rift-safety 是 planned family；它们必须把已有空间入口收敛成安全路径，而不是宣称当前已经具备跨域运输。",
-          "input": "提案输入为有效 intentReceipt、源/目标维度与坐标、source anchor、target anchor、routeVersion、返航端点及目标安全证明。",
+          "whyNow": "space-dust、local-anchor 与 rift-safety 已形成双锚和返航链；W7 必须冻结 routeVersion、落点安全与恢复路径，不能把可达误写成可安全交付。",
+          "input": "运行输入为有效 intentReceipt、源/目标维度与坐标、source anchor、target anchor、routeVersion、返航端点及目标安全证明。",
           "output": "输出 routeReceipt：冻结路线版本、距离/维度因子、目标安全结果、返航路径、阶段状态和 recoveryKey；空间负责“怎么走以及怎么回来”，不隐藏货物质量。",
           "recovery": "源点或目标不安全、路线过期、门框/路径损坏时在 prepare 阶段拒绝并释放未用预留；过境后确认失败则使用返航预留回源，回源暂不可用时锁入按源锚索引的恢复仓，等待修复与重新验证。"
         },
         {
           "id": "gravity",
           "role": "成本与载荷 authority：把重量、容量、能量预算和停机责任绑定到同一份运输事实。",
-          "whyNow": "引力根目录虽在 catalog.js 标为 implemented，生产运行目录仍只有有限的 150 项；本章选用的 mass-reading 与 load-platform 都是 planned family，适合定义成本/载荷规则，但不能被描述成已经完成的 W7 设施。",
-          "input": "提案输入为冻结的 payload manifest、质量等级与 loadUnits、路线因子、平台容量、可用引力储备和返航预留；任何载荷变化都触发重新称量。",
+          "whyNow": "mass-reading 与 load-platform 已把载荷、容量和能量预算接入同一运输事实；W7 以可核对成本和安全停机证明设施完整，而不是用魔法或空间隐藏重量债务。",
+          "input": "运行输入为冻结的 payload manifest、质量等级与 loadUnits、路线因子、平台容量、可用引力储备和返航预留；任何载荷变化都触发重新称量。",
           "output": "输出 loadReceipt：载荷摘要、loadUnits、容量占用、确定性成本分项、预留/已结算金额和停机阈值；引力承担可见的代价与载荷，不能由魔法或空间偷偷兜底。",
           "recovery": "超载、余额不足、断能或平台结构失效时安全停机，保留输入并释放未用预留；已开始但未确认的货物走返航或 recovery escrow，按已完成阶段记账，禁止重复扣款、复制或把重量债务转给目的地。"
         }
@@ -1778,7 +1778,7 @@ const RAW_CAMPAIGN = {
       "id": "W8",
       "order": 8,
       "title": "远界航行：观测、采样与完整回程",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "astral",
         "ender",
@@ -1790,7 +1790,7 @@ const RAW_CAMPAIGN = {
       "continuityIn": "W7 已证明已知端点之间的有主货运；W8 才面对未知航向、陌生生态、污染隔离与相位漂移，以 `space.local-anchor` 的起点证据和 W7 回程记录开始完整远征。",
       "continuityOut": "把回程确认的星图档案、门户记录、带来源样本、污染状态和未解决异常交给 W9，用于保存、复测和公共使用规则。",
       "gate": "同一远征必须完成：出发前确认星图、本地锚、候选落点包络与完整返航预留；首次安全抵达后确认站立面并建立远界第二锚；随后在限额内采样、核对污染与相位状态，并用双锚返回原点或最近有效锚，最后回写实际到达、样本和异常。后续复航才要求出发前双锚均有效。",
-      "verificationGate": "规划行为门禁：同一 expeditionId 以最后有效星图、本地锚、候选落点包络和返航预留出发；首次落地只在安全确认后创建远界第二锚。注入相位漂移、落点不可站立或污染时，人员回退、货物隔离、未用预留只释放一次；成功返航和后续复航必须由双锚、来源与恢复 receipt 闭合证明，而不是以采集数量判定。",
+      "verificationGate": "运行行为门禁：同一 expeditionId 以最后有效星图、本地锚、候选落点包络和返航预留出发；首次落地只在安全确认后创建远界第二锚。注入相位漂移、落点不可站立或污染时，人员回退、货物隔离、未用预留只释放一次；成功返航和后续复航必须由双锚、来源与恢复 receipt 闭合证明，而不是以采集数量判定。",
       "disciplineArcs": [
         {
           "id": "astral",
@@ -2024,7 +2024,7 @@ const RAW_CAMPAIGN = {
       "id": "W9",
       "order": 9,
       "title": "守恒城邦·复原协议",
-      "state": "planned",
+      "state": "implemented",
       "disciplineIds": [
         "quantum",
         "chronology",
@@ -2036,7 +2036,7 @@ const RAW_CAMPAIGN = {
       "continuityIn": "承接前四波的库存、物流、电网与公共记录，并消费 W5 `metallurgy.smelting-control` 的热史/性质证书与 `mechanics.maintenance` 的维修记录，W6 `exploration.ruin-scan` 的样本档案，W7 `space.rift-safety` 的运输记录，以及 W8 `astral.star-map` 与 `dimensional.return-protocol` 的回程档案。",
       "continuityOut": "城邦获得可重跑的服务周期、最后有效状态、公共库存归属和可撤销角色制度；前八波的采集、农业、水利、能源、加工、探索与跨域设施仍在周期中被调用。",
       "gate": "以有限能源、公共/个人库存归属、最小角色权限和最后有效快照启动一项公共服务；注入单节点故障，冻结单一 escrow、保留 remainingWork、告警并保护关键负载；修复后只重放未应用步骤并完成同一周期。",
-      "verificationGate": "规划行为门禁：以最小角色权限、公共/个人库存归属、有限能源预算和最后有效快照启动一项持续公共服务；周期中注入单节点故障，量子层冻结单一 escrow，时间层保存 remainingWork 且不修改世界时间，应急与电网保护保住关键负载。修复并跨一次重启后，只重放未应用步骤，完成同一周期；验证每项输入/能量只扣一次、输出只 credit 一次、未提交输入可回收、无量子副本、无时间快进或成本跳过。",
+      "verificationGate": "运行行为门禁：以最小角色权限、公共/个人库存归属、有限能源预算和最后有效快照启动一项持续公共服务；周期中注入单节点故障，量子层冻结单一 escrow，时间层保存 remainingWork 且不修改世界时间，应急与电网保护保住关键负载。修复并跨一次重启后，只重放未应用步骤，完成同一周期；验证每项输入/能量只扣一次、输出只 credit 一次、未提交输入可回收、无量子副本、无时间快进或成本跳过。",
       "disciplineArcs": [
         {
           "id": "quantum",
