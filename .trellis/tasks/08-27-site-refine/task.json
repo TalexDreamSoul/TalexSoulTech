@@ -3,7 +3,7 @@
   "name": "site-refine",
   "title": "Site IA refinement and dead code removal",
   "description": "Remove dead legacy client, audience-grouped nav, lazy data loading, SSR contract updates",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

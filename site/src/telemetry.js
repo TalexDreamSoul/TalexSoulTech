@@ -25,12 +25,16 @@ const SERVER_ID_PATTERN = /^srv_[A-Za-z0-9_-]{22}$/;
 const DEFAULT_TELEMETRY_QUERY_DAYS = 14;
 const MAX_TELEMETRY_QUERY_DAYS = 90;
 const MAX_TELEMETRY_TOP_KEYS = 10;
-const MAX_TELEMETRY_TOP_SCAN_ROWS = 3000;
 const MAX_TELEMETRY_SERVER_ROWS = 100;
 
+// The trailing WHERE EXISTS ties every counter to the snapshot row inserted earlier in the same
+// D1 batch: when that insert loses a sequence race the batch still commits, so an unguarded upsert
+// would double-count the counters of a snapshot the caller is about to be told was rejected.
 const ADDITIVE_UPSERT_SQL = `INSERT INTO telemetry_daily (
   server_id, day, metric, item_key, value, updated_at
-) VALUES (?, ?, ?, ?, ?, ?)
+)
+SELECT ?, ?, ?, ?, ?, ?
+WHERE EXISTS (SELECT 1 FROM server_snapshots WHERE id = ?)
 ON CONFLICT (server_id, day, metric, item_key)
 DO UPDATE SET
   value = MIN(telemetry_daily.value + excluded.value, ${MAX_TELEMETRY_VALUE}),
@@ -38,7 +42,9 @@ DO UPDATE SET
 
 const GAUGE_UPSERT_SQL = `INSERT INTO telemetry_daily (
   server_id, day, metric, item_key, value, updated_at
-) VALUES (?, ?, ?, ?, ?, ?)
+)
+SELECT ?, ?, ?, ?, ?, ?
+WHERE EXISTS (SELECT 1 FROM server_snapshots WHERE id = ?)
 ON CONFLICT (server_id, day, metric, item_key)
 DO UPDATE SET
   value = MAX(telemetry_daily.value, excluded.value),
@@ -48,7 +54,7 @@ DO UPDATE SET
  * Turns the optional `telemetry` field of a sync payload into D1 statements.
  * Never throws: a malformed telemetry block is skipped so the snapshot still commits.
  */
-export function planTelemetry(db, serverId, raw, now) {
+export function planTelemetry(db, serverId, raw, now, snapshotId) {
   if (raw === undefined) {
     return { present: false, statements: [], applied: false, truncated: false, reason: null };
   }
@@ -58,7 +64,7 @@ export function planTelemetry(db, serverId, raw, now) {
     return { present: true, statements: [], applied: false, truncated: false, reason: validation.reason };
   }
 
-  const built = telemetryStatements(db, serverId, validation.value, now);
+  const built = telemetryStatements(db, serverId, validation.value, now, snapshotId);
   return {
     present: true,
     statements: built.statements,
@@ -104,17 +110,27 @@ export async function handleAdminTelemetry(request, env, url, deps) {
     .bind(fromDay, toDay, ...scopeArgs, days * TELEMETRY_METRICS.size)
     .all();
 
+  // Ranking per metric keeps a key-heavy group (produce spans the whole runtime catalog) from
+  // consuming a shared row budget and silently emptying the other two tables.
   const topRows = await env.DB.prepare(
-    `SELECT metric, item_key, SUM(value) AS total
-     FROM telemetry_daily
-     WHERE day BETWEEN ? AND ?
-       AND metric IN (${TELEMETRY_TOP_PLACEHOLDERS})
-       ${scopeClause}
-     GROUP BY metric, item_key
-     ORDER BY metric ASC, total DESC, item_key ASC
-     LIMIT ?`,
+    `WITH totals AS (
+       SELECT metric, item_key, SUM(value) AS total
+       FROM telemetry_daily
+       WHERE day BETWEEN ? AND ?
+         AND metric IN (${TELEMETRY_TOP_PLACEHOLDERS})
+         ${scopeClause}
+       GROUP BY metric, item_key
+     ), ranked AS (
+       SELECT metric, item_key, total,
+              ROW_NUMBER() OVER (PARTITION BY metric ORDER BY total DESC, item_key ASC) AS position
+       FROM totals
+     )
+     SELECT metric, item_key, total
+     FROM ranked
+     WHERE position <= ?
+     ORDER BY metric ASC, total DESC, item_key ASC`,
   )
-    .bind(fromDay, toDay, ...TELEMETRY_TOP_METRICS, ...scopeArgs, MAX_TELEMETRY_TOP_SCAN_ROWS)
+    .bind(fromDay, toDay, ...TELEMETRY_TOP_METRICS, ...scopeArgs, MAX_TELEMETRY_TOP_KEYS)
     .all();
 
   const serverRows = await env.DB.prepare(
@@ -166,7 +182,8 @@ function validateTelemetry(raw) {
       return { ok: false, reason: "invalid_shape" };
     }
 
-    const counters = {};
+    // Null prototypes: `__proto__` matches the key pattern, and a plain object would swallow it.
+    const counters = Object.create(null);
     for (const [metric, group] of Object.entries(entry.counters)) {
       if (!TELEMETRY_METRICS.has(metric)) {
         return { ok: false, reason: "unknown_metric" };
@@ -201,7 +218,7 @@ function validateTelemetry(raw) {
   return { ok: true, value: { days } };
 }
 
-function telemetryStatements(db, serverId, telemetry, now) {
+function telemetryStatements(db, serverId, telemetry, now, snapshotId) {
   const entries = [];
   const orderedDays = [...telemetry.days].sort((left, right) => compareStrings(left.day, right.day));
 
@@ -222,7 +239,7 @@ function telemetryStatements(db, serverId, telemetry, now) {
     .map((entry) =>
       db
         .prepare(TELEMETRY_GAUGE_METRICS.has(entry.metric) ? GAUGE_UPSERT_SQL : ADDITIVE_UPSERT_SQL)
-        .bind(serverId, entry.day, entry.metric, entry.key, entry.value, now),
+        .bind(serverId, entry.day, entry.metric, entry.key, entry.value, now, snapshotId),
     );
 
   return { statements, truncated };

@@ -41,6 +41,19 @@ class TelemetryCollectorDomainTest {
     }
 
     @Test
+    void boundsTheTrackedPlayerSetSoTheGaugeCannotGrowWithoutLimit() {
+        Fixture fixture = new Fixture();
+        for (int index = 0; index < TelemetryCollector.MAX_TRACKED_PLAYERS_PER_DAY + 64; index++) {
+            fixture.collector.playerSeen(UUID.randomUUID());
+        }
+
+        assertEquals(
+                (long) TelemetryCollector.MAX_TRACKED_PLAYERS_PER_DAY,
+                gauge(fixture.collector.drainForSnapshot())
+        );
+    }
+
+    @Test
     void routesKeysOutsideTheContractPatternToOverflow() {
         Fixture fixture = new Fixture();
         fixture.collector.produce("Industry Refined Ingot!", 2L);
@@ -136,6 +149,18 @@ class TelemetryCollectorDomainTest {
                 () -> assertEquals(drained.days().getFirst().counters(), replayed.days().getFirst().counters()),
                 () -> assertTrue(fixture.collector.drainForSnapshot().isEmpty())
         );
+    }
+
+    @Test
+    void mergesARestoredDrainWithCountsThatArrivedAfterIt() {
+        Fixture fixture = new Fixture();
+        fixture.collector.produce("industry_refined_ingot", 4L);
+
+        TelemetryDrain drained = fixture.collector.drainForSnapshot();
+        fixture.collector.produce("industry_refined_ingot", 3L);
+        fixture.collector.restore(drained);
+
+        assertEquals(7L, fixture.drainGroup(TelemetryMetric.PRODUCE).get("industry_refined_ingot"));
     }
 
     @Test

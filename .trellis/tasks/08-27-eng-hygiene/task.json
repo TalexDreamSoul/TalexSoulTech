@@ -3,7 +3,7 @@
   "name": "eng-hygiene",
   "title": "Engineering hygiene: deprecated APIs, docs, CI",
   "description": "Paper deprecated API migration, README/CHANGELOG/docs refresh, GitHub Actions CI",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

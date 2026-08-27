@@ -3,7 +3,7 @@
   "name": "telemetry-loop",
   "title": "Player telemetry closed loop",
   "description": "Bounded gameplay counters -> CloudSync -> D1 -> admin dashboard",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

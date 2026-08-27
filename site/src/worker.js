@@ -285,7 +285,7 @@ export class SyncCoordinator {
 
     const snapshotId = randomIdentifier("snp_");
     const eventId = randomIdentifier("evt_");
-    const telemetry = planTelemetry(this.env.DB, payload.serverId, payload.telemetry, now);
+    const telemetry = planTelemetry(this.env.DB, payload.serverId, payload.telemetry, now, snapshotId);
     const snapshotStatements = [
       this.env.DB.prepare(
         `INSERT INTO server_snapshots (
