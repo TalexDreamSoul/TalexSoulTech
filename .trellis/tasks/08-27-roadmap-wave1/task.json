@@ -1,0 +1,30 @@
+{
+  "id": "roadmap-wave1",
+  "name": "roadmap-wave1",
+  "title": "Roadmap wave 1 umbrella",
+  "description": "R1 telemetry loop + R2 site refine + engineering hygiene; owns cross-child contracts and integration acceptance",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "TalexDreamSoul",
+  "assignee": "TalexDreamSoul",
+  "createdAt": "2026-08-27",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "08-27-telemetry-loop",
+    "08-27-site-refine",
+    "08-27-eng-hygiene"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

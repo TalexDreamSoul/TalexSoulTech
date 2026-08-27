@@ -27,15 +27,20 @@ import pubsher.talexsoultech.utils.item.MachineBlockItem;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.Map;
 
 import pubsher.talexsoultech.cloud.CloudSyncService;
 import pubsher.talexsoultech.extensions.ExtensionManager;
+import pubsher.talexsoultech.telemetry.TelemetryCollector;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 
 /**
  * @author TalexDreamSoul
  */
 public final class TalexSoulTech extends JavaPlugin {
+
+    private static final String TELEMETRY_ENABLED = "Settings.telemetry.enabled";
 
     @Getter
     private static TalexSoulTech instance;
@@ -51,6 +56,9 @@ public final class TalexSoulTech extends JavaPlugin {
 
     @Getter
     private ExtensionManager extensionManager;
+
+    @Getter
+    private TelemetryCollector telemetryCollector;
 
     @Getter
     private PoweredEquipmentService poweredEquipmentService;
@@ -70,6 +78,13 @@ public final class TalexSoulTech extends JavaPlugin {
         saveDefaultConfig();
 
         this.prefix = ChatColor.translateAlternateColorCodes('&', getConfig().getString("Settings.prefix"));
+
+        this.telemetryCollector = new TelemetryCollector(
+                getConfig().getBoolean(TELEMETRY_ENABLED, true),
+                Bukkit::isPrimaryThread,
+                Instant::now
+        );
+        TelemetryHooks.install(telemetryCollector);
 
         BaseTalex.init(this);
 
@@ -215,6 +230,8 @@ public final class TalexSoulTech extends JavaPlugin {
             }
 
         } finally {
+            TelemetryHooks.uninstall();
+            telemetryCollector = null;
             if (baseTalex != null) {
                 baseTalex.getElectricityManager().clear();
             }

@@ -37,6 +37,7 @@ import pubsher.talexsoultech.platform.TextHologram;
 import pubsher.talexsoultech.talex.multiblock.MultiblockDetector;
 import pubsher.talexsoultech.talex.multiblock.MultiblockMatch;
 import pubsher.talexsoultech.talex.multiblock.MultiblockStructureRegistry;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.block.TalexBlock;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
@@ -464,8 +465,10 @@ public abstract class PoweredMultiblockMachineItem extends MachineBlockItem {
             if (progress < owner.spec.operationCycles()) return;
 
             progress = 0;
-            if (owner.process(this, false)) owner.onOperationCompleted(this);
-            else setMachineStatus(MachineStatus.NEED_STH);
+            if (owner.process(this, false)) {
+                TelemetryHooks.machineOp(owner.spec.id());
+                owner.onOperationCompleted(this);
+            } else setMachineStatus(MachineStatus.NEED_STH);
             updateHologram();
         }
 

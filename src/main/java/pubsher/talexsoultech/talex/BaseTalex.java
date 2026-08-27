@@ -20,6 +20,7 @@ import pubsher.talexsoultech.talex.machine.compress_machine.Compressor;
 import pubsher.talexsoultech.talex.machine.furnace_cauldron.FurnaceCauldronMachine;
 import pubsher.talexsoultech.talex.machine.griddle.GriddleMachine;
 import pubsher.talexsoultech.talex.managers.*;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.item.MachineBlockItem;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
@@ -154,6 +155,7 @@ public class BaseTalex {
                 System.nanoTime()
         );
         playerSessions.put(uuid, session);
+        TelemetryHooks.playerSeen(player);
 
         if (!mysqlManager.isPlayerPersistenceEnabled()) {
             publishPlayerData(uuid, session, null, null, false);
@@ -179,6 +181,7 @@ public class BaseTalex {
         }
 
         playerSessions.remove(uuid);
+        TelemetryHooks.playerQuit(player);
         PlayerData playerData = playerManager.remove(session.name());
         if (playerData != null && playerData.isPersistenceWritable()) {
             mysqlManager.enqueuePlayerSave(playerData.snapshotForPersistence());

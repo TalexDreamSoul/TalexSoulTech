@@ -15,6 +15,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.talex.electricity.EnergyUnits;
+import pubsher.talexsoultech.telemetry.TelemetryCollector;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -227,6 +229,7 @@ final class PoweredWearableController {
             playerData.actionBar("§7没有可转移的电量或目标已满");
             return;
         }
+        TelemetryHooks.charge(TelemetryCollector.ChargeSource.PERSONAL);
         playerData.actionBar("§a" + (inputMode ? "输入" : "输出") + " §e"
                 + EnergyUnits.format(transferred, 3) + " §bSE");
         playerData.getPlayer().playSound(playerData.getPlayer().getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.45F, 1.5F);
@@ -323,7 +326,7 @@ final class PoweredWearableController {
         int slot = service.slot(equipmentSlot, inventory);
         PoweredItem item = service.poweredItem(inventory.getItem(slot));
         if (item == null || item.spec().ability() != ability) return;
-        if (!service.consumeSlot(inventory, slot, item.spec().energyPerActionMilliSe())) return;
+        if (!service.consumeUpkeep(inventory, slot, item.spec().energyPerActionMilliSe())) return;
         for (PotionEffect effect : effects) player.addPotionEffect(effect, true);
     }
 
@@ -334,7 +337,7 @@ final class PoweredWearableController {
         if (item == null || item.spec().ability() != PoweredAbility.FIELD_FLASHLIGHT || energy.mode(inventory.getItem(slot)) == 0) {
             return;
         }
-        if (!service.consumeSlot(inventory, slot, item.spec().energyPerActionMilliSe())) return;
+        if (!service.consumeUpkeep(inventory, slot, item.spec().energyPerActionMilliSe())) return;
         player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 240, 0, true, false, false), true);
     }
 
@@ -364,12 +367,12 @@ final class PoweredWearableController {
         if (chest.spec().ability() == PoweredAbility.ADVANCED_JETPACK
                 && energy.mode(inventory.getItem(chestSlot)) == 1
                 && !player.isOnGround()
-                && service.consumeSlot(inventory, chestSlot, chest.spec().energyPerActionMilliSe())) {
+                && service.consumeUpkeep(inventory, chestSlot, chest.spec().energyPerActionMilliSe())) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, EFFECT_DURATION_TICKS, 0, true, false, false), true);
             player.setFallDistance(0F);
         }
         if (chest.spec().ability() == PoweredAbility.GRAVITIC_HARNESS && player.isFlying()) {
-            if (service.consumeSlot(inventory, chestSlot, chest.spec().energyPerActionMilliSe())) {
+            if (service.consumeUpkeep(inventory, chestSlot, chest.spec().energyPerActionMilliSe())) {
                 player.setFallDistance(0F);
             } else {
                 releaseOwnership(player, true);

@@ -22,6 +22,8 @@ import pubsher.talexsoultech.talex.machine.multiblock.PoweredMultiblockMachineIt
 import pubsher.talexsoultech.talex.machine.multiblock.PoweredMultiblockMachineItem.RuntimeMachine;
 import pubsher.talexsoultech.talex.multiblock.MultiblockTemplate;
 import pubsher.talexsoultech.talex.multiblock.MultiblockTemplates;
+import pubsher.talexsoultech.telemetry.TelemetryCollector;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 import pubsher.talexsoultech.utils.NBTsUtil;
 import pubsher.talexsoultech.utils.item.ItemBuilder;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
@@ -629,8 +631,10 @@ public final class IndustrialMachines {
             Inventory inventory = machine.inventory();
             TalexSoulTech plugin = TalexSoulTech.getInstance();
             if (inventory == null || plugin == null || plugin.getPoweredEquipmentService() == null) return false;
-            return plugin.getPoweredEquipmentService()
+            boolean charged = plugin.getPoweredEquipmentService()
                     .chargeInventory(inventory, CHARGE_PER_OPERATION_MILLI_SE, simulate) > 0L;
+            if (charged && !simulate) TelemetryHooks.charge(TelemetryCollector.ChargeSource.STATION);
+            return charged;
         }
     }
 

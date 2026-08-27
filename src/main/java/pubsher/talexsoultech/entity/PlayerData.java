@@ -21,6 +21,7 @@ import pubsher.talexsoultech.inventory.MenuBasic;
 import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.talex.guider.category.CategoryObject;
 import pubsher.talexsoultech.talex.items.GuideBookItem;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 import pubsher.talexsoultech.utils.NBTsUtil;
 
 import java.util.ArrayList;
@@ -405,6 +406,7 @@ public class PlayerData {
         else if (paid) addCategoryUnlock(PAID_CATEGORY_UNLOCKS, id);
         else addCategoryUnlock(CATEGORY_UNLOCKS, id);
         recordEvidence(id, evidence);
+        TelemetryHooks.unlock(id);
         return UnlockAttempt.success();
     }
 

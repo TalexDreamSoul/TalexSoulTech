@@ -120,6 +120,16 @@ import { DISCIPLINES, CATALOG_STATS } from "./catalog.js";
 - Retried sync uses the exact serialized body and monotonically increasing per-server sequence.
 - Extension code runs through bounded LuaJ/Rhino host APIs with private bounded KV, dependency ordering, LIFO disposers, and last-known-good recovery. It never receives raw Bukkit, filesystem, database, network, or secret access.
 - Release order is fixed: freeze/build JAR and resource pack -> apply remote D1 migrations -> deploy Worker -> pass live SaaS E2E -> atomically deploy the exact JAR to `wlcb1` -> pass Paper/RCON and real-client smoke.
+- The site and the plugin release independently, but `/download` always advertises a JAR that has passed a real Paper smoke test. Worker/SSR changes may ship ahead of a plugin build; when they do, `site/public/downloads/` and the generated `runtime-catalog.js` keep describing the last validated artifact rather than the newest local build. `npm run deploy` regenerates those from `target/`, so a site-only release must skip `prepare` or stage the validated JAR at `target/` first.
+
+### Gameplay telemetry
+
+- Telemetry reports aggregate counts only. Player UUIDs stay in plugin memory (bounded per-day set) and are never serialized, sent, or stored.
+- The metric set is closed: `produce`, `machine_op`, `tool_use`, `charge`, `session_seconds`, `unique_players`, `unlock`. The Worker rejects unknown groups instead of storing them.
+- Collection is primary-thread only and bounded by construction: at most 3 UTC day buckets, 512 keys per group folding overflow into `__other`, 2048 tracked players per day. Off-thread increments are dropped silently; no telemetry path throws into gameplay code.
+- Telemetry rides the existing CloudSync snapshot; it is never a second network channel. Counters are drained inside snapshot capture and restored if the outbox write fails, so a failed send loses nothing and a retried sequence counts nothing twice.
+- `unique_players` is a gauge: drained without resetting the source set and applied with `MAX`. Every other group is a delta, reset on drain and applied with `+`. Mixing the two semantics double counts or silently truncates.
+- The `telemetry` payload field is optional in both directions and stays out of the snapshot dedupe hash. A malformed telemetry block is skipped and reported via `telemetryApplied:false`; it must never reject the snapshot it rides along with.
 
 ### Planning catalog and campaign
 

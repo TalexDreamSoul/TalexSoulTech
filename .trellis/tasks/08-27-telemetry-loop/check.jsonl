@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Review and test standards"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Log and redaction rules"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Cross-layer data-flow checks"}
+{"file": ".trellis/tasks/08-27-telemetry-loop/prd.md", "reason": "Acceptance criteria"}

@@ -8,6 +8,8 @@ import pubsher.talexsoultech.TalexSoulTech;
 import pubsher.talexsoultech.talex.machine.multiblock.PoweredMachineSpec;
 import pubsher.talexsoultech.talex.machine.multiblock.PoweredMultiblockMachineItem;
 import pubsher.talexsoultech.talex.multiblock.MultiblockTemplates;
+import pubsher.talexsoultech.telemetry.TelemetryCollector;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.util.Comparator;
@@ -85,7 +87,9 @@ public final class WirelessChargingMachines {
                 long accepted = equipment.chargePlayer(player, remaining, chargerSpec.receiverRequired(), simulate);
                 remaining = chargerSpec.remainingBudgetAfterDistribution(remaining, accepted);
             }
-            return remaining < chargerSpec.operationBudgetMilliSe();
+            boolean delivered = remaining < chargerSpec.operationBudgetMilliSe();
+            if (delivered && !simulate) TelemetryHooks.charge(TelemetryCollector.ChargeSource.WIRELESS);
+            return delivered;
         }
     }
 

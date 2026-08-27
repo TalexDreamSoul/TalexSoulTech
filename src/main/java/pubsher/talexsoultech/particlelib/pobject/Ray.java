@@ -3,11 +3,11 @@ package pubsher.talexsoultech.particlelib.pobject;
 import com.google.common.collect.Lists;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Consumer;
 import org.bukkit.util.Vector;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**

@@ -252,11 +252,78 @@ function assertPluginExtension(extension, expected, contract) {
   );
 }
 
-function assertAcceptedSync(body, sequence, contract) {
-  assertKeys(body, ["accepted", "sequence", "serverTime"], contract);
+function assertAcceptedSync(body, sequence, contract, telemetryKeys = []) {
+  assertKeys(body, ["accepted", "sequence", "serverTime", ...telemetryKeys], contract);
   assert.equal(body.accepted, true, `${contract}: snapshot was not accepted.`);
   assert.equal(body.sequence, sequence, `${contract}: accepted sequence changed.`);
   assertTimestamp(body.serverTime, contract);
+}
+
+function assertAppliedTelemetry(body, sequence, truncated, contract) {
+  assertAcceptedSync(body, sequence, contract, ["telemetryApplied", "telemetryTruncated"]);
+  assert.equal(body.telemetryApplied, true, `${contract}: telemetry was not applied.`);
+  assert.equal(body.telemetryTruncated, truncated, `${contract}: telemetry truncation flag changed.`);
+}
+
+function assertSkippedTelemetry(body, sequence, reason, contract) {
+  assertAcceptedSync(body, sequence, contract, ["telemetryApplied", "telemetryReason"]);
+  assert.equal(body.telemetryApplied, false, `${contract}: invalid telemetry must not be applied.`);
+  assert.equal(body.telemetryReason, reason, `${contract}: telemetry rejection reason changed.`);
+}
+
+function utcDay(offsetDays) {
+  const now = new Date();
+  const midnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return new Date(midnight - offsetDays * 86_400_000).toISOString().slice(0, 10);
+}
+
+function counterKeys(prefix, count, value) {
+  return Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [`${prefix}.${index}`, value]),
+  );
+}
+
+function findDay(days, day, contract) {
+  assert.ok(Array.isArray(days), `${contract}: days must be an array.`);
+  const entry = days.find((candidate) => candidate?.day === day);
+  assert.ok(entry, `${contract}: expected telemetry day ${day} was not returned.`);
+  return entry;
+}
+
+function findTopKey(entries, key, contract) {
+  assert.ok(Array.isArray(entries), `${contract}: top entries must be an array.`);
+  const entry = entries.find((candidate) => candidate?.key === key);
+  assert.ok(entry, `${contract}: expected top key was not returned.`);
+  return entry;
+}
+
+// The platform admin is a D1 singleton created out of band by `npm run init:admin`, so the fixture
+// cannot register one. Export SOULTECH_ADMIN_USERNAME / SOULTECH_ADMIN_PASSWORD to also assert the
+// aggregated telemetry report; without them only the auth gate is checked.
+async function signInPlatformAdmin() {
+  const username = process.env.SOULTECH_ADMIN_USERNAME;
+  const password = process.env.SOULTECH_ADMIN_PASSWORD;
+  if (!username || !password) {
+    console.log(
+      "GET /api/admin/telemetry aggregate assertions skipped: set SOULTECH_ADMIN_USERNAME and SOULTECH_ADMIN_PASSWORD to run them.",
+    );
+    return null;
+  }
+
+  const contract = "POST /api/auth/login platform admin login";
+  const jar = new CookieJar();
+  const session = await expectJson(
+    await request(contract, "/api/auth/login", {
+      method: "POST",
+      jar,
+      json: { username, password },
+      headers: { "cf-connecting-ip": `contract-admin-${randomUUID()}` },
+    }),
+    200,
+    contract,
+  );
+  assert.equal(session.user?.role, "admin", `${contract}: configured account is not a platform admin.`);
+  return jar;
 }
 
 function findById(items, id, contract) {
@@ -905,4 +972,245 @@ test("SoulTech local Worker API contract", { concurrency: false }, async () => {
     !pluginManifestAfterDelete.extensions.some((extension) => extension?.manifest?.id === fixture.extensionId),
     "GET /api/extensions/manifest deleted plugin manifest: deleted extension remained visible to plugins.",
   );
+
+  const today = utcDay(0);
+  const yesterday = utcDay(1);
+  const produceKey = fixture.marker;
+  const produceAltKey = `${fixture.marker}.alt`;
+  const machineKey = `${fixture.marker}.machine`;
+  const toolKey = `${fixture.marker}.tool`;
+  const unlockKey = `${fixture.marker}.unlock`;
+
+  const ingestSequence = nextSequence + 1;
+  const ingestSnapshot = {
+    ...makeSnapshot(serverId, ingestSequence, `${fixture.marker}-telemetry`),
+    telemetry: {
+      v: 1,
+      days: [
+        {
+          day: yesterday,
+          counters: {
+            produce: { [produceKey]: 5 },
+            unique_players: { total: 2 },
+          },
+        },
+        {
+          day: today,
+          counters: {
+            produce: { [produceKey]: 12, [produceAltKey]: 4, __other: 2 },
+            machine_op: { [machineKey]: 4 },
+            tool_use: { [toolKey]: 33 },
+            charge: { total: 7, station: 5, wireless: 1, personal: 1 },
+            session_seconds: { total: 5400 },
+            unique_players: { total: 3 },
+            unlock: { [unlockKey]: 1 },
+          },
+        },
+      ],
+    },
+  };
+  const telemetryIngest = await expectJson(
+    await request("POST /api/sync telemetry ingest", "/api/sync", {
+      method: "POST",
+      bearer: pluginApiKey,
+      json: ingestSnapshot,
+    }),
+    200,
+    "POST /api/sync telemetry ingest",
+  );
+  assertAppliedTelemetry(telemetryIngest, ingestSequence, false, "POST /api/sync telemetry ingest");
+
+  const telemetryReplay = await expectJson(
+    await request("POST /api/sync telemetry replay", "/api/sync", {
+      method: "POST",
+      bearer: pluginApiKey,
+      json: { ...ingestSnapshot, telemetry: { v: 1, days: [{ day: today, counters: { produce: { [produceKey]: 999 } } }] } },
+    }),
+    200,
+    "POST /api/sync telemetry replay",
+  );
+  assertAcceptedSync(telemetryReplay, ingestSequence, "POST /api/sync telemetry replay");
+
+  const accumulateSequence = ingestSequence + 1;
+  const accumulateSync = await expectJson(
+    await request("POST /api/sync telemetry accumulation", "/api/sync", {
+      method: "POST",
+      bearer: pluginApiKey,
+      json: {
+        ...makeSnapshot(serverId, accumulateSequence, `${fixture.marker}-telemetry-add`),
+        telemetry: {
+          v: 1,
+          days: [
+            {
+              day: today,
+              counters: {
+                produce: { [produceKey]: 3 },
+                unique_players: { total: 2 },
+              },
+            },
+          ],
+        },
+      },
+    }),
+    200,
+    "POST /api/sync telemetry accumulation",
+  );
+  assertAppliedTelemetry(accumulateSync, accumulateSequence, false, "POST /api/sync telemetry accumulation");
+
+  const invalidTelemetryCases = [
+    { name: "unknown metric group", reason: "unknown_metric", telemetry: { v: 1, days: [{ day: today, counters: { mystery: { [produceKey]: 1 } } }] } },
+    { name: "unsupported version", reason: "unsupported_version", telemetry: { v: 2, days: [{ day: today, counters: { produce: { [produceKey]: 1 } } }] } },
+    { name: "invalid day", reason: "invalid_day", telemetry: { v: 1, days: [{ day: "2026-02-31", counters: { produce: { [produceKey]: 1 } } }] } },
+    { name: "day overflow", reason: "too_many_days", telemetry: { v: 1, days: [0, 1, 2, 3].map((offset) => ({ day: utcDay(offset), counters: { produce: { [produceKey]: 1 } } })) } },
+    { name: "invalid key", reason: "invalid_key", telemetry: { v: 1, days: [{ day: today, counters: { produce: { "Invalid Key": 1 } } }] } },
+    { name: "negative value", reason: "invalid_value", telemetry: { v: 1, days: [{ day: today, counters: { produce: { [produceKey]: -1 } } }] } },
+    { name: "key overflow", reason: "too_many_keys", telemetry: { v: 1, days: [{ day: today, counters: { produce: counterKeys("overflow", 513, 1) } }] } },
+    { name: "malformed block", reason: "invalid_shape", telemetry: "not-an-object" },
+  ];
+
+  let telemetrySequence = accumulateSequence;
+  for (const invalidTelemetry of invalidTelemetryCases) {
+    telemetrySequence += 1;
+    const contract = `POST /api/sync telemetry ${invalidTelemetry.name} rejection`;
+    const rejected = await expectJson(
+      await request(contract, "/api/sync", {
+        method: "POST",
+        bearer: pluginApiKey,
+        json: {
+          ...makeSnapshot(serverId, telemetrySequence, `${fixture.marker}-${invalidTelemetry.reason}`),
+          telemetry: invalidTelemetry.telemetry,
+        },
+      }),
+      200,
+      contract,
+    );
+    assertSkippedTelemetry(rejected, telemetrySequence, invalidTelemetry.reason, contract);
+  }
+
+  const anonymousTelemetry = await expectJson(
+    await request("GET /api/admin/telemetry anonymous denial", "/api/admin/telemetry"),
+    401,
+    "GET /api/admin/telemetry anonymous denial",
+  );
+  assertError(anonymousTelemetry, "authentication_required", "GET /api/admin/telemetry anonymous denial");
+
+  const ownerTelemetry = await expectJson(
+    await request("GET /api/admin/telemetry owner denial", "/api/admin/telemetry", { jar: tenantA }),
+    403,
+    "GET /api/admin/telemetry owner denial",
+  );
+  assertError(ownerTelemetry, "admin_required", "GET /api/admin/telemetry owner denial");
+
+  const telemetryMethod = await expectJson(
+    await request("POST /api/admin/telemetry method rejection", "/api/admin/telemetry", {
+      method: "POST",
+      jar: tenantA,
+      json: {},
+    }),
+    405,
+    "POST /api/admin/telemetry method rejection",
+  );
+  assertError(telemetryMethod, "method_not_allowed", "POST /api/admin/telemetry method rejection");
+
+  const adminJar = await signInPlatformAdmin();
+  if (adminJar) {
+    for (const invalidRange of ["0", "91", "abc", "-1"]) {
+      const contract = `GET /api/admin/telemetry days=${invalidRange} rejection`;
+      const rejectedRange = await expectJson(
+        await request(contract, `/api/admin/telemetry?days=${encodeURIComponent(invalidRange)}`, { jar: adminJar }),
+        400,
+        contract,
+      );
+      assertError(rejectedRange, "invalid_telemetry_range", contract);
+    }
+
+    const invalidScope = await expectJson(
+      await request("GET /api/admin/telemetry serverId rejection", "/api/admin/telemetry?serverId=not-a-server", {
+        jar: adminJar,
+      }),
+      400,
+      "GET /api/admin/telemetry serverId rejection",
+    );
+    assertError(invalidScope, "invalid_server_id", "GET /api/admin/telemetry serverId rejection");
+
+    const contract = "GET /api/admin/telemetry aggregated report";
+    const report = await expectJson(
+      await request(contract, `/api/admin/telemetry?days=14&serverId=${encodeURIComponent(serverId)}`, {
+        jar: adminJar,
+      }),
+      200,
+      contract,
+    );
+    assertKeys(report, ["days", "top", "servers"], contract);
+    assert.equal(report.days.length, 2, `${contract}: reporting window returned unexpected day rows.`);
+    assert.equal(report.days[0].day, today, `${contract}: days must be ordered newest first.`);
+
+    const todayTotals = findDay(report.days, today, contract).totals;
+    assertKeys(
+      todayTotals,
+      ["produce", "machine_op", "tool_use", "charge", "session_seconds", "unique_players", "unlock"],
+      contract,
+    );
+    assert.equal(todayTotals.produce, 21, `${contract}: additive produce counters did not accumulate.`);
+    assert.equal(todayTotals.machine_op, 4, `${contract}: machine operation counters changed.`);
+    assert.equal(todayTotals.tool_use, 33, `${contract}: tool use counters changed.`);
+    assert.equal(todayTotals.charge, 14, `${contract}: charge counters changed.`);
+    assert.equal(todayTotals.session_seconds, 5400, `${contract}: session seconds changed.`);
+    assert.equal(todayTotals.unlock, 1, `${contract}: unlock counters changed.`);
+    assert.equal(todayTotals.unique_players, 3, `${contract}: unique players must use gauge (MAX) semantics.`);
+
+    const yesterdayTotals = findDay(report.days, yesterday, contract).totals;
+    assert.equal(yesterdayTotals.produce, 5, `${contract}: prior-day counters changed.`);
+    assert.equal(yesterdayTotals.unique_players, 2, `${contract}: prior-day gauge changed.`);
+
+    assertKeys(report.top, ["produce", "machine_op", "tool_use"], contract);
+    assert.ok(report.top.produce.length <= 10, `${contract}: top keys must be capped at 10.`);
+    assert.equal(report.top.produce[0]?.key, produceKey, `${contract}: top keys must be ordered by value.`);
+    assert.equal(findTopKey(report.top.produce, produceKey, contract).value, 20, `${contract}: top key total changed.`);
+    assert.equal(findTopKey(report.top.produce, produceAltKey, contract).value, 4, `${contract}: secondary top key total changed.`);
+    assert.equal(findTopKey(report.top.produce, "__other", contract).value, 2, `${contract}: overflow bucket total changed.`);
+    assert.equal(findTopKey(report.top.machine_op, machineKey, contract).value, 4, `${contract}: machine top key total changed.`);
+    assert.equal(findTopKey(report.top.tool_use, toolKey, contract).value, 33, `${contract}: tool top key total changed.`);
+
+    const reportingServer = report.servers.find((server) => server?.serverId === serverId);
+    assert.ok(reportingServer, `${contract}: reporting server was not listed.`);
+    assertKeys(reportingServer, ["serverId", "lastDay"], contract);
+    assert.equal(reportingServer.lastDay, today, `${contract}: last reporting day changed.`);
+  }
+
+  const truncationSequence = telemetrySequence + 1;
+  const truncationSync = await expectJson(
+    await request("POST /api/sync telemetry truncation", "/api/sync", {
+      method: "POST",
+      bearer: pluginApiKey,
+      json: {
+        ...makeSnapshot(serverId, truncationSequence, `${fixture.marker}-telemetry-truncated`),
+        telemetry: {
+          v: 1,
+          days: [0, 1, 2].map((offset) => ({
+            day: utcDay(offset),
+            counters: {
+              produce: counterKeys("bulk.produce", 512, 1),
+              machine_op: counterKeys("bulk.machine", 200, 1),
+            },
+          })),
+        },
+      },
+    }),
+    200,
+    "POST /api/sync telemetry truncation",
+  );
+  assertAppliedTelemetry(truncationSync, truncationSequence, true, "POST /api/sync telemetry truncation");
+
+  const legacySequence = truncationSequence + 1;
+  const legacySync = await expectJson(
+    await request("POST /api/sync legacy payload compatibility", "/api/sync", {
+      method: "POST",
+      bearer: pluginApiKey,
+      json: makeSnapshot(serverId, legacySequence, `${fixture.marker}-legacy`),
+    }),
+    200,
+    "POST /api/sync legacy payload compatibility",
+  );
+  assertAcceptedSync(legacySync, legacySequence, "POST /api/sync legacy payload compatibility");
 });

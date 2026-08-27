@@ -5,6 +5,9 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 import pubsher.talexsoultech.TalexSoulTech;
 import pubsher.talexsoultech.talex.machine.BaseMachine;
+import pubsher.talexsoultech.telemetry.TelemetryCollector;
+import pubsher.talexsoultech.telemetry.TelemetryDrain;
+import pubsher.talexsoultech.telemetry.TelemetryJson;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.io.IOException;
@@ -412,9 +415,24 @@ public final class CloudSyncService {
                 return;
             }
 
+            final String body;
             try {
-                outgoing = outbox.persist(settings.serverId(), sequence, snapshotJson(snapshot));
-            } catch (IOException exception) {
+                body = snapshotJson(snapshot);
+            } catch (RuntimeException exception) {
+                restoreTelemetry(snapshot.telemetry());
+                syncInFlight.set(false);
+                CloudFailure cloudFailure = new CloudFailure("快照采集失败", "snapshot serialize", false);
+                lastStatus = new Status(true, true, false, cloudFailure.displayMessage(), Instant.now());
+                plugin.getLogger().warning("Cloud sync failed: " + cloudFailure.logCode());
+                return;
+            }
+
+            try {
+                outgoing = outbox.persist(settings.serverId(), sequence, body);
+            } catch (IOException | RuntimeException exception) {
+                // The drained counters never reached the outbox, so they go back to the
+                // collector instead of being lost. A persisted body is retried by sequence.
+                restoreTelemetry(snapshot.telemetry());
                 syncInFlight.set(false);
                 lastStatus = new Status(true, true, false, "本地同步队列不可用", Instant.now());
                 plugin.getLogger().warning("Cloud sync failed: outbox write");
@@ -609,7 +627,29 @@ public final class CloudSyncService {
                 plugin.getBaseTalex().getCategoryManager().getRootCategory().getChildren().size(),
                 SoulTechItem.getItems().size()
         );
-        return new CloudSnapshot(serverId, sequence, Instant.now(), server, players, systems, catalog);
+        return new CloudSnapshot(
+                serverId,
+                sequence,
+                Instant.now(),
+                server,
+                players,
+                systems,
+                catalog,
+                drainTelemetry()
+        );
+    }
+
+    /** Takes the bounded gameplay counters on the primary thread, inside the existing capture. */
+    private TelemetryDrain drainTelemetry() {
+        TelemetryCollector collector = plugin.getTelemetryCollector();
+        return collector == null ? TelemetryDrain.empty() : collector.drainForSnapshot();
+    }
+
+    private void restoreTelemetry(TelemetryDrain drain) {
+        TelemetryCollector collector = plugin.getTelemetryCollector();
+        if (collector != null) {
+            collector.restore(drain);
+        }
     }
 
     private PairingRequest capturePairingRequest(String code) {
@@ -935,6 +975,13 @@ public final class CloudSyncService {
         appendJsonString(json, "catalog");
         json.append(':');
         appendCatalogData(json, snapshot.catalog());
+        // Optional by contract: old workers ignore the field and old plugins never send it.
+        String telemetry = TelemetryJson.toJson(snapshot.telemetry());
+        if (telemetry != null) {
+            json.append(',');
+            appendJsonString(json, "telemetry");
+            json.append(':').append(telemetry);
+        }
         json.append('}');
         return json.toString();
     }
@@ -1108,7 +1155,8 @@ public final class CloudSyncService {
             ServerData server,
             PlayerData players,
             SystemData systems,
-            CatalogData catalog
+            CatalogData catalog,
+            TelemetryDrain telemetry
     ) {}
 
     private record ServerData(String name, String serverVersion, String paperVersion, String pluginVersion) {}

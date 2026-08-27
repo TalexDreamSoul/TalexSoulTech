@@ -10,19 +10,50 @@ import {
 
 const DOWNLOAD_URL = "/downloads/TalexSoulTech-3.0.0-SNAPSHOT.jar";
 const MANIFEST_URL = "/downloads/manifest.json";
+const CHANGELOG_URL = "https://github.com/TalexDreamSoul/TalexSoulTech/blob/main/CHANGELOG.md";
 const CATALOG_PAGE_SIZE = 24;
 const RUNTIME_CATALOG_PAGE_SIZE = 30;
 
-const NAVIGATION = Object.freeze([
-  { label: "首页", path: "/" },
-  { label: "下载", path: "/download" },
-  { label: "教程", path: "/docs" },
-  { label: "学科", path: "/disciplines" },
-  { label: "实装目录", path: "/runtime" },
-  { label: "资料库", path: "/catalog" },
-  { label: "架构", path: "/architecture" },
-  { label: "扩展", path: "/extensions" },
-  { label: "控制台", path: "/console" },
+// Mirrors public/assets/TalexSoulTech-resource-pack.manifest.json; ssr-contract re-hashes the
+// shipped archive so these values cannot drift from the deployed file.
+const RESOURCE_PACK = Object.freeze({
+  version: "26.1.2",
+  url: "/assets/TalexSoulTech-26.1.2-resource-pack.zip",
+  sha1: "757d492fb9f9fd793ec31bc1847500490bd14c53",
+  sha256: "35e09443836eab46889cb1f485b805c215e9ceaa3cd6f19e46a7f437376b5fff",
+});
+
+const REDIRECTS = Object.freeze({
+  "/guide": "/docs",
+});
+
+const NAVIGATION_GROUPS = Object.freeze([
+  Object.freeze({
+    id: "player",
+    label: "玩家",
+    items: Object.freeze([
+      { label: "教程", path: "/docs" },
+      { label: "学科", path: "/disciplines" },
+      { label: "资料库", path: "/catalog" },
+      { label: "实装目录", path: "/runtime" },
+    ]),
+  }),
+  Object.freeze({
+    id: "operator",
+    label: "服主",
+    items: Object.freeze([
+      { label: "下载", path: "/download" },
+      { label: "控制台", path: "/console" },
+      { label: "扩展", path: "/extensions" },
+    ]),
+  }),
+  Object.freeze({
+    id: "developer",
+    label: "开发",
+    items: Object.freeze([
+      { label: "架构", path: "/architecture" },
+    ]),
+  }),
 ]);
 
 const STATUS_LABELS = Object.freeze({
@@ -468,7 +499,8 @@ function renderHomePage() {
 function renderDownloadPage() {
   const compatibilityRows = SITE_CONTENT.compatibility.matrix.map((row) => `<tr><th scope="row" data-label="目标">${escapeHtml(row.target)}</th><td data-label="要求">${escapeHtml(row.requirement)}</td><td data-label="状态">${escapeHtml(row.status)}</td><td data-label="说明">${escapeHtml(row.detail)}</td></tr>`).join("");
   const actions = `<a class="button button-primary" href="${DOWNLOAD_URL}" download>下载 JAR</a><a class="button button-secondary" href="${MANIFEST_URL}">查看构件清单</a>`;
-  const meta = `<dl class="route-meta-list"><div><dt>发行版本</dt><dd>3.0.0-SNAPSHOT</dd></div><div><dt>运行时</dt><dd>Java 25</dd></div><div><dt>服务端基线</dt><dd>Paper 26.1.2</dd></div></dl>`;
+  const meta = `<dl class="route-meta-list"><div><dt>发行版本</dt><dd>${escapeHtml(RUNTIME_RELEASE.version)}</dd></div><div><dt>运行时</dt><dd>Java 25</dd></div><div><dt>服务端基线</dt><dd>Paper 26.1.2</dd></div></dl>`;
+  const releaseIdentity = `<section class="section shell route-section" id="release-identity" aria-labelledby="release-identity-title"><header class="section-heading compact-heading"><h2 id="release-identity-title">发行身份</h2><p>插件构件与资源包分别校验。SHA-1 用于 server.properties 的 <code>resource-pack-sha1</code>，SHA-256 用于核对下载完整性。</p></header><div class="route-two-column"><article class="manual-block"><h3>插件构件</h3><dl class="definition-grid route-definitions"><div><dt>发行版本</dt><dd>${escapeHtml(RUNTIME_RELEASE.version)}</dd></div><div><dt>JAR 地址</dt><dd><a href="${DOWNLOAD_URL}" download>${escapeHtml(DOWNLOAD_URL)}</a></dd></div><div><dt>JAR SHA-256</dt><dd><code>${escapeHtml(RUNTIME_RELEASE.jarSha256)}</code></dd></div><div><dt>构件清单</dt><dd><a href="${MANIFEST_URL}">${escapeHtml(MANIFEST_URL)}</a></dd></div><div><dt>观测日期</dt><dd>${escapeHtml(RUNTIME_RELEASE.observedAt)}</dd></div></dl><p class="route-copy"><a class="text-button" href="${CHANGELOG_URL}" rel="noopener noreferrer">变更记录</a></p></article><aside class="route-callout"><h3>资源包</h3><p>资源包与插件独立发布；客户端材质缺失时先核对这里的版本与散列。</p><dl class="definition-grid route-definitions"><div><dt>资源包版本</dt><dd>${escapeHtml(RESOURCE_PACK.version)}</dd></div><div><dt>资源包地址</dt><dd><a href="${RESOURCE_PACK.url}" download>${escapeHtml(RESOURCE_PACK.url)}</a></dd></div><div><dt>资源包 SHA-1</dt><dd><code>${escapeHtml(RESOURCE_PACK.sha1)}</code></dd></div><div><dt>资源包 SHA-256</dt><dd><code>${escapeHtml(RESOURCE_PACK.sha256)}</code></dd></div></dl></aside></div></section>`;
   const body = `${renderRouteHero({
     crumbs: [{ label: "首页", href: "/" }, { label: "下载" }],
     title: SITE_CONTENT.download.title,
@@ -476,7 +508,7 @@ function renderDownloadPage() {
     label: SITE_CONTENT.download.availability,
     actions,
     meta,
-  })}<section class="section shell route-section" aria-labelledby="artifact-title"><div class="download-station route-download-station"><div><p class="station-label">可部署构件</p><h2 id="artifact-title">${escapeHtml(SITE_CONTENT.download.artifact)}</h2><p>下载地址与构件清单保持独立，部署前应核对版本、大小与 SHA-256。</p></div><div class="artifact-meta"><dl><div><dt>JAR</dt><dd>${escapeHtml(DOWNLOAD_URL)}</dd></div><div><dt>Manifest</dt><dd>${escapeHtml(MANIFEST_URL)}</dd></div></dl></div><a class="button button-inverse" href="${DOWNLOAD_URL}" download>下载 JAR</a></div><div class="route-two-column"><article class="manual-block"><h2>${escapeHtml(SITE_CONTENT.quickInstall.title)}</h2><p class="route-copy">${escapeHtml(SITE_CONTENT.quickInstall.lead)}</p><ol class="route-step-list">${SITE_CONTENT.quickInstall.steps.map((step) => `<li><span>${escapeHtml(step.step)}</span><div><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.detail)}</p></div></li>`).join("")}</ol></article><aside class="route-callout"><h2>取得产物后</h2>${renderPrimitiveList(SITE_CONTENT.download.steps, true)}<p>${escapeHtml(SITE_CONTENT.download.integrityRule)}</p></aside></div></section><section class="section shell route-section" aria-labelledby="compatibility-page-title"><header class="section-heading compact-heading"><h2 id="compatibility-page-title">${escapeHtml(SITE_CONTENT.compatibility.title)}</h2><p>${escapeHtml(SITE_CONTENT.compatibility.lead)}</p></header><div class="table-frame"><table class="data-table route-static-table"><thead><tr><th scope="col">目标</th><th scope="col">要求</th><th scope="col">状态</th><th scope="col">说明</th></tr></thead><tbody>${compatibilityRows}</tbody></table></div></section>`;
+  })}<section class="section shell route-section" aria-labelledby="artifact-title"><div class="download-station route-download-station"><div><p class="station-label">可部署构件</p><h2 id="artifact-title">${escapeHtml(SITE_CONTENT.download.artifact)}</h2><p>下载地址与构件清单保持独立，部署前应核对版本、大小与 SHA-256。</p></div><div class="artifact-meta"><dl><div><dt>JAR</dt><dd>${escapeHtml(DOWNLOAD_URL)}</dd></div><div><dt>Manifest</dt><dd>${escapeHtml(MANIFEST_URL)}</dd></div></dl></div><a class="button button-inverse" href="${DOWNLOAD_URL}" download>下载 JAR</a></div><div class="route-two-column"><article class="manual-block"><h2>${escapeHtml(SITE_CONTENT.quickInstall.title)}</h2><p class="route-copy">${escapeHtml(SITE_CONTENT.quickInstall.lead)}</p><ol class="route-step-list">${SITE_CONTENT.quickInstall.steps.map((step) => `<li><span>${escapeHtml(step.step)}</span><div><h3>${escapeHtml(step.title)}</h3><p>${escapeHtml(step.detail)}</p></div></li>`).join("")}</ol></article><aside class="route-callout"><h2>取得产物后</h2>${renderPrimitiveList(SITE_CONTENT.download.steps, true)}<p>${escapeHtml(SITE_CONTENT.download.integrityRule)}</p></aside></div></section>${releaseIdentity}<section class="section shell route-section" aria-labelledby="compatibility-page-title"><header class="section-heading compact-heading"><h2 id="compatibility-page-title">${escapeHtml(SITE_CONTENT.compatibility.title)}</h2><p>${escapeHtml(SITE_CONTENT.compatibility.lead)}</p></header><div class="table-frame"><table class="data-table route-static-table"><thead><tr><th scope="col">目标</th><th scope="col">要求</th><th scope="col">状态</th><th scope="col">说明</th></tr></thead><tbody>${compatibilityRows}</tbody></table></div></section>`;
 
   return {
     title: "下载与兼容基线 | TalexSoulTech",
@@ -903,14 +935,14 @@ function renderAdminPage() {
     title: "平台管理总览",
     description: "本页只提供无数据 SSR 挂载点。管理员身份、平台统计和错误状态由同源 API 在浏览器中加载。",
     label: "仅 admin 可读",
-  })}<section class="section shell route-section admin-shell" aria-labelledby="admin-title"><header class="console-toolbar"><div><p class="toolbar-label">平台范围</p><h2 id="admin-title">资源摘要</h2><p>统计用户、服务器、配对、快照与扩展规模，不返回 Cookie、密码、API Key 或扩展源码。</p></div><button class="button button-secondary" id="admin-refresh" type="button">刷新摘要</button></header><div class="console-loading" id="admin-loading" aria-live="polite"><div class="content-skeleton" aria-label="正在检查管理员权限"><span></span><span></span><span></span></div><p>正在检查管理员权限...</p></div><div class="inline-error" id="admin-error" role="alert" hidden></div><section class="admin-summary-grid" id="admin-summary" aria-live="polite" aria-busy="false" hidden></section><noscript><div class="noscript-message">平台摘要需要 JavaScript 调用同源管理员 API；SSR 不会嵌入任何私有数据。</div></noscript></section>`;
+  })}<section class="section shell route-section admin-shell" aria-labelledby="admin-title"><header class="console-toolbar"><div><p class="toolbar-label">平台范围</p><h2 id="admin-title">资源摘要</h2><p>统计用户、服务器、配对、快照与扩展规模，不返回 Cookie、密码、API Key 或扩展源码。</p></div><button class="button button-secondary" id="admin-refresh" type="button">刷新摘要</button></header><div class="console-loading" id="admin-loading" aria-live="polite"><div class="content-skeleton" aria-label="正在检查管理员权限"><span></span><span></span><span></span></div><p>正在检查管理员权限...</p></div><div class="inline-error" id="admin-error" role="alert" hidden></div><section class="admin-summary-grid" id="admin-summary" aria-live="polite" aria-busy="false" hidden></section><noscript><div class="noscript-message">平台摘要需要 JavaScript 调用同源管理员 API；SSR 不会嵌入任何私有数据。</div></noscript></section><section id="telemetry-panel" data-endpoint="/api/admin/telemetry"></section>`;
 
   return {
     title: "平台管理 | TalexSoulTech",
     description: "TalexSoulTech 平台管理员的资源摘要入口，私有统计仅通过同源管理员 API 加载。",
     canonicalPath: "/admin",
     kind: "admin",
-    scripts: ["/admin.js"],
+    scripts: ["/admin.js", "/admin-telemetry.js"],
     private: true,
     noindex: true,
     body,
@@ -962,9 +994,18 @@ function navigationPath(pathname) {
   return "";
 }
 
+function renderNavigationGroups(activePath) {
+  return NAVIGATION_GROUPS.map((group) => {
+    const labelId = `nav-group-${group.id}`;
+    const links = group.items.map((item) => `<li><a href="${item.path}"${activePath === item.path ? ' aria-current="page"' : ""}>${escapeHtml(item.label)}</a></li>`).join("");
+    return `<div class="nav-group"><p class="nav-group-label" id="${labelId}">${escapeHtml(group.label)}</p><ul class="nav-group-list" aria-labelledby="${labelId}">${links}</ul></div>`;
+  }).join("");
+}
+
 function renderHeader(pathname) {
   const activePath = navigationPath(pathname);
-  return `<a class="skip-link" href="#main-content">跳到主要内容</a><header class="site-header" id="site-header"><div class="shell header-inner"><a class="brand-link" href="/" aria-label="返回 TalexSoulTech 首页"><img src="/favicon.svg" alt="" width="34" height="34"><span class="brand-wordmark">TalexSoulTech</span></a><button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"><span class="sr-only">打开导航</span><span aria-hidden="true"></span><span aria-hidden="true"></span></button><nav class="primary-nav" id="primary-nav" aria-label="主导航">${NAVIGATION.map((item) => `<a href="${item.path}"${activePath === item.path ? ' aria-current="page"' : ""}>${item.label}</a>`).join("")}<a class="nav-download" href="${DOWNLOAD_URL}" download>下载 JAR</a></nav></div></header>`;
+  const home = activePath === "/" ? ' aria-current="page"' : "";
+  return `<a class="skip-link" href="#main-content">跳到主要内容</a><header class="site-header" id="site-header"><div class="shell header-inner"><a class="brand-link" href="/" aria-label="返回 TalexSoulTech 首页"${home}><img src="/favicon.svg" alt="" width="34" height="34"><span class="brand-wordmark">TalexSoulTech</span></a><button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav"><span class="sr-only">打开导航</span><span aria-hidden="true"></span><span aria-hidden="true"></span></button><nav class="primary-nav" id="primary-nav" aria-label="主导航">${renderNavigationGroups(activePath)}<a class="nav-download" href="${DOWNLOAD_URL}" download>下载 JAR</a></nav></div></header>`;
 }
 
 function renderFooter() {
@@ -1024,8 +1065,19 @@ function robotsResponse(request, url) {
   });
 }
 
+function redirectResponse(location) {
+  return new Response(null, {
+    status: 301,
+    headers: {
+      "cache-control": "public, max-age=3600, s-maxage=86400",
+      location,
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
 function isAssetPath(pathname) {
-  if (["/app.js", "/admin.js", "/shell.js", "/styles.css", "/routes.css", "/favicon.svg"].includes(pathname)) return true;
+  if (["/app.js", "/admin.js", "/admin-telemetry.js", "/shell.js", "/styles.css", "/routes.css", "/favicon.svg"].includes(pathname)) return true;
   if (["/assets/", "/data/", "/downloads/"].some((prefix) => pathname.startsWith(prefix))) return true;
   const lastSegment = pathname.slice(pathname.lastIndexOf("/") + 1);
   return /\.[a-z0-9]+$/i.test(lastSegment);
@@ -1078,6 +1130,7 @@ export async function renderSsrRequest(request, env, url) {
   if (pathname === "/sitemap.xml") return sitemapResponse(request, requestUrl);
   if (pathname === "/robots.txt") return robotsResponse(request, requestUrl);
   if (pathname.startsWith("/api/") || pathname === "/api") return null;
+  if (Object.hasOwn(REDIRECTS, pathname)) return redirectResponse(REDIRECTS[pathname]);
 
   const page = resolvePage(pathname, requestUrl);
   if (page) return htmlResponse(request, page, requestUrl);

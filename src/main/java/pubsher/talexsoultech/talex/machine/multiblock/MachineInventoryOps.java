@@ -2,6 +2,7 @@ package pubsher.talexsoultech.talex.machine.multiblock;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +41,7 @@ public final class MachineInventoryOps {
             boolean simulate
     ) {
         PreparedTransaction prepared = prepare(inventory, ingredients, outputs);
-        return simulate ? prepared.simulate() : prepared.commit();
+        return simulate ? prepared.simulate() : commitAndCount(prepared, outputs);
     }
 
     public static Ingredient ingredient(ItemStack prototype, int amount) {
@@ -49,7 +50,19 @@ public final class MachineInventoryOps {
 
     public static boolean insert(Inventory inventory, List<ItemStack> outputs, boolean simulate) {
         PreparedTransaction prepared = prepare(inventory, List.of(), outputs);
-        return simulate ? prepared.simulate() : prepared.commit();
+        return simulate ? prepared.simulate() : commitAndCount(prepared, outputs);
+    }
+
+    /**
+     * Commits and, only once the outputs are actually in the inventory, reports them
+     * as produced. Counting is a bounded no-throw side effect and never gates the commit.
+     */
+    private static boolean commitAndCount(PreparedTransaction prepared, List<ItemStack> outputs) {
+        boolean committed = prepared.commit();
+        if (committed) {
+            TelemetryHooks.produced(outputs);
+        }
+        return committed;
     }
 
     /** Prepares one inventory against the digest observed at preparation time. */

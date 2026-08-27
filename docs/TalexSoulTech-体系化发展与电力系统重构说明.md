@@ -1,5 +1,7 @@
 # TalexSoulTech 基础电力、多方块与学科内容实现说明
 
+> **2026-08-27 归档说明**：本文描述全量目录发布之前的状态（30 台正式多方块机器、旧制品哈希 `3aa8dfbe…` 与资源包 `20f8d355…`）。电力域模型、多方块生命周期与便携装备的设计说明仍然有效；数量、制品哈希与发布身份以 [README](../README.md) 与 [CHANGELOG](../CHANGELOG.md) 为准。
+
 ## 1. 当前结论
 
 TalexSoulTech 已从旧的“每台发电机定时 DFS 扫描并直接推电”实现，切换为一套无电压、整数结算、主线程运行的基础电网。旧 `Capacity`、`PathAlgorithm`、`GlobalRunner`、`ElectricityAchiever`、`IReceiver` 与 `IWire` 链路已经删除，发电机、蓄电池、导线和新机器全部通过 `PowerEndpoint`、`PowerCable` 与 `PowerGrid` 运行。

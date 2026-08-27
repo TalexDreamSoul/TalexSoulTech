@@ -28,6 +28,7 @@ import org.bukkit.scheduler.BukkitTask;
 import pubsher.talexsoultech.entity.PlayerData;
 import pubsher.talexsoultech.talex.BaseTalex;
 import pubsher.talexsoultech.talex.electricity.EnergyUnits;
+import pubsher.talexsoultech.telemetry.TelemetryHooks;
 import pubsher.talexsoultech.utils.item.SoulTechItem;
 
 import java.util.HashMap;
@@ -226,6 +227,15 @@ public final class PoweredEquipmentService implements PoweredEquipmentActions, L
     }
 
     boolean consumeSlot(PlayerInventory inventory, int slot, long requested) {
+        return consumeSlot(inventory, slot, requested, true);
+    }
+
+    /** Periodic upkeep spends energy every service cycle, so it is not a counted action. */
+    boolean consumeUpkeep(PlayerInventory inventory, int slot, long requested) {
+        return consumeSlot(inventory, slot, requested, false);
+    }
+
+    private boolean consumeSlot(PlayerInventory inventory, int slot, long requested, boolean action) {
         if (requested == 0) return true;
         ItemStack stack = inventory.getItem(slot);
         PortableEnergyStorage.Mutation simulation = energy.extract(stack, requested, true);
@@ -233,6 +243,7 @@ public final class PoweredEquipmentService implements PoweredEquipmentActions, L
         PortableEnergyStorage.Mutation commit = energy.extract(stack, requested, false);
         if (commit.amount() != requested) return false;
         inventory.setItem(slot, commit.stack());
+        if (action) TelemetryHooks.toolUse(stack);
         return true;
     }
 

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  java:
+    name: Java build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # mvnw is a self-contained POSIX script that fetches the pinned Maven
+      # distribution from .mvn/wrapper/maven-wrapper.properties; there is no
+      # wrapper jar to check out.
+      - run: ./mvnw -B verify
+
+  site:
+    name: Site contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # No npm install: site/package.json declares no dependencies, and its
+      # `prepare` lifecycle script builds the download bundle from
+      # target/talex-soul-tech-3.0.0-SNAPSHOT.jar, which does not exist on a
+      # fresh checkout.
+      #
+      # test/api-contract.mjs is deliberately not run here. It is an
+      # integration test against a live Worker on 127.0.0.1:8788 and needs
+      # wrangler dev plus a migrated local D1 database. Wrangler is not a
+      # declared dependency of this repo, so running it in CI would mean an
+      # unpinned network install. Enabling it requires a pinned wrangler
+      # devDependency and a script that boots the Worker before the test.
+      - run: node --test test/ssr-contract.mjs
+        working-directory: site

@@ -201,3 +201,42 @@ No balance number was changed from synthetic acceptance alone. The next tuning d
 - Production `wlcb1` had zero online players. The prior JAR/config/server properties were backed up, the candidate was uploaded through `/tmp`, written as `.new`, hash-checked, atomically moved, and restarted. The restart completed after the expected slow Paper shutdown/start window; the container returned healthy.
 - Production RCON reports TalexSoulTech enabled, 926 runtime records, 301 facilities, an active two-tick electricity cycle, successful post-restart cloud sync, and zero online players. PluginManager quarantine remained empty.
 - `server.properties` now advertises the exact public resource-pack URL with matching SHA-1 while retaining `require-resource-pack=false` for safe fallback.
+
+## Session 5: Telemetry loop, site IA refinement, and engineering hygiene
+
+**Date**: 2026-08-27
+**Task**: `08-27-roadmap-wave1` (parent) with children `08-27-telemetry-loop`, `08-27-site-refine`, `08-27-eng-hygiene`
+**Branch**: `main`
+
+### Summary
+
+Closed the player-data gap recorded as the blocker in Sessions 3 and 4, refined the site information architecture, and cleared the recorded P2 debt. Site is deployed; the plugin build is staged but deliberately unpublished.
+
+### Why this wave
+
+Sessions 3 and 4 both ended on the same open item: no balance decision could be made without observed player acquisition time, charge cadence, and tool-use data. A full-repo audit confirmed no telemetry existed in either the Paper plugin or the Worker. That gap, not content volume, was the real blocker.
+
+### Completed
+
+1. **Telemetry closed loop.** New `telemetry/` package collects seven bounded aggregate metric groups on the primary thread, drained inside the existing CloudSync snapshot capture and restored on outbox failure. Worker validates and applies them to D1 `telemetry_daily` in the same atomic batch as the snapshot; `unique_players` applies as a `MAX` gauge, every other group as an additive delta. `/api/admin/telemetry` and a table-only `/admin` panel expose the aggregates. No player UUID is serialized.
+2. **Site IA.** Header navigation regrouped by audience (玩家 / 服主 / 开发) with every URL preserved; `/guide` now 301s to `/docs`; `/download` publishes plugin and resource-pack release identity plus a changelog link; client data modules load per page kind instead of on every page; the dead pre-SSR single-page client `site/public/index.html` was deleted.
+3. **Engineering hygiene.** Migrated the three files still using deprecated Paper APIs (`Ray`, `MagicMysteryHandle`, `MagicNormalHandle`); added `README.md`, `CHANGELOG.md` seeded with both recorded production releases, and `docs/index.md`; added GitHub Actions CI running the Java suite and the SSR contract suite.
+
+### Verification
+
+- Java 25 Maven package: 89/89 tests pass, BUILD SUCCESS. The three migrated files no longer emit deprecation warnings; the remaining warning is pre-existing `ChatColor` usage in `TalexSoulTech.java`.
+- SSR contract: 57/57 (was 39; 18 added for the new behavior). The `/download` test re-hashes the shipped artifacts, so published identity cannot drift.
+- API contract: green against a local Worker with local D1 migration 0005, including telemetry ingest, idempotent sequence replay, gauge-vs-delta semantics, truncation, malformed-telemetry isolation, and the admin auth gate. Telemetry rows verified present in local D1.
+- Remote D1 migration `0005_telemetry.sql` applied. Worker deployed to `soultech.tagzxia.com`, version `e52c2806-97b5-4541-854a-4d04a0e7a2d4`.
+- Live smoke: all eleven routes 200; `/guide` 301 to `/docs`; navigation renders three audience groups; `/admin` carries the telemetry mount; `/api/admin/telemetry` returns 401 unauthenticated.
+
+### Deliberate non-release
+
+The plugin build `b107467d8a29343d6032d17925ddf31af69b866cadcb73e67a479ef310a91210` passes every automated test but has never started a real Paper server; no Paper runtime exists on this machine. Publishing it would have violated the established gate of isolated Paper start/cycle/stop before release. The download page was therefore restored to the production-validated `c1b7a1cae5372944219b07df5396496d422d676e09c97a9b41ce547a0e2df8ef`, and `site/public/data/runtime-catalog.js` plus `downloads/manifest.json` were reverted to match. The candidate JAR is staged at `/tmp/soultech-staged/` and must be rebuilt from source for the actual release.
+
+### Remaining
+
+- Paper smoke test and `wlcb1` deployment of the telemetry build require an owner-approved window with zero online players.
+- Telemetry produces no data until that plugin build reaches production; the `/admin` panel will show its empty state until then.
+- Pre-existing `ChatColor` deprecation in `TalexSoulTech.java` is untouched P2 debt.
+- CI omits `test/api-contract.mjs` because it needs a live Worker and wrangler is not a declared dependency; enabling it needs a pinned devDependency plus a boot script.

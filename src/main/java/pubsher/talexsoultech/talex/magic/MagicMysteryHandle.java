@@ -98,9 +98,9 @@ public class MagicMysteryHandle extends BaseHandle {
 
                     }
 
-                }
+                    livingEntity.playHurtAnimation(0F);
 
-                entity.playEffect(EntityEffect.HURT);
+                }
 
             }
 

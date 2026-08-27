@@ -19,6 +19,10 @@ Settings:
     sync-interval-seconds: 300
     sequence: 0
 
+  telemetry:
+    # 关闭后插件停止统计并且不再向云端上报任何玩法计数；仅聚合数量，不含任何玩家身份数据。
+    enabled: true
+
   extensions:
     enabled: true
     refresh-interval-seconds: 60

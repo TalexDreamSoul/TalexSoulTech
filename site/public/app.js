@@ -1,12 +1,3 @@
-import { DISCIPLINES, CATALOG_STATS } from "./data/catalog.js";
-import { CAMPAIGN_WAVES } from "./data/progression.js";
-import {
-  SITE_CONTENT,
-  TECH_ARCHITECTURE,
-  SAAS_ARCHITECTURE,
-  TUTORIALS,
-} from "./data/content.js";
-
 const DOWNLOAD_URL = "/downloads/TalexSoulTech-3.0.0-SNAPSHOT.jar";
 const MANIFEST_URL = "/downloads/manifest.json";
 const CATALOG_PAGE_SIZE = 24;
@@ -16,17 +7,60 @@ const STATUS_LABELS = Object.freeze({
   planned: "规划中",
 });
 
-const CAMPAIGN_WAVE_LIST = Object.freeze(
-  (Array.isArray(CAMPAIGN_WAVES) ? CAMPAIGN_WAVES : Object.values(CAMPAIGN_WAVES || {}))
-    .filter((wave) => wave && wave.id)
-    .map((wave) => Object.freeze({
-      id: String(wave.id),
-      title: String(wave.title || wave.name || wave.id),
-      disciplineIds: Array.isArray(wave.disciplineIds) ? wave.disciplineIds.map(String) : [],
-    })),
-);
-const CAMPAIGN_WAVE_IDS = new Set(CAMPAIGN_WAVE_LIST.map((wave) => wave.id));
 const NARRATIVE_LABELS = Object.freeze({ all: "全部故事", anchor: "故事锚点" });
+
+// The data modules total ~330KB. Every page renders its content server-side, so each enhancement
+// path pulls only the modules it actually reads and slim pages transfer none of them.
+let DISCIPLINES = null;
+let CATALOG_STATS = null;
+let SITE_CONTENT = {};
+let TECH_ARCHITECTURE = null;
+let SAAS_ARCHITECTURE = null;
+let TUTORIALS = null;
+let CAMPAIGN_WAVE_LIST = Object.freeze([]);
+let CAMPAIGN_WAVE_IDS = new Set();
+
+let catalogDataPromise = null;
+let contentDataPromise = null;
+
+function toCampaignWaveList(waves) {
+  return Object.freeze(
+    (Array.isArray(waves) ? waves : Object.values(waves || {}))
+      .filter((wave) => wave && wave.id)
+      .map((wave) => Object.freeze({
+        id: String(wave.id),
+        title: String(wave.title || wave.name || wave.id),
+        disciplineIds: Array.isArray(wave.disciplineIds) ? wave.disciplineIds.map(String) : [],
+      })),
+  );
+}
+
+function loadCatalogData() {
+  if (!catalogDataPromise) {
+    catalogDataPromise = Promise.all([
+      import("./data/catalog.js"),
+      import("./data/progression.js"),
+    ]).then(([catalog, progression]) => {
+      DISCIPLINES = catalog.DISCIPLINES;
+      CATALOG_STATS = catalog.CATALOG_STATS;
+      CAMPAIGN_WAVE_LIST = toCampaignWaveList(progression.CAMPAIGN_WAVES);
+      CAMPAIGN_WAVE_IDS = new Set(CAMPAIGN_WAVE_LIST.map((wave) => wave.id));
+    });
+  }
+  return catalogDataPromise;
+}
+
+function loadContentData() {
+  if (!contentDataPromise) {
+    contentDataPromise = import("./data/content.js").then((content) => {
+      SITE_CONTENT = content.SITE_CONTENT;
+      TECH_ARCHITECTURE = content.TECH_ARCHITECTURE;
+      SAAS_ARCHITECTURE = content.SAAS_ARCHITECTURE;
+      TUTORIALS = content.TUTORIALS;
+    });
+  }
+  return contentDataPromise;
+}
 
 function hasNarrativeStory(item) {
   return item?.story !== null && item?.story !== undefined;
@@ -545,6 +579,8 @@ function renderSharedContent() {
 async function loadArtifactManifest() {
   const meta = byId("artifact-meta");
   if (!meta) return;
+
+  await loadContentData().catch(() => {});
 
   try {
     const response = await fetch(MANIFEST_URL, {
@@ -1113,12 +1149,13 @@ function shouldHandleCatalogLink(event) {
   );
 }
 
-function initCatalog() {
+async function initCatalog() {
   const controls = byId("catalog-controls");
   const body = byId("catalog-body");
   if (!controls || !body) return;
 
   try {
+    await loadCatalogData();
     initializeCatalogData();
     initializeCatalogStateFromUrl();
     renderCatalogStats();
@@ -1922,7 +1959,7 @@ const EXTENSION_ERROR_COPY = Object.freeze({
 const EXTENSION_TEXT_ENCODER = new TextEncoder();
 const EXTENSION_NUMBER_FORMAT = new Intl.NumberFormat("zh-CN");
 
-function extensionRenderArchitecture() {
+async function extensionRenderArchitecture() {
   const runtimeFlow = byId("extension-runtime-flow");
   const securityList = byId("extension-security-list");
   const updateSteps = byId("extension-update-steps");
@@ -1930,6 +1967,13 @@ function extensionRenderArchitecture() {
     byId("extensions-title") || runtimeFlow || securityList || updateSteps,
   );
   if (!hasPublicArchitecture) return;
+
+  // The SSR document already carries this section; leave it untouched when the module is unreachable.
+  try {
+    await loadContentData();
+  } catch {
+    return;
+  }
 
   const content = SAAS_ARCHITECTURE?.extensions;
   if (!content) return;
@@ -2612,7 +2656,7 @@ function initExtensions() {
   extensionUpdateSourceCount();
 }
 
-function initializeSite() {
+async function initializeSite() {
   const sharedTargets = [
     byId("overview-content"),
     byId("compatibility-content"),
@@ -2623,6 +2667,7 @@ function initializeSite() {
   const sharedErrorTarget = sharedTargets.find(Boolean);
   if (sharedErrorTarget) {
     try {
+      await Promise.all([loadContentData(), loadCatalogData()]);
       renderSharedContent();
     } catch (error) {
       sharedErrorTarget.replaceChildren(
@@ -2633,6 +2678,7 @@ function initializeSite() {
 
   if (byId("tutorial-index") && byId("tutorial-reader")) {
     try {
+      await loadContentData();
       initTutorials();
     } catch (error) {
       byId("tutorial-reader")?.replaceChildren(
@@ -2643,6 +2689,7 @@ function initializeSite() {
 
   if (byId("planning-content")) {
     try {
+      await loadContentData();
       renderPlanning();
     } catch (error) {
       byId("planning-content")?.replaceChildren(
@@ -2653,6 +2700,7 @@ function initializeSite() {
 
   if (byId("architecture-plugin") || byId("architecture-saas")) {
     try {
+      await loadContentData();
       initArchitecture();
     } catch (error) {
       const panel = byId("architecture-plugin") || byId("architecture-saas");
@@ -2662,7 +2710,7 @@ function initializeSite() {
     }
   }
 
-  if (byId("catalog-controls") && byId("catalog-body")) initCatalog();
+  if (byId("catalog-controls") && byId("catalog-body")) await initCatalog();
 
   if (byId("console-loading") && byId("auth-gate") && byId("server-console")) {
     initConsole();

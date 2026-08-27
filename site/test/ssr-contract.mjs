@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { renderSsrRequest } from "../src/ssr.js";
 
 import { DISCIPLINES, CATALOG_STATS } from "../public/data/catalog.js";
@@ -8,6 +11,10 @@ import { LEGACY_BASELINE_RUNTIME_IDS, LEGACY_RUNTIME_MAPPINGS } from "../public/
 import { RUNTIME_ITEMS, RUNTIME_RELEASE } from "../public/data/runtime-catalog.js";
 
 const ORIGIN = "https://ssr-contract.invalid";
+const PUBLIC_DIR = fileURLToPath(new URL("../public/", import.meta.url));
+const JAR_URL = "/downloads/TalexSoulTech-3.0.0-SNAPSHOT.jar";
+const CHANGELOG_URL = "https://github.com/TalexDreamSoul/TalexSoulTech/blob/main/CHANGELOG.md";
+const TELEMETRY_MOUNT = '<section id="telemetry-panel" data-endpoint="/api/admin/telemetry"></section>';
 const HTML_CONTENT_TYPE = /^text\/html;\s*charset=UTF-8$/i;
 const PUBLIC_CACHE_CONTROL = /^public,\s*max-age=\d+/;
 const PRIVATE_CACHE_CONTROL = "private, no-store, max-age=0";
@@ -52,6 +59,39 @@ const PRIVATE_ROUTES = [
   { path: "/console", marker: 'id="console"' },
   { path: "/setup", marker: 'href="/admin"' },
   { path: "/admin", marker: 'id="admin-summary"' },
+];
+
+const EXPECTED_NAVIGATION_GROUPS = Object.freeze([
+  {
+    id: "nav-group-player",
+    label: "玩家",
+    links: [["教程", "/docs"], ["学科", "/disciplines"], ["资料库", "/catalog"], ["实装目录", "/runtime"]],
+  },
+  {
+    id: "nav-group-operator",
+    label: "服主",
+    links: [["下载", "/download"], ["控制台", "/console"], ["扩展", "/extensions"]],
+  },
+  {
+    id: "nav-group-developer",
+    label: "开发",
+    links: [["架构", "/architecture"]],
+  },
+]);
+
+// app.js only enhances these page kinds; every other route must stay script-free beyond the shell.
+const ENHANCED_ROUTES = ["/docs", "/catalog", "/architecture", "/extensions", "/console"];
+const SLIM_ROUTES = [
+  "/",
+  "/download",
+  "/runtime",
+  "/disciplines",
+  "/disciplines/materials",
+  "/planning",
+  "/docs/quick-install",
+  "/items/materials.fire-materials.fire-rod",
+  "/setup",
+  "/admin",
 ];
 
 function staticSsrEnvironment() {
@@ -239,6 +279,46 @@ function escapedHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function publicFile(relativePath) {
+  return readFileSync(`${PUBLIC_DIR}${relativePath}`);
+}
+
+function fileDigest(relativePath, algorithm) {
+  return createHash(algorithm).update(publicFile(relativePath)).digest("hex");
+}
+
+function mainBody(body, contract) {
+  const opening = '<main id="main-content">';
+  const start = body.indexOf(opening);
+  const end = body.indexOf("</main>", start);
+  assert.notEqual(start, -1, `${contract}: document has no main landmark.`);
+  assert.notEqual(end, -1, `${contract}: main landmark is not closed.`);
+  return body.slice(start + opening.length, end);
+}
+
+function scriptSources(body) {
+  return [...body.matchAll(/<script type="module" src="([^"]+)"><\/script>/g)].map((match) => match[1]);
+}
+
+function navigationGroups(body, contract) {
+  const nav = elementBodyById(body, "primary-nav", contract);
+  const pattern = /<div class="nav-group"><p class="nav-group-label" id="([^"]+)">([^<]+)<\/p><ul class="nav-group-list" aria-labelledby="([^"]+)">([\s\S]*?)<\/ul><\/div>/g;
+  return [...nav.matchAll(pattern)].map((group) => ({
+    id: group[1],
+    label: group[2],
+    labelledBy: group[3],
+    links: [...group[4].matchAll(/<li><a href="([^"]+)"([^>]*)>([^<]+)<\/a><\/li>/g)].map((link) => ({
+      path: link[1],
+      label: link[3],
+      current: link[2].includes('aria-current="page"'),
+    })),
+  }));
+}
+
+function navigationLinks(body, contract) {
+  return navigationGroups(body, contract).flatMap((group) => group.links);
+}
+
 
 test("SSR public routes return cacheable, indexable documents", async (t) => {
   for (const route of PUBLIC_ROUTES) {
@@ -258,6 +338,106 @@ test("SSR preserves historical home anchors", async () => {
   }
 });
 
+test("SSR groups the header navigation by audience without moving any route", async (t) => {
+  await t.test("renders the three audience groups with stable labels and URLs", async () => {
+    const { body } = await render("/");
+    const groups = navigationGroups(body, "header navigation");
+
+    assert.deepEqual(
+      groups.map((group) => [group.id, group.label, group.links.map((link) => [link.label, link.path])]),
+      EXPECTED_NAVIGATION_GROUPS.map((group) => [group.id, group.label, group.links]),
+      "header navigation: audience grouping or a route label changed.",
+    );
+
+    for (const group of groups) {
+      assert.equal(group.labelledBy, group.id, `header navigation: ${group.id} list lost its accessible name.`);
+      assert.equal(
+        body.split(`id="${group.id}"`).length - 1,
+        1,
+        `header navigation: ${group.id} must be a unique label target.`,
+      );
+    }
+  });
+
+  await t.test("keeps every grouped route reachable and leaves private routes out", async () => {
+    const { body } = await render("/");
+    const paths = navigationLinks(body, "header navigation").map((link) => link.path);
+
+    for (const path of paths) {
+      const route = await render(path);
+      assert.equal(route.response.status, 200, `header navigation: ${path} no longer resolves.`);
+    }
+    for (const path of ["/admin", "/setup", "/planning"]) {
+      assert.ok(!paths.includes(path), `header navigation: ${path} must stay out of the main navigation.`);
+    }
+    assert.ok(body.includes('<a class="nav-download" href="/downloads/'), "header navigation: JAR shortcut is missing.");
+  });
+
+  await t.test("stays usable without JavaScript and marks exactly one current route", async () => {
+    const nav = elementBodyById((await render("/catalog")).body, "primary-nav", "header navigation");
+    assert.doesNotMatch(nav, /<button|<details|onclick=/i, "header navigation: menus must remain pure HTML and CSS.");
+
+    const marked = navigationLinks((await render("/catalog?page=2")).body, "header navigation").filter((link) => link.current);
+    assert.deepEqual(
+      marked.map((link) => link.path),
+      ["/catalog"],
+      "header navigation: exactly one grouped route may be the current page.",
+    );
+
+    const itemPage = navigationLinks((await render(`/items/${ANCHOR_ITEM_ID}`)).body, "header navigation");
+    assert.deepEqual(
+      itemPage.filter((link) => link.current).map((link) => link.path),
+      ["/catalog"],
+      "header navigation: item detail pages must stay under the catalog route.",
+    );
+  });
+
+  await t.test("moves the home route onto the brand link", async () => {
+    const home = await render("/");
+    assert.ok(
+      home.body.includes('<a class="brand-link" href="/" aria-label="返回 TalexSoulTech 首页" aria-current="page">'),
+      "header navigation: the brand link must mark the home route.",
+    );
+    assert.deepEqual(
+      navigationLinks(home.body, "header navigation").filter((link) => link.current),
+      [],
+      "header navigation: home must not duplicate itself inside an audience group.",
+    );
+
+    const docs = await render("/docs");
+    assert.ok(
+      docs.body.includes('<a class="brand-link" href="/" aria-label="返回 TalexSoulTech 首页">'),
+      "header navigation: the brand link must only be current on the home route.",
+    );
+  });
+});
+
+test("SSR redirects the retired /guide path to /docs", async (t) => {
+  for (const path of ["/guide", "/guide/"]) {
+    await t.test(path, async () => {
+      const url = new URL(path, ORIGIN);
+      const response = await renderSsrRequest(new Request(url.href), staticSsrEnvironment(), url);
+      assert.ok(response, `${path}: SSR must handle the redirect.`);
+      assert.equal(response.status, 301, `${path}: expected a permanent redirect.`);
+      assert.equal(response.headers.get("location"), "/docs", `${path}: redirect target changed.`);
+      assert.match(
+        response.headers.get("cache-control") ?? "",
+        PUBLIC_CACHE_CONTROL,
+        `${path}: redirect must be cacheable.`,
+      );
+    });
+  }
+
+  await t.test("keeps the redirect out of discovery artifacts", async () => {
+    const sitemap = await render("/sitemap.xml");
+    assert.ok(!sitemap.body.includes(`<loc>${ORIGIN}/guide</loc>`), "/sitemap.xml: redirect source must not be listed.");
+
+    const docs = await render("/docs");
+    assertPublicHtml(docs, "/docs");
+    assert.ok(!docs.body.includes('href="/guide"'), "/docs: no page may link to the redirect source.");
+  });
+});
+
 test("SSR private routes are no-store and noindex", async (t) => {
   for (const route of PRIVATE_ROUTES) {
     await t.test(route.path, async () => {
@@ -266,6 +446,104 @@ test("SSR private routes are no-store and noindex", async (t) => {
       assert.ok(result.body.includes(route.marker), `${route.path}: expected private route content is missing.`);
     });
   }
+});
+
+test("SSR admin page carries the frozen telemetry mount contract", async (t) => {
+  await t.test("mounts the panel last and loads its script", async () => {
+    const result = await render("/admin");
+    assertPrivateHtml(result, "/admin telemetry mount");
+    assert.ok(result.body.includes(TELEMETRY_MOUNT), "/admin: the frozen telemetry mount markup changed.");
+    assert.ok(
+      mainBody(result.body, "/admin").endsWith(TELEMETRY_MOUNT),
+      "/admin: the telemetry mount must stay the last section of the page body.",
+    );
+    assert.deepEqual(
+      scriptSources(result.body),
+      ["/shell.js", "/admin.js", "/admin-telemetry.js"],
+      "/admin: the telemetry script include changed.",
+    );
+  });
+
+  await t.test("hands the telemetry script to the asset pipeline", async () => {
+    const url = new URL("/admin-telemetry.js", ORIGIN);
+    const response = await renderSsrRequest(new Request(url.href), staticSsrEnvironment(), url);
+    assert.equal(response, null, "/admin-telemetry.js: SSR must not shadow the static asset.");
+  });
+
+  await t.test("keeps the mount off every other route", async () => {
+    for (const path of ["/", "/docs", "/console", "/setup", "/not-a-real-route"]) {
+      const { body } = await render(path);
+      assert.ok(!body.includes('id="telemetry-panel"'), `${path}: telemetry mount leaked outside /admin.`);
+      assert.ok(!body.includes("admin-telemetry.js"), `${path}: telemetry script leaked outside /admin.`);
+    }
+  });
+});
+
+test("/download publishes release identity that matches the shipped artifacts", async () => {
+  const result = await render("/download");
+  assertPublicHtml(result, "/download release identity");
+  const identity = elementBodyById(result.body, "release-identity", "/download release identity");
+
+  const jarSha256 = fileDigest(JAR_URL.slice(1), "sha256");
+  assert.equal(RUNTIME_RELEASE.jarSha256, jarSha256, "/download: release metadata diverged from the shipped JAR.");
+
+  const packManifest = JSON.parse(readFileSync(`${PUBLIC_DIR}assets/TalexSoulTech-resource-pack.manifest.json`, "utf8"));
+  const packPath = `assets/${packManifest.filename}`;
+  const packSha1 = fileDigest(packPath, "sha1");
+  const packSha256 = fileDigest(packPath, "sha256");
+  assert.equal(packSha256, packManifest.archive.sha256, "/download: the shipped resource pack diverged from its manifest.");
+
+  for (const [term, value] of [
+    ["发行版本", RUNTIME_RELEASE.version],
+    ["JAR SHA-256", jarSha256],
+    ["资源包版本", packManifest.version],
+    ["资源包 SHA-1", packSha1],
+    ["资源包 SHA-256", packSha256],
+  ]) {
+    assert.ok(identity.includes(`<dt>${term}</dt>`), `/download: the ${term} row is missing.`);
+    assert.ok(identity.includes(escapedHtml(value)), `/download: ${term} does not publish ${value}.`);
+  }
+
+  assert.ok(identity.includes(`href="${JAR_URL}" download`), "/download: the JAR address is missing.");
+  assert.ok(identity.includes(`href="/${packPath}" download`), "/download: the resource pack address is missing.");
+  assert.ok(identity.includes(`href="${CHANGELOG_URL}"`), "/download: the changelog link is missing.");
+  assert.match(identity, /rel="noopener noreferrer"/, "/download: the external changelog link lost its rel guard.");
+});
+
+test("Client enhancement stays opt-in and loads its data modules on demand", async (t) => {
+  await t.test("only enhanced page kinds request app.js", async () => {
+    for (const path of ENHANCED_ROUTES) {
+      const { body } = await render(path);
+      assert.ok(scriptSources(body).includes("/app.js"), `${path}: enhancement script is missing.`);
+    }
+    for (const path of SLIM_ROUTES) {
+      const { body } = await render(path);
+      assert.deepEqual(
+        scriptSources(body).filter((source) => source !== "/shell.js" && source !== "/admin.js" && source !== "/admin-telemetry.js"),
+        [],
+        `${path}: a slim page must not pull the enhancement bundle.`,
+      );
+    }
+  });
+
+  await t.test("app.js imports the data modules dynamically", () => {
+    const source = readFileSync(`${PUBLIC_DIR}app.js`, "utf8");
+    assert.doesNotMatch(
+      source,
+      /(?:^|\n)import[\s{*"']/,
+      "app.js: a static import puts the data modules on every enhanced page.",
+    );
+    for (const module of ["./data/catalog.js", "./data/progression.js", "./data/content.js"]) {
+      assert.ok(source.includes(`import("${module}")`), `app.js: ${module} is no longer loaded on demand.`);
+    }
+  });
+
+  await t.test("the pre-SSR single-page client is gone", () => {
+    assert.ok(!existsSync(`${PUBLIC_DIR}index.html`), "public/index.html: the dead pre-SSR client must stay deleted.");
+    for (const asset of ["app.js", "shell.js", "admin.js", "styles.css", "routes.css"]) {
+      assert.ok(existsSync(`${PUBLIC_DIR}${asset}`), `public/${asset}: SSR pages still reference this asset.`);
+    }
+  });
 });
 
 test("SSR catalog filters results, normalizes controls, and pages 24 items", async (t) => {

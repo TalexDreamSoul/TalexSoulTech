@@ -1,4 +1,5 @@
 import { renderSsrRequest } from "./ssr.js";
+import { handleAdminTelemetry, planTelemetry, telemetryResponseFields } from "./telemetry.js";
 
 const TEXT_ENCODER = new TextEncoder();
 const TEXT_DECODER = new TextDecoder("utf-8", { fatal: true });
@@ -284,7 +285,8 @@ export class SyncCoordinator {
 
     const snapshotId = randomIdentifier("snp_");
     const eventId = randomIdentifier("evt_");
-    const results = await this.env.DB.batch([
+    const telemetry = planTelemetry(this.env.DB, payload.serverId, payload.telemetry, now);
+    const snapshotStatements = [
       this.env.DB.prepare(
         `INSERT INTO server_snapshots (
           id, server_id, sequence, sent_at, received_at, payload_hash,
@@ -366,9 +368,10 @@ export class SyncCoordinator {
          SET last_used_at = ?
          WHERE id = ? AND server_id = ? AND key_hash = ? AND revoked_at IS NULL`,
       ).bind(now, apiKey.id, payload.serverId, apiKey.keyHash),
-    ]);
+    ];
+    const results = await this.env.DB.batch([...snapshotStatements, ...telemetry.statements]);
 
-    if (results.some((result) => Number(result.meta.changes) !== 1)) {
+    if (results.slice(0, snapshotStatements.length).some((result) => Number(result.meta.changes) !== 1)) {
       const keyStillActive = await this.env.DB.prepare(
         `SELECT id
          FROM server_api_keys
@@ -387,6 +390,7 @@ export class SyncCoordinator {
       accepted: true,
       sequence: payload.sequence,
       serverTime: now,
+      ...telemetryResponseFields(telemetry),
     });
   }
 }
@@ -408,6 +412,11 @@ async function handleApiRequest(request, env, url) {
   if (pathname === "/api/admin/summary") {
     requireMethod(request, "GET");
     return getAdminSummary(request, env);
+  }
+
+  if (pathname === "/api/admin/telemetry") {
+    requireMethod(request, "GET");
+    return handleAdminTelemetry(request, env, url, { ApiError, jsonResponse, requireAuthenticatedUser });
   }
 
   if (pathname === "/api/auth/register") {
@@ -1973,15 +1982,11 @@ function validatePairingCode(value) {
 }
 
 function validateSyncPayload(payload) {
-  assertKeys(payload, [
-    "serverId",
-    "sequence",
-    "sentAt",
-    "server",
-    "players",
-    "systems",
-    "catalog",
-  ]);
+  assertKeys(
+    payload,
+    ["serverId", "sequence", "sentAt", "server", "players", "systems", "catalog"],
+    ["telemetry"],
+  );
 
   if (typeof payload.serverId !== "string" || !SERVER_ID_PATTERN.test(payload.serverId)) {
     throw new ApiError(400, "invalid_server_id", "服务器标识格式不正确");
@@ -1990,7 +1995,7 @@ function validateSyncPayload(payload) {
     throw new ApiError(400, "invalid_sequence", "同步序号必须是非负安全整数");
   }
 
-  return {
+  const validated = {
     serverId: payload.serverId,
     sequence: payload.sequence,
     sentAt: validateTimestamp(payload.sentAt),
@@ -1999,6 +2004,12 @@ function validateSyncPayload(payload) {
     systems: validateSnapshotValue(payload.systems),
     catalog: validateSnapshotValue(payload.catalog),
   };
+  // Telemetry is validated in planTelemetry, where a malformed block is skipped instead of
+  // rejecting the snapshot it rides along with.
+  if (payload.telemetry !== undefined) {
+    validated.telemetry = payload.telemetry;
+  }
+  return validated;
 }
 
 function validateTimestamp(value) {

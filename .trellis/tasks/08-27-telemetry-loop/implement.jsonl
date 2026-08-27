@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/system-invariants.md", "reason": "Runtime, electricity, sync and release invariants — authoritative"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Package ownership rules"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "MySQL/D1/migration patterns"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Exception and degraded-mode conventions"}
+{"file": ".trellis/tasks/08-27-telemetry-loop/design.md", "reason": "Frozen payload/DDL/boundary contract"}

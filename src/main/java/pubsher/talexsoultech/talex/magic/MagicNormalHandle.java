@@ -3,6 +3,7 @@ package pubsher.talexsoultech.talex.magic;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -88,7 +89,13 @@ public class MagicNormalHandle extends BaseHandle {
 
                 }
 
-                entity.playEffect(EntityEffect.HURT);
+                if ( entity instanceof LivingEntity ) {
+
+                    LivingEntity livingEntity = (LivingEntity) entity;
+
+                    livingEntity.playHurtAnimation(0F);
+
+                }
 
             }
 
