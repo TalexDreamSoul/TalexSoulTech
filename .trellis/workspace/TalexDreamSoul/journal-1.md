@@ -232,7 +232,7 @@ Sessions 3 and 4 both ended on the same open item: no balance decision could be 
 
 ### Deliberate non-release
 
-The plugin build `b107467d8a29343d6032d17925ddf31af69b866cadcb73e67a479ef310a91210` passes every automated test but has never started a real Paper server; no Paper runtime exists on this machine. Publishing it would have violated the established gate of isolated Paper start/cycle/stop before release. The download page was therefore restored to the production-validated `c1b7a1cae5372944219b07df5396496d422d676e09c97a9b41ce547a0e2df8ef`, and `site/public/data/runtime-catalog.js` plus `downloads/manifest.json` were reverted to match. The candidate JAR is staged at `/tmp/soultech-staged/` and must be rebuilt from source for the actual release.
+The plugin build `828317d3ead7e0ba618650bc4bcc39ad5f5427280a7d4a1e219b80e6e1ae01c0` passes every automated test but has never started a real Paper server; no Paper runtime exists on this machine. Publishing it would have violated the established gate of isolated Paper start/cycle/stop before release. The download page was therefore restored to the production-validated `c1b7a1cae5372944219b07df5396496d422d676e09c97a9b41ce547a0e2df8ef`, and `site/public/data/runtime-catalog.js` plus `downloads/manifest.json` were reverted to match. The candidate JAR is staged at `/tmp/soultech-staged/` and must be rebuilt from source for the actual release.
 
 ### Remaining
 
@@ -240,3 +240,14 @@ The plugin build `b107467d8a29343d6032d17925ddf31af69b866cadcb73e67a479ef310a912
 - Telemetry produces no data until that plugin build reaches production; the `/admin` panel will show its empty state until then.
 - Pre-existing `ChatColor` deprecation in `TalexSoulTech.java` is untouched P2 debt.
 - CI omits `test/api-contract.mjs` because it needs a live Worker and wrangler is not a declared dependency; enabling it needs a pinned devDependency plus a boot script.
+
+### Post-review corrections
+
+Two review passes landed after the first commit and are worth recording because both were data-correctness defects, not style:
+
+- `tool_use` was counted in the shared `PoweredEquipmentService.consumeSlot`, which four `PoweredWearableController` call sites invoke as per-tick upkeep at 4 Hz per player. One player in a full wearable loadout would have produced roughly 72,000 counts per hour against a single count for a real drill right-click. A separate `consumeUpkeep` path now carries the upkeep sites and only discrete actions are counted.
+- `produce` was counted in `MachineInventoryOps.insert`, whose only three call sites (item accretion machine, dimensional anchor) vacuum existing world drops. That billed the same item twice: once when it was actually made, again when it was picked up. Only `transform` counts as production now.
+
+Both would have silently corrupted the first real dataset, which is the entire reason this wave exists. The telemetry-vs-snapshot atomicity question raised in review was already handled: telemetry upserts carry `WHERE EXISTS (SELECT 1 FROM server_snapshots WHERE id = ?)` against the freshly generated snapshot ID, so counts land only when the snapshot in the same batch lands. Verified empirically against local D1 in both directions — a valid snapshot ID admits the write, an orphan ID silently writes nothing.
+
+Final candidate JAR: `828317d3ead7e0ba618650bc4bcc39ad5f5427280a7d4a1e219b80e6e1ae01c0`, 91/91 tests.
