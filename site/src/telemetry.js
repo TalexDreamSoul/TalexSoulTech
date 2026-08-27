@@ -161,7 +161,10 @@ function validateTelemetry(raw) {
   if (raw.v !== TELEMETRY_VERSION) {
     return { ok: false, reason: "unsupported_version" };
   }
-  if (!Array.isArray(raw.days) || raw.days.length > MAX_TELEMETRY_DAYS) {
+  if (!Array.isArray(raw.days)) {
+    return { ok: false, reason: "invalid_shape" };
+  }
+  if (raw.days.length > MAX_TELEMETRY_DAYS) {
     return { ok: false, reason: "too_many_days" };
   }
 
@@ -220,7 +223,9 @@ function validateTelemetry(raw) {
 
 function telemetryStatements(db, serverId, telemetry, now, snapshotId) {
   const entries = [];
-  const orderedDays = [...telemetry.days].sort((left, right) => compareStrings(left.day, right.day));
+  // Newest day first: the plugin zeroes its counters once a drain is accepted, so whatever the
+  // 2000-statement cap discards is lost for good. Spend the budget on the freshest day.
+  const orderedDays = [...telemetry.days].sort((left, right) => compareStrings(right.day, left.day));
 
   for (const entry of orderedDays) {
     for (const metric of Object.keys(entry.counters).sort(compareStrings)) {
