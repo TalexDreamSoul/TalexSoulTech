@@ -34,17 +34,18 @@ Turn every currently planned TalexSoulTech catalog entry into real Paper gamepla
 
 ## Acceptance Criteria
 
-- [ ] Exactly 810 catalog entries have a validated runtime mapping; all 761 previously planned entries are now marked implemented.
-- [ ] Existing 150 runtime IDs remain readable/usable; final runtime registry has the expected unique count and no silent aliases or overwrites.
-- [ ] Every new item is obtainable and has a recipe/process consumer or bounded active behavior.
-- [ ] All 27 guide disciplines and 270 families are reachable through valid prerequisites with no cycle or dead end.
-- [ ] W1–W9 each pass an observable end-to-end behavior gate, including injected failure and same-operation recovery without duplication.
-- [ ] All resource inputs are finite/accounted; water, magic, automation, transport, quantum and time paths cannot create free resources or skip costs.
-- [ ] All generated item models/textures load in a real client; no missing model, purple/black texture or unsafe vanilla fallback remains.
-- [ ] Java 25 Maven package, all Java tests, SSR tests and API contracts pass.
-- [ ] Isolated Paper start/cycle/graceful-stop/restart succeeds and the runtime command catalog matches generated documentation.
-- [ ] Mac Work source/artifact hashes match the authoritative worktree and real-client acceptance evidence is recorded.
-- [ ] Production remains untouched until the separate release gate is explicitly reached.
+- [x] Exactly 810 catalog entries have a validated runtime mapping; all 761 previously planned entries are now marked implemented.
+- [x] Existing 150 runtime IDs remain readable/usable; final runtime registry has the expected unique count and no silent aliases or overwrites.
+- [x] Every new item is obtainable and has a recipe/process consumer or bounded active behavior.
+- [x] All 27 guide disciplines and 270 families are reachable through valid prerequisites with no cycle or dead end.
+- [x] W1–W9 each pass an observable end-to-end behavior gate, including injected failure and same-operation recovery without duplication.
+- [x] All resource inputs are finite/accounted; water, magic, automation, transport, quantum and time paths cannot create free resources or skip costs.
+- [x] All generated item models/textures load in a real client; no missing model, purple/black texture or unsafe vanilla fallback remains.
+- [x] Java 25 Maven package, all Java tests, SSR tests and API contracts pass.
+- [x] Isolated Paper start/cycle/graceful-stop/restart succeeds and the runtime command catalog matches generated documentation.
+- [x] Mac Work source/artifact hashes match the authoritative worktree and real-client acceptance evidence is recorded.
+- [x] Production remains untouched until the separate release gate is explicitly reached.
+
 
 ## Non-Goals
 

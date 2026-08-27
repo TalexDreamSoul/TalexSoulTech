@@ -75,9 +75,19 @@ Each wave requires all 90 manifest entries, recipes, behavior bindings, state/fa
 
 ## Phase H — Release candidate
 
-- [ ] Freeze one candidate source identity.
-- [ ] Retain rollback JAR/config/data backup.
-- [ ] Confirm no online players or obtain explicit restart authorization.
-- [ ] Only then follow the production-convergence order for Worker, D1, Paper and real-client smoke.
+- [x] Freeze one candidate source identity.
+- [x] Retain rollback JAR/config/data backup.
+- [x] Confirm no online players or obtain explicit restart authorization.
+- [x] Only then follow the production-convergence order for Worker, D1, Paper and real-client smoke.
 
-Production deployment is not automatic from implementation completion.
+Production deployment is never automatic from implementation completion. This release crossed the separate gate only after explicit user approval, a clean source commit, zero online players, rollback capture, Worker live verification, and exact-artifact checks.
+
+## Release evidence
+
+- Source revision: `67309825d9991cbb3169feeff478365473dbbcda` on `main`/`origin/main`.
+- Plugin JAR: `c1b7a1cae5372944219b07df5396496d422d676e09c97a9b41ce547a0e2df8ef`; resource pack: `35e09443836eab46889cb1f485b805c215e9ceaa3cd6f19e46a7f437376b5fff`.
+- Cloudflare Worker: `ff98eb0a-4824-4fe8-94d1-cfed6170fe41`; D1 had no unapplied migrations.
+- Mac Work: Java 25 package and 76/76 tests, API 1/1, SSR 39/39, two deterministic asset runs, isolated Paper startup/restart, a real W5 state mutation, and a live producer/cable/storage/consumer transfer with measured loss.
+- Client assets: 93 in-game batches covered 834 custom models; 832 giveable models plus two dynamic guide models rendered without purple/black missing textures. The guide root rendered 9 waves and the machine entry.
+- Production: `wlcb1` had zero online players; the previous JAR/config/server properties were backed up, the JAR was atomically replaced, Paper returned healthy, RCON reported 926 runtime records and 301 facilities, cloud sync succeeded after restart, and quarantine remained empty.
+- Rollback JAR: `/opt/minecraft/rollback/TalexSoulTech-3.0.0-SNAPSHOT-20260827T025709Z-pre-6730982.jar` (`3aa8dfbe3a487a977de844fb3d286913e6ab0d66c6866e73d5f377904a05c7bb`).

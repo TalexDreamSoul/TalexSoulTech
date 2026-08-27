@@ -3,7 +3,7 @@
   "name": "full-catalog-runtime",
   "title": "Full catalog runtime implementation",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,16 +11,20 @@
   "creator": "TalexDreamSoul",
   "assignee": "TalexDreamSoul",
   "createdAt": "2026-08-25",
-  "completedAt": null,
-  "branch": null,
+  "completedAt": "2026-08-27",
+  "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "67309825d9991cbb3169feeff478365473dbbcda",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "Released full 810-entry runtime to Cloudflare and wlcb1 after Mac Work client acceptance.",
+  "meta": {
+    "jarSha256": "c1b7a1cae5372944219b07df5396496d422d676e09c97a9b41ce547a0e2df8ef",
+    "resourcePackSha256": "35e09443836eab46889cb1f485b805c215e9ceaa3cd6f19e46a7f437376b5fff",
+    "workerVersion": "ff98eb0a-4824-4fe8-94d1-cfed6170fe41"
+  }
 }

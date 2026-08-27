@@ -181,3 +181,23 @@ The 54-path dirty workspace was fully attributed and split into three commits: r
 
 No balance number was changed from synthetic acceptance alone. The next tuning decision requires observed survival acquisition time, charge cadence, and tool-use telemetry from normal players; the current evidence only proves correctness and bounded performance.
 
+
+## Session 4: Full 810-entry runtime and Production release
+
+### Release identity
+
+- Source revision: `67309825d9991cbb3169feeff478365473dbbcda`.
+- Exact production JAR: `c1b7a1cae5372944219b07df5396496d422d676e09c97a9b41ce547a0e2df8ef`.
+- Resource pack: `35e09443836eab46889cb1f485b805c215e9ceaa3cd6f19e46a7f437376b5fff` (`SHA-1 757d492fb9f9fd793ec31bc1847500490bd14c53`).
+- Worker revision: `ff98eb0a-4824-4fe8-94d1-cfed6170fe41`; remote D1 had no pending migration.
+- Rollback JAR: `/opt/minecraft/rollback/TalexSoulTech-3.0.0-SNAPSHOT-20260827T025709Z-pre-6730982.jar`, hash `3aa8dfbe3a487a977de844fb3d286913e6ab0d66c6866e73d5f377904a05c7bb`.
+
+### Verification and release
+
+- The manifest validates 810 catalog entries, 34 explicit legacy mappings, 776 new registrations, 150 preserved baseline records, 926 runtime records, 27 disciplines, 270 families, and nine waves.
+- Mac Work passed Java 25 Maven package with 76/76 tests, SSR 39/39, API 1/1, deterministic asset regeneration, isolated Paper restart, W5 state mutation, and a real producer/cable/storage/consumer transfer with measured loss.
+- The real 26.1.2 client captured 93 batches covering 834 custom models. All 832 giveable models and the two dynamic guide models rendered without missing textures; the guide root showed nine wave entries and the machine entry.
+- Live browser verification found and forward-fixed the stale 49/761 catalog status. Production now renders 810 implemented and zero planned entries; W3 filtering returns a full 24-row page, no-JS SSR remains usable, and the mobile table/discipline strips scroll internally without page-level horizontal movement.
+- Production `wlcb1` had zero online players. The prior JAR/config/server properties were backed up, the candidate was uploaded through `/tmp`, written as `.new`, hash-checked, atomically moved, and restarted. The restart completed after the expected slow Paper shutdown/start window; the container returned healthy.
+- Production RCON reports TalexSoulTech enabled, 926 runtime records, 301 facilities, an active two-tick electricity cycle, successful post-restart cloud sync, and zero online players. PluginManager quarantine remained empty.
+- `server.properties` now advertises the exact public resource-pack URL with matching SHA-1 while retaining `require-resource-pack=false` for safe fallback.
