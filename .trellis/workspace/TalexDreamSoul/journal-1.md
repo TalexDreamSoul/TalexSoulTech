@@ -251,3 +251,27 @@ Two review passes landed after the first commit and are worth recording because 
 Both would have silently corrupted the first real dataset, which is the entire reason this wave exists. The telemetry-vs-snapshot atomicity question raised in review was already handled: telemetry upserts carry `WHERE EXISTS (SELECT 1 FROM server_snapshots WHERE id = ?)` against the freshly generated snapshot ID, so counts land only when the snapshot in the same batch lands. Verified empirically against local D1 in both directions — a valid snapshot ID admits the write, an orphan ID silently writes nothing.
 
 Final candidate JAR: `828317d3ead7e0ba618650bc4bcc39ad5f5427280a7d4a1e219b80e6e1ae01c0`, 91/91 tests.
+
+### Isolated Paper smoke test (2026-08-27)
+
+The release gate item that was previously blocked "no Paper runtime on this machine" is now satisfied. Paper is freely downloadable, so an isolated server was stood up locally rather than deferring the whole gate.
+
+Environment: Paper 26.1.2 build 74, SHA-256 `1d70b1dab9cf4a6de615209a536f3a45a2186240253c428213ce2188ab95e5f7`, fetched from the v3 fill API (the v2 API is sunset). Temurin JDK 25.0.4.1+1 installed to `~/Library/Java/JavaVirtualMachines/` so `/usr/libexec/java_home -v 25` resolves it — this machine previously had only JDK 17 and 8, which is why earlier sessions could not build. Isolated server on port 25599, offline mode, flat world, no cloud configuration.
+
+Candidate under test: `828317d3ead7e0ba618650bc4bcc39ad5f5427280a7d4a1e219b80e6e1ae01c0`.
+
+Observed across two full start/stop cycles:
+
+- Enable succeeded in 7.8 s and 6.5 s. `Electrical equipment catalog ready: 47 portable, 3 wireless, 24 active tools.` and `Machine catalog ready: 38 total (legacy=5, powered-multiblock=33); electricity grid active.`
+- `tst machines` reported 301 facilities (5 legacy, 33 multiblock, 263 manifest) — identical to the count production RCON reports.
+- `tst items` paginated to 93 pages, consistent with the 926-record runtime registry.
+- `tst power` showed the grid settling every 2 ticks on the primary thread, cycle #729 then #790 after restart, 0.006 ms per cycle.
+- `tst cloud status` correctly reported disabled/unpaired/idle with no cloud configuration present.
+- Generated `config.yml` contains the new `Settings.telemetry.enabled: true` block with its comment.
+- Graceful `stop` completed twice; all five plugin data files persisted, including `caches/Machines.yml` and `caches/block_caches.yml`, proving the disable/save path runs to completion. Both JVMs exited; no process or port remained.
+- Restart loaded the persisted state cleanly.
+- Zero exceptions, zero `at pubsher.` stack frames, and zero `Electricity cycle failed` across 253 log lines in both runs.
+
+Not covered by this test and still required before a production cutover: real-client acceptance (resource-pack textures and the migrated `playHurtAnimation` red flash both need a Minecraft client), telemetry end-to-end with an actual player generating actions, and the `wlcb1` cutover itself, which needs an owner-approved window with zero online players.
+
+The download page still advertises `c1b7a1ca` on purpose: the candidate now passes the isolated Paper gate but production has not been cut over, and the site should describe what production runs.
