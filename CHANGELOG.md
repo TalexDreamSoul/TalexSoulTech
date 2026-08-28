@@ -4,9 +4,9 @@
 
 两次发布的 Maven 版本号都是 `3.0.0-SNAPSHOT`，靠源修订与制品哈希区分。版本号将从下一个发布起采用正式语义化版本，不再复用同一个 SNAPSHOT 号。
 
-## [未发布]
+## [3.0.0-SNAPSHOT] - 2026-08-28
 
-站点侧已部署；插件侧候选构件 `828317d3ead7e0ba618650bc4bcc39ad5f5427280a7d4a1e219b80e6e1ae01c0` 已构建并通过 91/91 测试，但**尚未经过真机 Paper 冒烟测试**，因此下载页仍指向上一版生产制品 `c1b7a1ca...`。发布时应从源码重新构建，不要直接使用本地暂存件。
+玩法遥测闭环发布。同一窗口内修复了导致 08-28 宕机三小时的内存配置。
 
 ### 新增
 
@@ -24,6 +24,36 @@
 ### 移除
 
 - 删除失效的 SSR 之前时代的单页客户端 `site/public/index.html`。
+
+### 生产环境变更
+
+宿主此前处于 2.5 倍内存超额承诺且 `vm.swappiness=0`，于 08-28 08:36 因回收 livelock 宕机三小时。同一发布窗口内一并修复：
+
+- `vm.swappiness` 0 → 10（持久化到 `/etc/sysctl.d/99-swappiness.conf`），恢复 2 GiB swap 压力阀。
+- Minecraft 容器加内存上限 `mem_limit: 3800m` / `memswap_limit: 4300m`，写入 compose 以免重建丢失。
+- JVM 堆 `MEMORY: 3G` → `2500M`。
+- 回收磁盘：删除未使用的 `itzg/minecraft-server:java21` 镜像及其快照层。
+
+效果：`MemAvailable` 757 MiB → 1,328 MiB；swap 从 0 B 开始被使用；磁盘 83% → 79%（空闲 6.5G → 8.1G）。
+
+### 发布身份
+
+| 项 | 值 |
+|---|---|
+| 源修订 | `733e636` |
+| JAR SHA-256 | `828317d3ead7e0ba618650bc4bcc39ad5f5427280a7d4a1e219b80e6e1ae01c0`（7,522,832 字节） |
+| 资源包 SHA-256 | `35e09443836eab46889cb1f485b805c215e9ceaa3cd6f19e46a7f437376b5fff`（未变更） |
+| Worker 修订 | `c28ed26f-5539-4802-b86f-b3649730f9c8` |
+| 远端 D1 | `0005_telemetry.sql` 已应用 |
+| 回滚 JAR | `/opt/minecraft/rollback/TalexSoulTech-3.0.0-SNAPSHOT-20260827T025709Z-pre-6730982.jar` |
+| 回滚 compose | `/opt/minecraft/rollback/docker-compose-20260828T052536Z-pre-828317d3.yml` |
+
+### 验证
+
+- Java 25 Maven package：91/91 测试通过；站点 SSR 57/57，API 合约通过（含遥测入库、序号重放幂等、网关鉴权）。
+- 隔离 Paper 26.1.2 build 74 冒烟：两轮启停、301 台设施、电网 2 tick/0.006 ms、存档往返、零异常。
+- 生产 `wlcb1` 零在线玩家下部署重启：插件 ENABLED、301 台设施、电网恢复真实存档（1 网络 3 端点 2 导线）、云同步已配对且成功、TPS 20.0/20.0/20.0。
+- 下载页发布件与生产运行件哈希一致。
 
 ## [3.0.0-SNAPSHOT] - 2026-08-27
 
