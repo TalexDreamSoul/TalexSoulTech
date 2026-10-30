@@ -2,7 +2,7 @@
 
 本文件记录 TalexSoulTech 的生产发布，格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，最新的在最前。
 
-两次发布的 Maven 版本号都是 `3.0.0-SNAPSHOT`，靠源修订与制品哈希区分。版本号将从下一个发布起采用正式语义化版本，不再复用同一个 SNAPSHOT 号。
+三次发布的 Maven 版本号都是 `3.0.0-SNAPSHOT`，靠源修订与制品哈希区分。版本号将从下一个发布起采用正式语义化版本，不再复用同一个 SNAPSHOT 号。
 
 ## [3.0.0-SNAPSHOT] - 2026-08-28
 
